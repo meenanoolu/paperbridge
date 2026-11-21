@@ -1,1 +1,19 @@
 @import "tailwindcss";
+
+@layer base {
+  html {
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", Arial, sans-serif;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-stone-50 text-lg leading-relaxed text-slate-950 antialiased;
+  }
+  :focus-visible {
+    outline: 4px solid #0f172a;
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+  .on-dark :focus-visible {
+    outline-color: #fde047;
+  }
+}

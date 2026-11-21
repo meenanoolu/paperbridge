@@ -38,8 +38,8 @@ Requirement references use the numbering in `requirements.md`.
   - [x] 7.1 Webcam loop with stable-scan detection and typed permission errors _(R3.1-R3.3)_
   - [x] 7.2 Image upload path _(R3.4)_
 
-- [ ] 8. Shell UI
-  - [ ] 8.1 App switcher (Elder Care / Study Bridge), shared `SamplePanel`, `Scanner`, `PrintButton` components _(R8.2)_
+- [x] 8. Shell UI
+  - [x] 8.1 App switcher (Elder Care / Study Bridge), shared `SamplePanel`, `Scanner`, `PrintButton` components _(R8.2)_
 
 - [ ] 9. Elder Care Bridge
   - [ ] 9.1 Weekly layout and large-print styling _(R5.1, R5.2)_

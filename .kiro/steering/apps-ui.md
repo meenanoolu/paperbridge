@@ -5,7 +5,8 @@ fileMatchPattern: "src/apps/**"
 # App UI Rules (`src/apps/**`)
 
 ## Boundaries
-- Apps import only from `src/core` public exports (`src/core/index.ts`). No deep imports, no copying core math.
+- Apps import only from `src/core` public exports (`src/core/index.ts`) and shared UI in `src/shell/`. No deep imports into core, no copying core math.
+- Build each app page on `src/shell/components/ScanWorkbench.tsx` so the sample panel, webcam, upload, print, and decode preview behave the same in every app.
 - Each app owns: its `CardLayout` definition, its result interpretation (adherence, grading), its sample cards, and its UI.
 - Apps never send scan data off-device. No logins, no cloud uploads.
 

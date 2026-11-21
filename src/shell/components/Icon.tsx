@@ -1,0 +1,37 @@
+const PATHS = {
+  check: "M5 12.5l4.5 4.5L19 7.5",
+  cross: "M6 6l12 12M18 6L6 18",
+  alert: "M12 3l10 18H2L12 3zm0 7v4m0 3.5v.5",
+  question: "M9 9a3 3 0 1 1 4.5 2.6c-.9.5-1.5 1.2-1.5 2.4m0 3.5v.5",
+  camera: "M4 8h3l2-3h6l2 3h3v11H4V8zm8 9a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
+  upload: "M12 16V4m0 0l-5 5m5-5l5 5M4 15v5h16v-5",
+  printer: "M7 9V3h10v6M7 17H4v-7h16v7h-3M7 14h10v7H7v-7z",
+  sparkle: "M12 3v6m0 6v6M3 12h6m6 0h6",
+  drop: "M12 3c4 5 6 8 6 11a6 6 0 0 1-12 0c0-3 2-6 6-11z",
+  bolt: "M13 2L4 14h7l-1 8 9-12h-7l1-8z",
+  pill: "M8.5 15.5l7-7m-9.9 9.9a4.95 4.95 0 0 1 0-7l5-5a4.95 4.95 0 1 1 7 7l-5 5a4.95 4.95 0 0 1-7 0z",
+  book: "M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5zm0 16a2 2 0 0 1 2-2h13",
+  heart: "M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z",
+  calendar: "M4 6h16v14H4V6zm0 4h16M8 3v4m8-4v4",
+} as const;
+
+export type IconName = keyof typeof PATHS;
+
+export function Icon({ name, className = "h-6 w-6", label }: { name: IconName; className?: string; label?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.4}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      role={label ? "img" : undefined}
+      aria-label={label}
+      aria-hidden={label ? undefined : true}
+    >
+      <path d={PATHS[name]} />
+    </svg>
+  );
+}
