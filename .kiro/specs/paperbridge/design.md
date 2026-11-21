@@ -119,14 +119,22 @@ interface CareReport { adherencePct: number; taken: number; scheduled: number;
 ## 11. Crew App (`crew-app/`)
 ```
 crew-app/
-  app.json                      name: paperbridge-care-monitor; permissions: api, events, storage
-  agents/care-auditor.json      agent that reviews scan alerts and drafts caregiver summaries
-  skills/adherence-analysis/SKILL.md
-  ui/index.html, main.ts        dashboard using @kirocrew/app-sdk
+  app.json                           name paperbridge-care-monitor; agents, skills, ui, permissions, contributes.commands
+  agents/care-auditor.json           drafts plain-language caregiver check-ins from an alert
+  skills/adherence-analysis/SKILL.md alert format, PaperBridge thresholds, escalation rules
+  icon.png                           256x256 App Store icon
+  ui/src/App.tsx                     default-export page (the host mounts it with React.lazy)
+  ui/src/sdk.ts                      the only file that imports @kirocrew/app-sdk
+  ui/src/alerts.ts                   pure parse / dedupe / storage / prompt logic
+  ui/dist/index.mjs                  committed bundle (Crew installs without node_modules)
 ```
-- The dashboard subscribes to `paperbridge:scan-alert` events through the SDK `events` API, persists the list with SDK `storage`, and calls the `api` surface to hand alerts to the `care-auditor` agent.
-- The exact `app.json` schema and SDK method names will be confirmed against Kiro Crew documentation before implementation (task 11.1). Where docs are unavailable, the SDK is wrapped behind `crew-app/ui/sdk.ts` so only one file changes.
-- Alert payload contains aggregate data only (adherence %, missed slots, flags), no images.
+Verified against the Crew docs and the KiroCrew sources (`website/src/app-sdk/index.ts`, `website/src/components/AppHost.tsx`):
+- `ui.entry` and `ui.pages[].iconUrl` resolve against `ui/`, so the entry is `dist/index.mjs`.
+- The page is the bundle's default export. React, `react/jsx-runtime`, `lucide-react` and `@kirocrew/app-sdk(/ui)` come from the host import map and stay external. The UI package must not install `react`, or tests load two React copies.
+- `useChatLauncher()` returns `{ openChat, createChat }`. "Draft Caregiver Check-In" calls `openChat({ agent: "care-auditor", message, autoSend: false })`, so the caregiver reviews the draft before it is sent.
+- `contributes.commands[].agent` must name one of this app's agents.
+- Alerts arrive from `notification` events, a `/api/notifications` backfill, same-window `paperbridge:scan-alert` events, paste, or the demo button. They are validated, deduplicated by `cardId@scannedAt`, and stored in `localStorage` under `kirocrew.app.<name>.alerts.v1`. `useNavBadge(openCount)` keeps the sidebar badge in sync.
+- Alerts carry aggregate data only (no images, no bubbles). A root test checks that every sample alert passes the Crew parser unchanged.
 
 ## 12. Tooling
 - Vite + React + TS, Tailwind CSS, Vitest, fast-check, pdf-lib.
@@ -138,6 +146,6 @@ crew-app/
 |---|---|
 | Fiducial detection fragile under heavy shadow | Local thresholding plus nested-ratio check; PBT covers shadows |
 | Perspective/rotation ambiguity | TL chosen by top-edge direction (valid under 45 degrees); ID strip rejects upside-down cards |
-| Kiro Crew SDK/schema unknown | Verify docs in task 11.1; isolate behind `sdk.ts` |
+| Kiro Crew SDK/schema drift | Verified against docs and sources in task 11.1; SDK isolated behind `sdk.ts`; bundle smoke test |
 | Test runtime too long | Small synthetic resolution (about 800 px), bounded `numRuns` |
 | Sample cards look fake to judges | Sample images include noise, perspective, and shadow produced by the same synth |

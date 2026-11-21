@@ -55,11 +55,11 @@ Requirement references use the numbering in `requirements.md`.
   - [x] 10.3 Sample sheet image and one-click scan _(R6.2)_
   - [x] 10.4 Results UI, offline verified _(R6.7)_
 
-- [ ] 11. Kiro Crew App
-  - [ ] 11.1 Check Kiro Crew docs for `app.json` schema and `@kirocrew/app-sdk` API; adjust design if needed
-  - [ ] 11.2 `crew-app/app.json` (`paperbridge-care-monitor`, permissions `api`, `events`, `storage`) _(R7.1)_
-  - [ ] 11.3 `crew-app/agents/care-auditor.json` and `crew-app/skills/adherence-analysis/SKILL.md` _(R7.2)_
-  - [ ] 11.4 `crew-app/ui/` dashboard with `sdk.ts` wrapper: subscribe, persist, list alerts _(R7.3, R7.4)_
+- [x] 11. Kiro Crew App
+  - [x] 11.1 Check Kiro Crew docs and sources for `app.json` schema and `@kirocrew/app-sdk` API; adjust design if needed (`ui.entry` relative to `ui/`, default-export page, `openChat({ agent, message, autoSend })`)
+  - [x] 11.2 `crew-app/app.json` (`paperbridge-care-monitor`, permissions `api`, `events`, `storage`) _(R7.1)_
+  - [x] 11.3 `crew-app/agents/care-auditor.json` and `crew-app/skills/adherence-analysis/SKILL.md` _(R7.2)_
+  - [x] 11.4 `crew-app/ui/` dashboard with `sdk.ts` wrapper: subscribe, persist, list alerts _(R7.3, R7.4)_
 
 - [ ] 12. Polish and submission
   - [ ] 12.1 Accessibility pass (contrast, focus, aria-live) _(R9.2)_

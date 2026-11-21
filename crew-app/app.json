@@ -1,0 +1,51 @@
+{
+  "name": "paperbridge-care-monitor",
+  "version": "0.1.0",
+  "displayName": "PaperBridge Care Monitor",
+  "description": "Caregiver inbox for PaperBridge paper care cards: adherence, missed-dose and symptom alerts, plus an agent that drafts the check-in call.",
+  "author": "meenanoolu",
+  "license": "MIT",
+  "repo": "paperbridge",
+  "tags": ["caregiving", "health", "medication", "paper", "accessibility"],
+  "highlights": [
+    "Collects PaperBridge Weekly Care Card scan alerts in one caregiver inbox",
+    "Adherence %, missed doses, symptom days, and unclear marks at a glance",
+    "Sidebar badge counts alerts that still need review",
+    "One click drafts a caregiver check-in with the care-auditor agent",
+    "Aggregate data only: no card images or raw bubbles leave PaperBridge",
+    "Try it instantly with the built-in demo alert"
+  ],
+  "iconPath": "icon.png",
+  "agents": ["agents/care-auditor.json"],
+  "skills": ["skills/adherence-analysis"],
+  "ui": {
+    "entry": "dist/index.mjs",
+    "pages": [
+      {
+        "route": "/apps/paperbridge-care-monitor",
+        "label": "PaperBridge Care",
+        "icon": "HeartPulse",
+        "iconUrl": "icon.svg"
+      }
+    ]
+  },
+  "permissions": {
+    "api": ["/api/status", "/api/notifications"],
+    "events": ["notification", "task_complete"],
+    "storage": true,
+    "network": false
+  },
+  "contributes": {
+    "commands": [
+      {
+        "id": "audit-latest-care-card",
+        "title": "Audit latest PaperBridge care card",
+        "subtitle": "Draft a caregiver check-in",
+        "icon": "HeartPulse",
+        "keywords": ["paperbridge", "adherence", "medication", "care card", "caregiver"],
+        "agent": "care-auditor",
+        "prompt": "Load the adherence-analysis skill. Review the most recent PaperBridge Weekly Care Card alert I share or paste here (the paperbridge:scan-alert JSON from the PaperBridge Care page), then draft a short, warm caregiver check-in: what went well, what to ask about, and anything that needs a call to the doctor."
+      }
+    ]
+  }
+}
