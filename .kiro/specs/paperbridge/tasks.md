@@ -63,6 +63,6 @@ Requirement references use the numbering in `requirements.md`.
 
 - [ ] 12. Polish and submission
   - [x] 12.1 Accessibility pass (contrast, focus, aria-live) _(R9.2)_
-  - [ ] 12.2 Performance check: 1280x720 decode under 500 ms _(R9.1)_
+  - [x] 12.2 Performance check: 1280x720 decode under 500 ms _(R9.1)_
   - [ ] 12.3 Update README notes on how Kiro features (specs, steering, hooks, crew app) were used; do not overwrite existing README content without approval
   - [ ] 12.4 Final check: `npm test`, `npm run build`, manual run of all four samples
