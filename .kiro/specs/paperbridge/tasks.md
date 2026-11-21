@@ -61,8 +61,8 @@ Requirement references use the numbering in `requirements.md`.
   - [x] 11.3 `crew-app/agents/care-auditor.json` and `crew-app/skills/adherence-analysis/SKILL.md` _(R7.2)_
   - [x] 11.4 `crew-app/ui/` dashboard with `sdk.ts` wrapper: subscribe, persist, list alerts _(R7.3, R7.4)_
 
-- [ ] 12. Polish and submission
+- [x] 12. Polish and submission
   - [x] 12.1 Accessibility pass (contrast, focus, aria-live) _(R9.2)_
   - [x] 12.2 Performance check: 1280x720 decode under 500 ms _(R9.1)_
   - [x] 12.3 README showcase: apps, Crew App, quick start, how Kiro built it, guarantees, 3rd-app spec (approved by user; original title and tagline kept)
-  - [ ] 12.4 Final check: `npm test`, `npm run build`, manual run of all four samples
+  - [x] 12.4 Final check: `npm test`, `npm run build`, manual run of all four samples
