@@ -129,7 +129,7 @@ export function interpretCareCard(scan: SuccessfulScan): CareReport {
   if (needsReview.length > 0) {
     alerts.push({
       level: "info",
-      title: `${needsReview.length} mark${needsReview.length > 1 ? "s" : ""} need a human check`,
+      title: needsReview.length === 1 ? "1 mark needs a human check" : `${needsReview.length} marks need a human check`,
       detail: `${needsReview.join(", ")}. These are not counted as taken or missed.`,
     });
   }

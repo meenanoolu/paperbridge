@@ -19,7 +19,7 @@ export function DecodeFacts({ scan }: { scan: CompletedScan }) {
     ["Source", scan.label],
     ["Corner markers", "4 of 4 found"],
     ["Card", `${result.cardId} v${result.layoutVersion} (${scan.layout.page})`],
-    ["Bubbles read", `${result.bubbles.length} (${filled} filled, ${unclear} need review)`],
+    ["Bubbles read", `${result.bubbles.length} (${filled} filled, ${unclear} ${unclear === 1 ? "needs" : "need"} review)`],
     ["Image", `${scan.width} x ${scan.height} px`],
     ["Decode time", `${scan.decodeMs.toFixed(0)} ms on this device`],
   ];
