@@ -41,7 +41,8 @@ export interface BubbleReading {
   /** 0..1. How far the measurement is from the decision thresholds. */
   confidence: number;
   /** 0..1. Darkness of the bubble interior relative to the paper around it. */
-  fill: number;
+  fill: number;  /** Bubble centre in image pixels. For UI overlays. */
+  at: [number, number];
 }
 
 export type DecodeErrorReason =

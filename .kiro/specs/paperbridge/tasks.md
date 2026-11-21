@@ -34,9 +34,9 @@ Requirement references use the numbering in `requirements.md`.
   - [x] 6.3 Determinism property
   - [x] 6.4 Tune constants in `decode/constants.ts` until properties pass reliably; keep suite under about 60 s
 
-- [ ] 7. Capture
-  - [ ] 7.1 Webcam loop with stable-scan detection and typed permission errors _(R3.1-R3.3)_
-  - [ ] 7.2 Image upload path _(R3.4)_
+- [x] 7. Capture
+  - [x] 7.1 Webcam loop with stable-scan detection and typed permission errors _(R3.1-R3.3)_
+  - [x] 7.2 Image upload path _(R3.4)_
 
 - [ ] 8. Shell UI
   - [ ] 8.1 App switcher (Elder Care / Study Bridge), shared `SamplePanel`, `Scanner`, `PrintButton` components _(R8.2)_

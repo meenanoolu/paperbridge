@@ -102,6 +102,7 @@ export function decode(image: RasterImage, layout: CardLayout): ScanResult {
   const bubbles: BubbleReading[] = bubbleCenters(layout).map((b) => {
     const fill = measureBubble(gray, H, b);
     const { state, confidence } = classify(fill);
+    const [px, py] = applyHomography(H, b.x, b.y);
     return {
       group: b.group,
       row: b.row,
@@ -109,6 +110,7 @@ export function decode(image: RasterImage, layout: CardLayout): ScanResult {
       state,
       confidence: round3(confidence),
       fill: round3(fill),
+      at: [round1(px), round1(py)],
     };
   });
 
@@ -119,6 +121,10 @@ export function decode(image: RasterImage, layout: CardLayout): ScanResult {
     bubbles,
     fiducials: corners.map(([x, y]) => [round3(x), round3(y)] as [number, number]),
   };
+}
+
+function round1(v: number): number {
+  return Math.round(v * 10) / 10;
 }
 
 function round3(v: number): number {
