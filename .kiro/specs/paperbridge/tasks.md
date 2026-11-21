@@ -2,37 +2,37 @@
 
 Requirement references use the numbering in `requirements.md`.
 
-- [ ] 1. Project scaffold
-  - [ ] 1.1 Create Vite + React + TypeScript project with Tailwind CSS, Vitest, fast-check, pdf-lib; add scripts `dev`, `build`, `test` (`vitest --run`), `typecheck`, `gen:samples` _(R9.4)_
-  - [ ] 1.2 Add path structure `src/core`, `src/apps`, `src/shell`; export public API from `src/core/index.ts` _(R9.3)_
+- [x] 1. Project scaffold
+  - [x] 1.1 Create Vite + React + TypeScript project with Tailwind CSS, Vitest, fast-check, pdf-lib; add scripts `dev`, `build`, `test` (`vitest --run`), `typecheck`, `gen:samples` _(R9.4)_
+  - [x] 1.2 Add path structure `src/core`, `src/apps`, `src/shell`; export public API from `src/core/index.ts` _(R9.3)_
 
-- [ ] 2. Core types and layout
-  - [ ] 2.1 Define `CardLayout`, `ScanResult`, `BubbleReading` in `types.ts`
-  - [ ] 2.2 Implement `bubbleCenters(layout)` and page-size constants (A4, Letter)
-  - [ ] 2.3 Unit tests for layout coordinates
+- [x] 2. Core types and layout
+  - [x] 2.1 Define `CardLayout`, `ScanResult`, `BubbleReading` in `types.ts`
+  - [x] 2.2 Implement `bubbleCenters(layout)` and page-size constants (A4, Letter)
+  - [x] 2.3 Unit tests for layout coordinates
 
-- [ ] 3. Card generator
-  - [ ] 3.1 SVG renderer: fiducials with TL notch, header, labelled bubble grids _(R1.1-R1.4, R1.6)_
-  - [ ] 3.2 PDF renderer with pdf-lib, one page, vector _(R1.5)_
-  - [ ] 3.3 Tests: one fiducial per corner, R x C bubbles, deterministic output
+- [x] 3. Card generator
+  - [x] 3.1 SVG renderer: fiducials, header with card ID strip, labelled bubble grids _(R1.1-R1.4, R1.6)_
+  - [x] 3.2 PDF renderer with pdf-lib, one page, vector _(R1.5)_
+  - [x] 3.3 Tests: one fiducial per corner, R x C bubbles, deterministic output
 
-- [ ] 4. Synthetic raster generator (`core/testing/synth.ts`)
-  - [ ] 4.1 Rasterize layout + fill pattern to RGBA
-  - [ ] 4.2 Apply rotation, scale, perspective, illumination gradient, shadow blob, seeded noise
+- [x] 4. Synthetic raster generator (`core/testing/synth.ts`)
+  - [x] 4.1 Rasterize layout + fill pattern to RGBA
+  - [x] 4.2 Apply rotation, scale, perspective, illumination gradient, shadow blob, seeded noise
 
-- [ ] 5. Decoder
-  - [ ] 5.1 Grayscale, integral image, local-mean binarization
-  - [ ] 5.2 Fiducial detection (connected components + nested ratio check) _(R2.1, R2.2)_
-  - [ ] 5.3 Corner ordering using TL notch
-  - [ ] 5.4 Homography solver with degenerate check, unit tests with known points _(R2.3)_
-  - [ ] 5.5 Bubble sampling with local background normalization and 3-state classification _(R2.4, R2.5)_
-  - [ ] 5.6 Pipeline `decode()` returning `ScanResult` JSON, card ID check _(R2.6-R2.9)_
+- [x] 5. Decoder
+  - [x] 5.1 Grayscale, integral image, local-mean binarization
+  - [x] 5.2 Fiducial detection (connected components + nested ratio check) _(R2.1, R2.2)_
+  - [x] 5.3 Corner ordering by top-edge direction
+  - [x] 5.4 Homography solver with degenerate check, unit tests with known points _(R2.3)_
+  - [x] 5.5 Bubble sampling with local background normalization and 3-state classification _(R2.4, R2.5)_
+  - [x] 5.6 Pipeline `decode()` returning `ScanResult` JSON, card ID check _(R2.6-R2.9)_
 
-- [ ] 6. Property-based tests
-  - [ ] 6.1 `src/core/__tests__/decoder.pbt.test.ts` with arbitraries for fills, rotation, scale, shadow, noise _(R4.1, R4.2)_
-  - [ ] 6.2 Missing-fiducial property _(R4.3)_
-  - [ ] 6.3 Determinism property
-  - [ ] 6.4 Tune constants in `decode/constants.ts` until properties pass reliably; keep suite under about 60 s
+- [x] 6. Property-based tests
+  - [x] 6.1 `src/core/__tests__/decoder.pbt.test.ts` with arbitraries for fills, rotation, scale, shadow, noise _(R4.1, R4.2)_
+  - [x] 6.2 Missing-fiducial property _(R4.3)_
+  - [x] 6.3 Determinism property
+  - [x] 6.4 Tune constants in `decode/constants.ts` until properties pass reliably; keep suite under about 60 s
 
 - [ ] 7. Capture
   - [ ] 7.1 Webcam loop with stable-scan detection and typed permission errors _(R3.1-R3.3)_
