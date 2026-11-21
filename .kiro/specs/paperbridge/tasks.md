@@ -49,11 +49,11 @@ Requirement references use the numbering in `requirements.md`.
   - [x] 9.5 Caregiver Adherence Dashboard (adherence ring, missed list, symptom flags, energy trend) _(R5.5)_
   - [x] 9.6 Emit `paperbridge:scan-alert` events
 
-- [ ] 10. Study Bridge
-  - [ ] 10.1 10-question A-E layout _(R6.1)_
-  - [ ] 10.2 `grade.ts` with answer key, invalid multi-mark handling, weak topics, spaced repetition schedule; unit tests _(R6.3-R6.6)_
-  - [ ] 10.3 Sample sheet image and one-click scan _(R6.2)_
-  - [ ] 10.4 Results UI, offline verified _(R6.7)_
+- [x] 10. Study Bridge
+  - [x] 10.1 10-question A-E layout _(R6.1)_
+  - [x] 10.2 `grade.ts` with answer key, invalid multi-mark handling, weak topics, spaced repetition schedule; unit tests _(R6.3-R6.6)_
+  - [x] 10.3 Sample sheet image and one-click scan _(R6.2)_
+  - [x] 10.4 Results UI, offline verified _(R6.7)_
 
 - [ ] 11. Kiro Crew App
   - [ ] 11.1 Check Kiro Crew docs for `app.json` schema and `@kirocrew/app-sdk` API; adjust design if needed

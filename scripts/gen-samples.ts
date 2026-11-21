@@ -12,6 +12,8 @@ import { fileURLToPath } from "node:url";
 import { decode, type CardLayout } from "../src/core";
 import { ELDER_LAYOUT } from "../src/apps/elder-care/layout";
 import { ELDER_SAMPLE_SPECS } from "../src/apps/elder-care/samples/specs";
+import { STUDY_LAYOUT } from "../src/apps/study-bridge/layout";
+import { STUDY_SAMPLE_SPECS } from "../src/apps/study-bridge/samples/specs";
 import type { SampleSpec } from "../src/shell/sample-spec";
 import { decodeJpeg, encodeJpeg, photographSample } from "./lib/photo";
 
@@ -19,6 +21,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 const SETS: { dir: string; layout: CardLayout; specs: SampleSpec[] }[] = [
   { dir: "src/apps/elder-care/samples", layout: ELDER_LAYOUT, specs: ELDER_SAMPLE_SPECS },
+  { dir: "src/apps/study-bridge/samples", layout: STUDY_LAYOUT, specs: STUDY_SAMPLE_SPECS },
 ];
 
 let failed = false;
