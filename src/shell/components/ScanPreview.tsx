@@ -44,7 +44,7 @@ export function ScanPreview({ scan }: { scan: CompletedScan }) {
           </svg>
         )}
       </div>
-      <figcaption className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-base">
+      <figcaption className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-lg">
         <span className="inline-flex items-center gap-2">
           <span className="inline-block h-4 w-4 rounded-full border-4 border-blue-600" aria-hidden /> Corner marker found
         </span>

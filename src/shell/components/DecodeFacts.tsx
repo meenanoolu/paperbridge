@@ -9,7 +9,7 @@ export function DecodeFacts({ scan }: { scan: CompletedScan }) {
     return (
       <Callout tone="bad" title={t.title}>
         <p>{t.help}</p>
-        <p className="mt-1 font-mono text-base">reason: {result.reason}</p>
+        <p className="mt-1 font-mono text-lg">reason: {result.reason}</p>
       </Callout>
     );
   }
@@ -25,7 +25,7 @@ export function DecodeFacts({ scan }: { scan: CompletedScan }) {
   ];
   return (
     <div>
-      <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-base sm:text-lg">
+      <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-lg">
         {rows.map(([k, v]) => (
           <div key={k} className="contents">
             <dt className="font-bold">{k}</dt>
@@ -33,7 +33,7 @@ export function DecodeFacts({ scan }: { scan: CompletedScan }) {
           </div>
         ))}
       </dl>
-      <p className="mt-4 rounded-lg bg-slate-100 p-3 text-base">
+      <p className="mt-4 rounded-lg bg-slate-100 p-3 text-lg">
         Decoded in your browser with corner detection, a perspective transform, and local thresholds. No AI model, no
         upload, same answer every time.
       </p>

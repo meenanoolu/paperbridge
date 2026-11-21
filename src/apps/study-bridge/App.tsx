@@ -19,6 +19,10 @@ export function StudyBridgeApp() {
         ["Scan", "Webcam or photo upload."],
         ["Learn", "Score, weak topics, review dates."],
       ]}
+      announce={(scan) => {
+        const g = gradeSheet(scan.result, PRACTICE_QUIZ, scan.scannedAt);
+        return `Score ${g.scorePct}%, ${g.correct} of ${g.total} correct. ${g.weakTopics.length ? `Weak topics: ${g.weakTopics.join(", ")}.` : "No weak topics."}`;
+      }}
       renderResult={(scan) => <StudyResults report={gradeSheet(scan.result, PRACTICE_QUIZ, scan.scannedAt)} quiz={PRACTICE_QUIZ} />}
     />
   );

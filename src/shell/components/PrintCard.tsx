@@ -35,7 +35,7 @@ export function PrintCard({ layouts }: { layouts: CardLayout[] }) {
         {layouts.map((l) => (
           <label
             key={l.page}
-            className={`cursor-pointer rounded-lg px-3 py-2 text-base font-bold has-[:focus-visible]:outline-4 ${
+            className={`cursor-pointer rounded-lg px-3 py-2 text-lg font-bold has-[:focus-visible]:outline-4 ${
               page === l.page ? "bg-slate-950 text-white" : "text-slate-950"
             }`}
           >

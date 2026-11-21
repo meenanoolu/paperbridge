@@ -70,7 +70,7 @@ export function StudyResults({ report, quiz }: { report: GradeReport; quiz: Reco
                 <ol className="mt-2 space-y-1">
                   {s.dates.map((d, i) => (
                     <li key={d} className="flex items-center gap-2">
-                      <span className="grid h-7 w-7 place-items-center rounded-full bg-slate-950 text-sm font-black text-white">{i + 1}</span>
+                      <span className="grid h-8 w-8 place-items-center rounded-full bg-slate-950 text-lg font-black text-white">{i + 1}</span>
                       {fmt(d)}
                     </li>
                   ))}
@@ -101,7 +101,7 @@ export function StudyResults({ report, quiz }: { report: GradeReport; quiz: Reco
                   <tr key={q.q} className="border-b border-slate-300">
                     <th scope="row" className="px-2 py-2">{q.q.slice(1)}</th>
                     <td className="px-2 py-2">
-                      {q.prompt} <span className="text-base text-slate-700">({q.topic})</span>
+                      {q.prompt} <span className="text-lg text-slate-700">({q.topic})</span>
                     </td>
                     <td className="px-2 py-2 font-bold">
                       {q.marked.length ? q.marked.map((m) => `${m}: ${choices[m]}`).join(", ") : "-"}

@@ -27,7 +27,7 @@ function AdherenceRing({ pct }: { pct: number | null }) {
       <div className="absolute inset-0 grid place-items-center text-center">
         <div>
           <p className="text-5xl font-black">{pct === null ? "-" : `${pct}%`}</p>
-          <p className="text-base font-bold">doses taken</p>
+          <p className="text-lg font-bold">doses taken</p>
         </div>
       </div>
     </div>
@@ -130,7 +130,7 @@ export function CareDashboard({ report, scannedAt }: { report: CareReport; scann
                 <Icon name="question" /> Needs a human check
               </p>
               <p className="text-3xl font-black">{report.needsReview.length}</p>
-              <p className="mt-1 text-base">Unclear marks are never guessed.</p>
+              <p className="mt-1 text-lg">Unclear marks are never guessed.</p>
             </div>
           </div>
         </div>

@@ -40,7 +40,7 @@ export function SamplePanel({
                 onClick={() => onPick(s)}
                 disabled={busy}
                 aria-pressed={active}
-                className={`group flex h-full w-full items-center gap-4 rounded-2xl border-4 p-3 text-left transition-transform hover:-translate-y-0.5 disabled:cursor-wait ${
+                className={`group flex h-full w-full items-center gap-4 rounded-2xl border-4 p-3 text-left motion-safe:transition-transform motion-safe:hover:-translate-y-0.5 disabled:cursor-wait ${
                   active ? "border-slate-950 bg-slate-950 text-white" : "border-slate-950 bg-white text-slate-950"
                 }`}
               >
@@ -55,8 +55,8 @@ export function SamplePanel({
                     {active && <Icon name="check" className="h-6 w-6" />}
                     {s.title}
                   </span>
-                  <span className={`mt-1 block text-base ${active ? "text-slate-100" : "text-slate-800"}`}>{s.description}</span>
-                  <span className="mt-2 inline-block text-base font-bold underline decoration-2 underline-offset-4">
+                  <span className={`mt-1 block text-lg ${active ? "text-slate-100" : "text-slate-800"}`}>{s.description}</span>
+                  <span className="mt-2 inline-block text-lg font-bold underline decoration-2 underline-offset-4">
                     {active ? "Scanned. Click to scan again" : "Scan this card"}
                   </span>
                 </span>

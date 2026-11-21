@@ -37,7 +37,7 @@ const TONE: Record<Tone, { box: string; icon: IconName; word: string }> = {
 export function StatusBadge({ tone, children }: { tone: Tone; children?: ReactNode }) {
   const t = TONE[tone];
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-0.5 text-base font-bold ${t.box}`}>
+    <span className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-0.5 text-lg font-bold ${t.box}`}>
       <Icon name={t.icon} className="h-5 w-5" />
       {children ?? t.word}
     </span>

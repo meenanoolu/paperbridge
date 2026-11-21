@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { CardLayout, SuccessfulScan } from "../../core";
-import { useScanner, type CompletedScan } from "../scan";
+import { DECODE_ERROR_TEXT, useScanner, type CompletedScan } from "../scan";
 import { DecodeFacts } from "./DecodeFacts";
 import { Icon, type IconName } from "./Icon";
 import { PrintCard } from "./PrintCard";
@@ -21,10 +21,15 @@ export interface WorkbenchProps {
   renderResult: (scan: CompletedScan & { result: SuccessfulScan }) => ReactNode;
   /** Called once per completed scan, e.g. to emit alerts. */
   onScan?: (scan: CompletedScan) => void;
+  /** One-sentence result read out by screen readers, e.g. "71% of doses taken, 6 alerts". */
+  announce?: (scan: CompletedScan & { result: SuccessfulScan }) => string;
 }
 
+const prefersReducedMotion = () =>
+  typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
 /** Shared page frame: sample panel first, then own-card options, then the decoded result. */
-export function ScanWorkbench({ icon, title, tagline, layouts, samples, steps, renderResult, onScan }: WorkbenchProps) {
+export function ScanWorkbench({ icon, title, tagline, layouts, samples, steps, renderResult, onScan, announce }: WorkbenchProps) {
   const { state, scanUrl, scanFile, scanFrame } = useScanner(layouts);
   const [activeSample, setActiveSample] = useState<string | null>(null);
   const [camera, setCamera] = useState(false);
@@ -36,10 +41,20 @@ export function ScanWorkbench({ icon, title, tagline, layouts, samples, steps, r
     if (state.status !== "done" || lastReported.current === state.scan) return;
     lastReported.current = state.scan;
     onScan?.(state.scan);
-    results.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    results.current?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" });
   }, [state, onScan]);
 
   const busy = state.status === "busy";
+  const liveMessage =
+    state.status === "busy"
+      ? `Decoding ${state.label}.`
+      : state.status === "error"
+        ? state.message
+        : state.status === "done"
+          ? state.scan.result.ok
+            ? `Scanned ${state.scan.label}. ${announce?.(state.scan as CompletedScan & { result: SuccessfulScan }) ?? ""}`
+            : `Scan failed. ${DECODE_ERROR_TEXT[state.scan.result.reason].title}.`
+          : "";
 
   return (
     <div className="space-y-8">
@@ -115,21 +130,24 @@ export function ScanWorkbench({ icon, title, tagline, layouts, samples, steps, r
         )}
       </section>
 
-      <div ref={results} aria-live="polite" aria-busy={busy} className="scroll-mt-4 space-y-6">
+      <p className="sr-only" role="status" aria-live="polite">
+        {liveMessage}
+      </p>
+      <div ref={results} aria-busy={busy} className="scroll-mt-4 space-y-6">
         {state.status === "idle" && (
           <ol className="grid gap-3 sm:grid-cols-4">
             {steps.map(([head, body], i) => (
               <li key={head} className="rounded-2xl border-2 border-dashed border-slate-400 p-4">
-                <p className="text-sm font-black uppercase tracking-wider text-slate-700">Step {i + 1}</p>
+                <p className="text-lg font-black uppercase tracking-wider text-slate-700">Step {i + 1}</p>
                 <p className="text-xl font-extrabold">{head}</p>
-                <p className="text-base text-slate-800">{body}</p>
+                <p className="text-lg text-slate-800">{body}</p>
               </li>
             ))}
           </ol>
         )}
         {busy && (
           <p className="flex items-center gap-3 rounded-2xl border-2 border-slate-950 bg-white p-5 text-xl font-bold">
-            <span className="h-6 w-6 animate-spin rounded-full border-4 border-slate-950 border-t-transparent" aria-hidden />
+            <span className="h-6 w-6 motion-safe:animate-spin rounded-full border-4 border-slate-950 border-t-transparent" aria-hidden />
             Decoding {state.label}...
           </p>
         )}
@@ -147,7 +165,11 @@ export function ScanWorkbench({ icon, title, tagline, layouts, samples, steps, r
                   <summary className="cursor-pointer text-lg font-bold underline underline-offset-4">
                     Show raw JSON output
                   </summary>
-                  <pre className="mt-2 max-h-96 overflow-auto rounded-lg bg-slate-950 p-3 text-sm text-slate-50">
+                  <pre
+                    tabIndex={0}
+                    aria-label="Raw decoder JSON output"
+                    className="mt-2 max-h-96 overflow-auto rounded-lg bg-slate-950 p-3 text-sm text-slate-50"
+                  >
                     {JSON.stringify(state.scan.result, null, 2)}
                   </pre>
                 </details>
