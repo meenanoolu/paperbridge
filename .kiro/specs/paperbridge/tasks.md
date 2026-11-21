@@ -41,13 +41,13 @@ Requirement references use the numbering in `requirements.md`.
 - [x] 8. Shell UI
   - [x] 8.1 App switcher (Elder Care / Study Bridge), shared `SamplePanel`, `Scanner`, `PrintButton` components _(R8.2)_
 
-- [ ] 9. Elder Care Bridge
-  - [ ] 9.1 Weekly layout and large-print styling _(R5.1, R5.2)_
-  - [ ] 9.2 `interpret.ts` with unit tests for adherence, missed doses, symptoms, needs-review _(R5.6-R5.9)_
-  - [ ] 9.3 Generate three sample images (Normal Week, Missed-Dose Alert, Tilted/Low-Light) via `gen:samples` _(R5.3)_
-  - [ ] 9.4 Sample panel wired to the real decoder _(R5.4)_
-  - [ ] 9.5 Caregiver Adherence Dashboard (adherence ring, missed list, symptom flags, energy trend) _(R5.5)_
-  - [ ] 9.6 Emit `paperbridge:scan-alert` events
+- [x] 9. Elder Care Bridge
+  - [x] 9.1 Weekly layout and large-print styling _(R5.1, R5.2)_
+  - [x] 9.2 `interpret.ts` with unit tests for adherence, missed doses, symptoms, needs-review _(R5.6-R5.9)_
+  - [x] 9.3 Generate three sample images (Normal Week, Missed-Dose Alert, Tilted/Low-Light) via `gen:samples` _(R5.3)_
+  - [x] 9.4 Sample panel wired to the real decoder _(R5.4)_
+  - [x] 9.5 Caregiver Adherence Dashboard (adherence ring, missed list, symptom flags, energy trend) _(R5.5)_
+  - [x] 9.6 Emit `paperbridge:scan-alert` events
 
 - [ ] 10. Study Bridge
   - [ ] 10.1 10-question A-E layout _(R6.1)_

@@ -1,7 +1,7 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { pageSizeMm } from "../layout";
 import type { CardLayout } from "../types";
-import { cardPrimitives } from "./primitives";
+import { BAND_GREY, cardPrimitives } from "./primitives";
 
 const PT_PER_MM = 72 / 25.4;
 
@@ -25,10 +25,11 @@ export async function renderCardPdf(layout: CardLayout): Promise<Uint8Array> {
   const Y = (mm: number) => (height - mm) * PT_PER_MM;
   const black = rgb(0, 0, 0);
   const white = rgb(1, 1, 1);
+  const band = rgb(BAND_GREY, BAND_GREY, BAND_GREY);
 
   for (const p of cardPrimitives(layout)) {
     if (p.kind === "rect") {
-      page.drawRectangle({ x: X(p.x), y: Y(p.y + p.h), width: X(p.w), height: X(p.h), color: p.fill === "black" ? black : white });
+      page.drawRectangle({ x: X(p.x), y: Y(p.y + p.h), width: X(p.w), height: X(p.h), color: p.fill === "black" ? black : p.fill === "band" ? band : white });
     } else if (p.kind === "circle") {
       page.drawCircle({
         x: X(p.cx),

@@ -8,7 +8,7 @@ import {
 import type { CardLayout } from "../types";
 
 export type Primitive =
-  | { kind: "rect"; x: number; y: number; w: number; h: number; fill: "black" | "white" }
+  | { kind: "rect"; x: number; y: number; w: number; h: number; fill: "black" | "white" | "band" }
   | { kind: "circle"; cx: number; cy: number; r: number; fill?: "black"; strokeMm?: number }
   | {
       kind: "text";
@@ -21,6 +21,9 @@ export type Primitive =
     };
 
 export const BUBBLE_STROKE_MM = 0.5;
+/** Grey level of alternate-row bands (0 black, 1 white). Light enough to never look like a mark. */
+export const BAND_GREY = 0.93;
+const LINE_HEIGHT = 1.15;
 
 /**
  * Everything printed on a card, in card-space millimetres. The SVG and PDF renderers
@@ -60,34 +63,70 @@ export function cardPrimitives(layout: CardLayout): Primitive[] {
     anchor: "middle",
   });
 
+  const k = layout.labelScale ?? 1;
+  // Bands go first so everything else is drawn on top.
   for (const g of layout.groups) {
-    const [ox, oy] = g.originMm;
-    if (g.title) {
-      out.push({ kind: "text", x: ox - g.radiusMm, y: oy - g.radiusMm - 9, sizeMm: 4.5, text: g.title, bold: true });
-    }
-    g.cols.forEach((col, j) => {
-      out.push({
-        kind: "text",
-        x: ox + j * g.pitchMm[0],
-        y: oy - g.radiusMm - 2.5,
-        sizeMm: 3.6,
-        text: g.colLabels?.[j] ?? col,
-        bold: true,
-        anchor: "middle",
-      });
-    });
-    g.rows.forEach((row, i) => {
-      out.push({
-        kind: "text",
-        x: ox - g.radiusMm - 2.5,
-        y: oy + i * g.pitchMm[1] + 1.3,
-        sizeMm: 3.8,
-        text: g.rowLabels?.[i] ?? row,
-        bold: true,
-        anchor: "end",
-      });
+    if (!g.bands) continue;
+    g.rows.forEach((_, i) => {
+      if (i % 2 === 1) return;
+      const cy = g.originMm[1] + i * g.pitchMm[1];
+      out.push({ kind: "rect", x: g.bands!.fromXMm, y: cy - g.pitchMm[1] / 2, w: g.bands!.toXMm - g.bands!.fromXMm, h: g.pitchMm[1], fill: "band" });
     });
   }
+
+  for (const g of layout.groups) {
+    const [ox, oy] = g.originMm;
+    const colSize = 3.6 * k;
+    const colBase = oy - g.radiusMm - 2.5;
+    let maxLines = 1;
+    g.cols.forEach((col, j) => {
+      const lines = (g.colLabels?.[j] ?? col).split("\n");
+      maxLines = Math.max(maxLines, lines.length);
+      lines.forEach((text, li) => {
+        out.push({
+          kind: "text",
+          x: ox + j * g.pitchMm[0],
+          y: colBase - (lines.length - 1 - li) * colSize * LINE_HEIGHT,
+          sizeMm: colSize,
+          text,
+          bold: true,
+          anchor: "middle",
+        });
+      });
+    });
+    if (g.title) {
+      out.push({
+        kind: "text",
+        x: ox - g.radiusMm,
+        y: colBase - maxLines * colSize * LINE_HEIGHT - 2,
+        sizeMm: 4.5 * k,
+        text: g.title,
+        bold: true,
+      });
+    }
+    if (!g.hideRowLabels) {
+      const rowSize = 3.8 * k;
+      g.rows.forEach((row, i) => {
+        out.push({
+          kind: "text",
+          x: ox - g.radiusMm - 2.5,
+          y: oy + i * g.pitchMm[1] + rowSize * 0.36,
+          sizeMm: rowSize,
+          text: g.rowLabels?.[i] ?? row,
+          bold: true,
+          anchor: "end",
+        });
+      });
+    }
+  }
+
+  if (layout.footer) {
+    const size = 3.8 * k;
+    layout.footer.lines.forEach((text, i) => {
+      out.push({ kind: "text", x: layout.fiducial.insetMm + layout.fiducial.sizeMm + 4, y: layout.footer!.yMm + i * size * 1.4, sizeMm: size, text });
+    });
+  }
+
   for (const b of bubbleCenters(layout)) {
     out.push({ kind: "circle", cx: b.x, cy: b.y, r: b.r, strokeMm: BUBBLE_STROKE_MM });
   }

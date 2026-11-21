@@ -14,6 +14,10 @@ export interface BubbleGroup {
   /** Optional printed group title, drawn above the column labels. */
   title?: string;
   /** Centre of the first bubble (top-left of the grid). */
+  /** Hide row labels, e.g. when a neighbouring group already labels the same rows. */
+  hideRowLabels?: boolean;
+  /** Shade alternate rows from `fromXMm` to `toXMm` to help the eye track a row. */
+  bands?: { fromXMm: number; toXMm: number };
   originMm: [number, number];
   /** Distance between neighbouring bubble centres: [between columns, between rows]. */
   pitchMm: [number, number];
@@ -28,6 +32,10 @@ export interface CardLayout {
   subtitle?: string;
   page: PageSize;
   fiducial: { sizeMm: number; insetMm: number };
+  /** Multiplier for printed label sizes. Use >1 for large print. Does not move bubbles. */
+  labelScale?: number;
+  /** Instruction lines printed near the bottom of the card. */
+  footer?: { yMm: number; lines: string[] };
   groups: BubbleGroup[];
 }
 
