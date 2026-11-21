@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Typecheck apps on save",
+      "trigger": "PostFileSave",
+      "description": "Runs npm run typecheck after any src/apps/**/*.ts or *.tsx file is saved, catching app code that drifts from the core's public types.",
+      "matcher": "src/apps/.*\\.tsx?$",
+      "action": {
+        "type": "command",
+        "command": "npm run typecheck --silent",
+        "timeout": 120
+      }
+    }
+  ]
+}
