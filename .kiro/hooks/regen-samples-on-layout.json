@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Regenerate sample photos when a card layout changes",
+      "trigger": "PostFileSave",
+      "description": "Runs npm run gen:samples after any src/apps/**/layout.ts is saved, so the 1-click sample photos always match the printed card. The script decodes every photo it writes and exits non-zero if one fails.",
+      "matcher": "src/apps/.*/layout\\.ts$",
+      "action": {
+        "type": "command",
+        "command": "npm run gen:samples --silent",
+        "timeout": 180
+      }
+    }
+  ]
+}

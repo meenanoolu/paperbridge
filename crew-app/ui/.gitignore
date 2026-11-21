@@ -1,0 +1,2 @@
+node_modules/
+# dist/index.mjs is committed on purpose: Crew installs apps without node_modules.

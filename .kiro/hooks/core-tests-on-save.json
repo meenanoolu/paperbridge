@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Verify optical invariants on core save",
+      "trigger": "PostFileSave",
+      "description": "Runs npm test after any TypeScript file in src/core is saved, to check decoding invariants.",
+      "matcher": "src/core/.*\\.ts$",
+      "action": {
+        "type": "command",
+        "command": "npm test --silent",
+        "timeout": 120
+      }
+    }
+  ]
+}
