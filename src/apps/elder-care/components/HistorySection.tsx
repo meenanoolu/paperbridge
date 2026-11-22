@@ -160,7 +160,7 @@ export function HistorySection({
               <CopyButton text={summary} label="Copy Doctor Visit Summary" copiedMessage="Copied. Paste it into your message to the doctor." />
               <details className="mt-3">
                 <summary className="cursor-pointer text-lg font-bold underline underline-offset-4">Preview summary</summary>
-                <pre tabIndex={0} aria-label="Doctor visit summary text" className="mt-2 max-h-96 overflow-auto whitespace-pre-wrap rounded-lg border-2 border-slate-300 bg-slate-50 p-3 text-base">
+                <pre tabIndex={0} aria-label="Doctor visit summary text" className="mt-2 max-h-96 overflow-auto whitespace-pre-wrap rounded-lg border-2 border-slate-300 bg-slate-50 p-3 text-lg">
                   {summary}
                 </pre>
               </details>

@@ -42,7 +42,7 @@ export function CopyButton({ text, label, copiedMessage }: { text: string; label
             value={text}
             rows={6}
             onFocus={(e) => e.currentTarget.select()}
-            className="mt-1 w-full rounded-lg border-2 border-slate-950 p-2 font-mono text-base"
+            className="mt-1 w-full rounded-lg border-2 border-slate-950 p-2 font-mono text-lg"
           />
         </div>
       )}

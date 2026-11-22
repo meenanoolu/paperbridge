@@ -45,9 +45,9 @@ export function EditKeyPanel({
           Edit Answer Key
           <span className="ml-3 text-lg font-bold text-slate-800">{practice ? "practice quiz" : "your key"}</span>
         </span>
-        <span aria-hidden className="text-2xl motion-safe:transition-transform group-open:rotate-180">
-          ▾
-        </span>
+        <svg viewBox="0 0 24 24" aria-hidden="true" className="h-7 w-7 shrink-0 motion-safe:transition-transform group-open:rotate-180">
+          <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
       </summary>
       <form
         className="border-t-2 border-slate-200 p-4"

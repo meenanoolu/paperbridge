@@ -103,9 +103,9 @@ export function CustomizeCardPanel({
             </span>
           )}
         </span>
-        <span aria-hidden className="text-2xl motion-safe:transition-transform group-open:rotate-180">
-          ▾
-        </span>
+        <svg viewBox="0 0 24 24" aria-hidden="true" className="h-7 w-7 shrink-0 motion-safe:transition-transform group-open:rotate-180">
+          <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
       </summary>
       <form
         className="grid gap-6 border-t-2 border-slate-200 p-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]"
