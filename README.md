@@ -4,10 +4,14 @@
 One reusable optical skeleton powers two apps (Elder Care Bridge and Study Bridge), a Kiro Crew App, and a scaffolder for the next one.
 Built for **Kiroween 2026: Skeleton Crew**.
 
+<!-- Demo video row, hidden until the video is uploaded. Paste it back into the table below the Live demo row:
+| **Demo video** | [Watch on YouTube](https://www.youtube.com/watch?v=VIDEO_ID) |
+-->
 | | |
 |---|---|
 | **Live demo** | [paperbridge-acvw.onrender.com](https://paperbridge-acvw.onrender.com/) (works offline after the first visit) |
-| **Demo video** | [YouTube link placeholder] |
+| **Blog post** | [Building PaperBridge: An Offline-First Optical UI Skeleton for Elder Care with Kiro](https://dev.to/meena_n/building-paperbridge-an-offline-first-optical-ui-skeleton-for-elder-care-with-kiro-1h76) (DEV) |
+| **Social post** | [PaperBridge on X](https://x.com/MNoolu34434/status/2124436517087248756) |
 | **Kiro Crew App repo** | [meenanoolu/paperbridge-care-monitor](https://github.com/meenanoolu/paperbridge-care-monitor) (also in [`crew-app/`](crew-app/)) |
 | **Skeleton** | [`src/core/`](src/core/): card generator (SVG/PDF), optical decoder, webcam capture, Layout Validator. [`src/shell/`](src/shell/): shared scan UI, auto-routing, storage |
 | **App 1** | [`src/apps/elder-care/`](src/apps/elder-care/): Elder Care Bridge, a weekly medication and symptom card with a caregiver dashboard |
