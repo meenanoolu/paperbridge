@@ -18,8 +18,8 @@ export const FRAME_INTERVAL_MS = 200;
 export interface WebcamScanOptions {
   video: HTMLVideoElement;
   layout: CardLayout;
-  /** Called after every decoded frame. */
-  onFrame?: (result: ScanResult, state: StabilityState) => void;
+  /** Called after every decoded frame. `frame` is the decoded size, for drawing overlays in frame coordinates. */
+  onFrame?: (result: ScanResult, state: StabilityState, frame: { width: number; height: number }) => void;
   /** Called once when the scan is stable. The camera keeps running until `stop()`. */
   onStable: (result: Extract<ScanResult, { ok: true }>, frame: RasterImage) => void;
   intervalMs?: number;
@@ -75,7 +75,7 @@ export async function startWebcamScan(opts: WebcamScanOptions): Promise<WebcamSc
     const result = decode(frame, layout);
     latest = { frame, result };
     const state = tracker.push(result);
-    onFrame?.(result, state);
+    onFrame?.(result, state, { width: frame.width, height: frame.height });
     if (state.stable && result.ok && !reported) {
       reported = true;
       onStable(result, frame);
