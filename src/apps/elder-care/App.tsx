@@ -13,6 +13,7 @@ import { interpretCareCard, SCAN_ALERT_EVENT, toScanAlert, type ScanAlert } from
 import { describeCareBubble, ELDER_LAYOUTS } from "./layout";
 import type { DoseLabels } from "./patterns";
 import { ELDER_SAMPLES } from "./samples";
+import { sampleHistory } from "./sample-history";
 
 /** The alert for a reviewed scan: human overrides applied, with their count recorded. */
 export function alertFor(scan: ReviewedScan, doseLabels?: DoseLabels, habitLabel?: string): ScanAlert {
@@ -110,7 +111,7 @@ export function ElderCareApp() {
           );
         }}
       />
-      <HistorySection history={history} currentPatient={card.patientName} card={card} onClear={clearHistory} />
+      <HistorySection history={history} currentPatient={card.patientName} card={card} onClear={clearHistory} onLoadSample={() => setHistory(sampleHistory(new Date()))} />
     </>
   );
 }

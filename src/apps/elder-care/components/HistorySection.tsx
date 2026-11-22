@@ -3,6 +3,7 @@ import { CopyButton } from "../../../shell/components/CopyButton";
 import { Icon } from "../../../shell/components/Icon";
 import { Button, Callout, Card, StatusBadge } from "../../../shell/components/ui";
 import type { CareCardSettings } from "../card-settings";
+import { SAMPLE_CARD, SAMPLE_PATIENT } from "../sample-history";
 import { formatDoctorSummary, historyPatterns, patientsIn, trend, weekLabel, weeksFor, type WeekEntry } from "../history";
 import { ADHERENCE_TARGET_PCT } from "../interpret";
 
@@ -48,6 +49,7 @@ export function HistorySection({
   card,
   currentPatient,
   onClear,
+  onLoadSample,
   now = () => new Date(),
 }: {
   history: WeekEntry[];
@@ -55,6 +57,8 @@ export function HistorySection({
   /** Current card settings: medication names, routine anchors and pill cues for the PDF. */
   card: CareCardSettings;
   onClear: () => void;
+  /** Shown only while the history is empty, so it never mixes with real weeks. */
+  onLoadSample?: () => void;
   now?: () => Date;
 }) {
   const patients = useMemo(() => patientsIn(history), [history]);
@@ -75,7 +79,9 @@ export function HistorySection({
       const { renderDoctorVisitPdf, doctorPdfFileName } = await import("../doctor-pdf");
       const generatedAt = now();
       const page = typeof navigator !== "undefined" && /^en-(US|CA)|es-MX|fr-CA/.test(navigator.language) ? "Letter" : "A4";
-      const bytes = await renderDoctorVisitPdf({ patientName: selected, weeks, patterns, card, generatedAt, page });
+      // The demo patient's medications come from its own card, not the caregiver's.
+      const pdfCard = selected === SAMPLE_PATIENT ? SAMPLE_CARD : card;
+      const bytes = await renderDoctorVisitPdf({ patientName: selected, weeks, patterns, card: pdfCard, generatedAt, page });
       const name = doctorPdfFileName(selected, generatedAt);
       const url = URL.createObjectURL(new Blob([new Uint8Array(bytes)], { type: "application/pdf" }));
       const a = document.createElement("a");
@@ -99,9 +105,22 @@ export function HistorySection({
         }
       >
         {history.length === 0 ? (
-          <p className="text-lg text-slate-800">
-            No saved weeks yet. After a scan, press <strong>Save Week to History</strong> on the dashboard to start a trend for doctor visits.
-          </p>
+          <div className="space-y-4">
+            <p className="text-lg text-slate-800">
+              No saved weeks yet. After a scan, press <strong>Save Week to History</strong> on the dashboard to start a trend for doctor visits.
+            </p>
+            {onLoadSample && (
+              <div className="rounded-xl border-2 border-dashed border-slate-400 p-4">
+                <p className="text-lg text-slate-800">
+                  Want to see it first? Load 4 example weeks for <strong>{SAMPLE_PATIENT}</strong>: a slipping trend, an evening-dose pattern, and the
+                  Doctor Visit PDF. Clear History removes them.
+                </p>
+                <Button className="mt-3" icon="calendar" onClick={onLoadSample}>
+                  Load 4-Week Sample History
+                </Button>
+              </div>
+            )}
+          </div>
         ) : (
           <div className="space-y-5">
             {patients.length > 1 && (
