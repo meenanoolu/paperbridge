@@ -1,6 +1,7 @@
 import { Icon, type IconName } from "../../../shell/components/Icon";
 import { Callout, Card, StatusBadge, type Tone } from "../../../shell/components/ui";
-import type { CareReport, Mark } from "../interpret";
+import { CopyButton } from "../../../shell/components/CopyButton";
+import type { CareReport, Mark, ScanAlert } from "../interpret";
 import { ADHERENCE_TARGET_PCT, LOW_ENERGY_MAX } from "../interpret";
 import { DAY_NAMES } from "../layout";
 
@@ -78,7 +79,7 @@ function EnergyBar({ value, review }: { value: number | null; review: boolean })
 
 const ALERT_TONE: Record<string, Tone> = { high: "bad", medium: "warn", info: "info" };
 
-export function CareDashboard({ report, scannedAt }: { report: CareReport; scannedAt: Date }) {
+export function CareDashboard({ report, scannedAt, alert }: { report: CareReport; scannedAt: Date; alert: ScanAlert }) {
   const good = report.adherencePct !== null && report.adherencePct >= ADHERENCE_TARGET_PCT;
   return (
     <div className="space-y-6">
@@ -152,6 +153,18 @@ export function CareDashboard({ report, scannedAt }: { report: CareReport; scann
             ))}
           </ul>
         )}
+        <div className="mt-5 border-t-2 border-slate-200 pt-4">
+          <h4 className="text-xl font-extrabold">Send to Kiro Crew</h4>
+          <p className="mb-3 text-lg text-slate-800">
+            Copies this week's alert{alert.manualOverrides ? `, including ${alert.manualOverrides} manually verified ${alert.manualOverrides === 1 ? "mark" : "marks"}` : ""}. In Kiro Crew,
+            open <strong>PaperBridge Care</strong> and choose <strong>Paste alert JSON</strong>. Summary data only: no photo, no names.
+          </p>
+          <CopyButton
+            text={JSON.stringify(alert, null, 2)}
+            label="Copy for Kiro Crew"
+            copiedMessage="Copied — paste into PaperBridge Care in Kiro Crew"
+          />
+        </div>
       </Card>
 
       <Card title="Day by day">

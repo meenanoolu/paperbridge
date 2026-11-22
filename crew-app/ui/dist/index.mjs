@@ -29,7 +29,8 @@ function w(e) {
 			level: e.level,
 			title: e.title.slice(0, 200),
 			detail: e.detail.slice(0, 500)
-		}))
+		})),
+		...Number.isInteger(e.manualOverrides) && e.manualOverrides > 0 && e.manualOverrides <= 1e3 ? { manualOverrides: e.manualOverrides } : {}
 	};
 }
 function T(e) {
@@ -185,7 +186,7 @@ function N(e) {
 	};
 }
 function P(e) {
-	let { type: t, app: n, cardId: r, scannedAt: i, severity: a, adherencePct: o, missed: s, symptomDays: c, needsReview: l, alerts: u } = e;
+	let { type: t, app: n, cardId: r, scannedAt: i, severity: a, adherencePct: o, missed: s, symptomDays: c, needsReview: l, alerts: u, manualOverrides: d } = e;
 	return [
 		"Load the adherence-analysis skill and draft a caregiver check-in for this PaperBridge Weekly Care Card.",
 		"Start with what went well, list what to ask about, and say whether to contact the clinician.",
@@ -201,7 +202,8 @@ function P(e) {
 			missed: s,
 			symptomDays: c,
 			needsReview: l,
-			alerts: u
+			alerts: u,
+			...d ? { manualOverrides: d } : {}
 		}, null, 2),
 		"```"
 	].join("\n");
@@ -323,13 +325,25 @@ function W({ alert: i, onReview: a, onDraft: o }) {
 			className: "flex flex-wrap items-center justify-between gap-2",
 			children: [/* @__PURE__ */ b(r, { children: ["Weekly Care Card, scanned ", U(i.scannedAt)] }), /* @__PURE__ */ b("div", {
 				className: "flex items-center gap-2",
-				children: [/* @__PURE__ */ y(e, {
-					variant: s.variant,
-					children: s.label
-				}), i.reviewed && /* @__PURE__ */ y(e, {
-					variant: "muted",
-					children: "Reviewed"
-				})]
+				children: [
+					/* @__PURE__ */ y(e, {
+						variant: s.variant,
+						children: s.label
+					}),
+					i.manualOverrides ? /* @__PURE__ */ b(e, {
+						variant: "aim",
+						title: "Unclear marks a person checked on the paper card",
+						children: [
+							"Manually verified (",
+							i.manualOverrides,
+							")"
+						]
+					}) : null,
+					i.reviewed && /* @__PURE__ */ y(e, {
+						variant: "muted",
+						children: "Reviewed"
+					})
+				]
 			})]
 		}),
 		/* @__PURE__ */ b("p", {

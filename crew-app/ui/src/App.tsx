@@ -35,6 +35,11 @@ function AlertCard({ alert, onReview, onDraft }: { alert: StoredAlert; onReview:
         </CardTitle>
         <div className="flex items-center gap-2">
           <Badge variant={sev.variant}>{sev.label}</Badge>
+          {alert.manualOverrides ? (
+            <Badge variant="aim" title="Unclear marks a person checked on the paper card">
+              Manually verified ({alert.manualOverrides})
+            </Badge>
+          ) : null}
           {alert.reviewed && <Badge variant="muted">Reviewed</Badge>}
         </div>
       </div>

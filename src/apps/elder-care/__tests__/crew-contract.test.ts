@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { decodeJpeg } from "../../../../scripts/lib/photo";
 import { parseScanAlert } from "../../../../crew-app/ui/src/alerts";
 import { decode } from "../../../core";
+import { applyManualOverrides, countActiveOverrides } from "../../../shell/overrides";
 import { interpretCareCard, toScanAlert } from "../interpret";
 import { ELDER_LAYOUT } from "../layout";
 import { ELDER_SAMPLE_SPECS } from "../samples/specs";
@@ -18,6 +19,21 @@ describe("PaperBridge -> Kiro Crew alert contract", () => {
       expect(parseScanAlert(JSON.parse(JSON.stringify(alert)))).toEqual(alert);
     });
   }
+
+  it("a manually verified alert, exactly as Copy for Kiro Crew writes it, pastes unchanged", () => {
+    const result = decode(decodeJpeg(readFileSync(join(__dirname, "../samples/missed-dose.jpg"))), ELDER_LAYOUT);
+    if (!result.ok) throw new Error(result.reason);
+    const overrides = { "care/Wed/water": "filled" as const };
+    const alert = toScanAlert(
+      interpretCareCard(applyManualOverrides(result, overrides)),
+      result.cardId,
+      new Date("2026-11-21T10:00:00Z"),
+      countActiveOverrides(result, overrides),
+    );
+    const pasted = JSON.stringify(alert, null, 2); // the clipboard text
+    expect(parseScanAlert(pasted)).toEqual(alert);
+    expect(parseScanAlert(pasted)).toMatchObject({ manualOverrides: 1, needsReview: [] });
+  });
 
   it("app.json matches the agent, skill, and bundle it points to", () => {
     const root = join(__dirname, "../../../../crew-app");

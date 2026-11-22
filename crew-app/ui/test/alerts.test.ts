@@ -78,3 +78,17 @@ describe("crew-app alert logic", () => {
     expect(p).not.toContain("reviewed");
   });
 });
+
+describe("manual override audit field", () => {
+  it("keeps a valid count and drops invalid ones", () => {
+    expect(parseScanAlert({ ...demoAlert(NOW), manualOverrides: 2 })?.manualOverrides).toBe(2);
+    for (const bad of [0, -1, 1.5, "2", 5000]) {
+      expect(parseScanAlert({ ...demoAlert(NOW), manualOverrides: bad })).not.toHaveProperty("manualOverrides");
+    }
+  });
+
+  it("is passed to care-auditor in the check-in prompt", () => {
+    expect(checkInPrompt({ ...demoAlert(NOW), manualOverrides: 1 })).toContain('"manualOverrides": 1');
+    expect(checkInPrompt(demoAlert(NOW))).not.toContain("manualOverrides");
+  });
+});

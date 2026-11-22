@@ -38,7 +38,7 @@ export function ElderCareApp() {
         const pct = r.adherencePct === null ? "Adherence unknown" : `${r.adherencePct}% of doses taken`;
         return `${pct}. ${r.alerts.length === 0 ? "No alerts." : `${r.alerts.length} alert${r.alerts.length > 1 ? "s" : ""}, starting with: ${r.alerts[0].title}.`}`;
       }}
-      renderResult={(scan) => <CareDashboard report={interpretCareCard(scan.result)} scannedAt={scan.scannedAt} />}
+      renderResult={(scan) => <CareDashboard report={interpretCareCard(scan.result)} scannedAt={scan.scannedAt} alert={alertFor(scan)} />}
     />
   );
 }
