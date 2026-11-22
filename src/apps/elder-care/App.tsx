@@ -13,14 +13,16 @@ import { interpretCareCard, SCAN_ALERT_EVENT, toScanAlert, type ScanAlert } from
 import { describeCareBubble, ELDER_LAYOUTS } from "./layout";
 import type { DoseLabels } from "./patterns";
 import { ELDER_SAMPLES } from "./samples";
+import { sampleHistory } from "./sample-history";
 
 /** The alert for a reviewed scan: human overrides applied, with their count recorded. */
-export function alertFor(scan: ReviewedScan, doseLabels?: DoseLabels): ScanAlert {
-  return toScanAlert(interpretCareCard(scan.result, { doseLabels }), scan.result.cardId, scan.scannedAt, scan.manualOverrides);
+export function alertFor(scan: ReviewedScan, doseLabels?: DoseLabels, habitLabel?: string): ScanAlert {
+  return toScanAlert(interpretCareCard(scan.result, { doseLabels, habitLabel }), scan.result.cardId, scan.scannedAt, scan.manualOverrides);
 }
 
-export const CARE_SETTINGS_KEY = "elder-care.card.v1";
-export const HISTORY_KEY = "elder-care.history.v1";
+import { CARE_SETTINGS_KEY, HISTORY_KEY } from "./storage-keys";
+import { ELDER_BATCH } from "./batch";
+export { CARE_SETTINGS_KEY, HISTORY_KEY };
 const NO_WEEKS: WeekEntry[] = [];
 
 function SaveWeek({ entry, history, onSave }: { entry: WeekEntry; history: WeekEntry[]; onSave: (e: WeekEntry) => void }) {
@@ -54,6 +56,7 @@ export function ElderCareApp() {
   const saveWeek = useCallback((e: WeekEntry) => setHistory(addWeek(history, e).list), [history, setHistory]);
   const printLayouts = useMemo(() => customizedElderLayouts(card), [card]);
   const doseLabels = useMemo<DoseLabels>(() => ({ Morning: columnLabel(card, "am"), Night: columnLabel(card, "pm") }), [card]);
+  const habitLabel = columnLabel(card, "water");
   const labels = useMemo(
     () => ({ am: columnLabel(card, "am"), pm: columnLabel(card, "pm"), water: columnLabel(card, "water"), dizzy: columnLabel(card, "dizzy") }),
     [card],
@@ -62,8 +65,8 @@ export function ElderCareApp() {
   // Emit an aggregate alert after every scan and after every manual override (task 9.6).
   // The Kiro Crew App dedupes by card + scan time, so a corrected alert replaces the earlier one.
   const onScan = useCallback((scan: ReviewedScan) => {
-    window.dispatchEvent(new CustomEvent(SCAN_ALERT_EVENT, { detail: alertFor(scan, doseLabels) }));
-  }, [doseLabels]);
+    window.dispatchEvent(new CustomEvent(SCAN_ALERT_EVENT, { detail: alertFor(scan, doseLabels, habitLabel) }));
+  }, [doseLabels, habitLabel]);
 
   return (
     <>
@@ -84,17 +87,17 @@ export function ElderCareApp() {
         describeBubble={(b) => describeCareBubble(b, labels)}
         onScan={onScan}
         announce={(scan) => {
-          const r = interpretCareCard(scan.result, { doseLabels });
+          const r = interpretCareCard(scan.result, { doseLabels, habitLabel });
           const pct = r.adherencePct === null ? "Adherence unknown" : `${r.adherencePct}% of doses taken`;
           return `${pct}. ${r.alerts.length === 0 ? "No alerts." : `${r.alerts.length} alert${r.alerts.length > 1 ? "s" : ""}, starting with: ${r.alerts[0].title}.`}`;
         }}
         renderResult={(scan) => {
-          const report = interpretCareCard(scan.result, { doseLabels });
+          const report = interpretCareCard(scan.result, { doseLabels, habitLabel });
           return (
             <CareDashboard
               report={report}
               scannedAt={scan.scannedAt}
-              alert={alertFor(scan, doseLabels)}
+              alert={alertFor(scan, doseLabels, habitLabel)}
               card={card}
               actions={
                 <SaveWeek
@@ -108,10 +111,10 @@ export function ElderCareApp() {
           );
         }}
       />
-      <HistorySection history={history} currentPatient={card.patientName} card={card} onClear={clearHistory} />
+      <HistorySection history={history} currentPatient={card.patientName} card={card} onClear={clearHistory} onLoadSample={() => setHistory(sampleHistory(new Date()))} />
     </>
   );
 }
 
-export const appMeta: AppMeta = { id: "elder-care", label: "Elder Care Bridge", icon: "heart", order: 1 };
+export const appMeta: AppMeta = { id: "elder-care", label: "Elder Care Bridge", icon: "heart", order: 1, layouts: ELDER_LAYOUTS, batch: ELDER_BATCH };
 export default ElderCareApp;

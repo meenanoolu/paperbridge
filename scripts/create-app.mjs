@@ -255,7 +255,8 @@ export function ${comp}() {
 }
 
 /** Registers this app in the PaperBridge app switcher (src/shell/app-registry.ts). */
-export const appMeta: AppMeta = { id: ${q(slug)}, label: ${q(name)}, icon: "sparkle", order: 100 };
+// \`layouts\` lets "Scan Any Card (Auto-Route)" send photos of this card here by its card ID.
+export const appMeta: AppMeta = { id: ${q(slug)}, label: ${q(name)}, icon: "sparkle", order: 100, layouts: LAYOUTS };
 export default ${comp};
 `;
 }

@@ -97,3 +97,13 @@ Requirement references use the numbering in `requirements.md`.
   - [x] 16.4 `patterns.ts` with threshold tests; dashboard card, scan alert `patterns`, Doctor Summary section; Crew App parser, UI, prompt, skill and agent _(R21)_
   - [x] 16.5 `doctor-pdf.ts` with layout guarantees and tests (empty, single, 2 years, special characters, deterministic); offline download in the history section _(R23)_
   - [x] 16.6 Browser checks: panel, saved settings, PDFs, offline Doctor PDF, axe-core (0 violations, AAA contrast), keyboard pass
+
+- [x] 17. Phase 5: batch routing and monthly packs (branch `feat/batch-routing-and-monthly-packs`)
+  - [x] 17.1 `renderCardsPdf` in `src/core/render/pdf.ts`; single-card PDFs byte-identical; 4-page test _(R25)_
+  - [x] 17.2 `decodeBestFit` paper-size fix for every scan path, with a 2-paper x 5-camera test _(R24.6)_
+  - [x] 17.3 `route.ts`, `batch.ts`, registry `layouts` / `batch`, Elder Care and Study Bridge adapters, storage event, scaffolder `layouts`; routing, mixed-batch, summary and bulk-save tests _(R24)_
+  - [x] 17.4 Scan Any Card panel: single-photo routing, batch summary and list, per-file errors, Review, bulk save; browser-checked with a 6-file mixed batch _(R24)_
+  - [x] 17.5 Regimen presets with role-preserving mapping, validation, text and 1.5 mm gap tests; habit labels in alerts and tiles _(R27)_
+  - [x] 17.6 4-Week Monthly Pack: consecutive Mondays, headings with fallback, geometry, text and photographed-decode tests; download button _(R26)_
+  - [x] 17.7 Load 4-Week Sample History with trend, pattern, override and Doctor PDF tests; Clear History removes it _(R28)_
+  - [x] 17.8 axe-core audit (0 violations, AAA contrast on Elder Care), keyboard pass, focus rings on new buttons and presets _(R9.2)_

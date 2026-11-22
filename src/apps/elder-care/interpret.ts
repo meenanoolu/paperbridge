@@ -53,7 +53,11 @@ const list = (days: Day[]) => days.map((d) => DAY_NAMES[d]).join(", ");
 
 /** Turn a decoded Weekly Care Card into the caregiver report. Pure, so it is unit tested without a browser. */
 /** `doseLabels`: printed names of the two dose columns, used in pattern wording. */
-export function interpretCareCard(scan: SuccessfulScan, opts: { doseLabels?: DoseLabels } = {}): CareReport {
+/**
+ * `habitLabel`: printed name of the habit column (column 3). When it is not a water label, the
+ * habit alert names it ("Gentle Walk: done on only 3 of 7 days") instead of talking about water.
+ */
+export function interpretCareCard(scan: SuccessfulScan, opts: { doseLabels?: DoseLabels; habitLabel?: string } = {}): CareReport {
   const r = readingsByKey(scan);
   const state = (group: string, row: string, col: string) => r.get(bubbleKey(group, row, col))?.state;
 
@@ -128,7 +132,12 @@ export function interpretCareCard(scan: SuccessfulScan, opts: { doseLabels?: Dos
     alerts.push({ level: "medium", title: `Low energy on ${lowEnergyDays.length} days`, detail: `${list(lowEnergyDays)} (energy ${LOW_ENERGY_MAX} or below).` });
   }
   if (hydrationDays < HYDRATION_TARGET_DAYS) {
-    alerts.push({ level: "medium", title: `Enough water on only ${hydrationDays} of 7 days`, detail: `The goal is 6+ cups on at least ${HYDRATION_TARGET_DAYS} days.` });
+    const habit = opts.habitLabel?.trim();
+    alerts.push(
+      !habit || /water/i.test(habit)
+        ? { level: "medium", title: `Enough water on only ${hydrationDays} of 7 days`, detail: `The goal is 6+ cups on at least ${HYDRATION_TARGET_DAYS} days.` }
+        : { level: "medium", title: `${habit}: done on only ${hydrationDays} of 7 days`, detail: `The goal is at least ${HYDRATION_TARGET_DAYS} days a week.` },
+    );
   }
   if (needsReview.length > 0) {
     alerts.push({

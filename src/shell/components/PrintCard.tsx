@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { renderCardPdf, renderCardSvg, type CardLayout } from "../../core";
+import { renderCardPdf, renderCardSvg, type CardLayout, type PageSize } from "../../core";
 import { Button } from "./ui";
 
 function download(bytes: BlobPart, type: string, name: string) {
@@ -12,9 +12,17 @@ function download(bytes: BlobPart, type: string, name: string) {
 }
 
 /** Print the blank card. Both page sizes decode, so pick the one in the printer. */
+/** US Letter for the Americas locales that use it, A4 everywhere else. */
+export function defaultPageSize(): PageSize {
+  return typeof navigator !== "undefined" && /^en-(US|CA)|es-MX|fr-CA/.test(navigator.language) ? "Letter" : "A4";
+}
+
+export function downloadBytes(bytes: BlobPart, type: string, name: string) {
+  download(bytes, type, name);
+}
+
 export function PrintCard({ layouts }: { layouts: CardLayout[] }) {
-  const prefersLetter = typeof navigator !== "undefined" && /^en-(US|CA)|es-MX|fr-CA/.test(navigator.language);
-  const [page, setPage] = useState(prefersLetter ? "Letter" : "A4");
+  const [page, setPage] = useState<string>(defaultPageSize);
   const [busy, setBusy] = useState(false);
   const layout = layouts.find((l) => l.page === page) ?? layouts[0];
 

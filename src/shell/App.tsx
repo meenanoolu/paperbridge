@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { appFromHash, APPS } from "./app-registry";
 import { Icon } from "./components/Icon";
+import { AutoRoutePanel } from "./components/AutoRoutePanel";
 import { OfflineBadge } from "./components/OfflineBadge";
 
 export function App() {
@@ -61,6 +62,12 @@ export function App() {
           </nav>
         </div>
       </header>
+      <AutoRoutePanel
+        onRoute={(target) => {
+          if (window.location.hash !== `#${target.id}`) window.location.hash = target.id;
+          setApp(target);
+        }}
+      />
       <main id="main" tabIndex={-1} className="mx-auto max-w-6xl px-4 py-8 focus:outline-none sm:px-6 sm:py-10">
         <app.Component key={app.id} />
       </main>

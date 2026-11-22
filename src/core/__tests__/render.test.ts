@@ -76,3 +76,24 @@ describe("print-only options", () => {
     expect(Buffer.from(pdf.slice(0, 5)).toString()).toBe("%PDF-");
   });
 });
+
+describe("renderCardsPdf (multi-page packs)", () => {
+  it("draws one page per layout, each sized to its paper, deterministically", async () => {
+    const { renderCardsPdf } = await import("../render/pdf");
+    const bytes = await renderCardsPdf([TEST_LAYOUT, TEST_LAYOUT_LETTER, { ...TEST_LAYOUT, title: "Third" }], { title: "Test pack" });
+    const doc = await PDFDocument.load(bytes);
+    expect(doc.getPageCount()).toBe(3);
+    expect(doc.getTitle()).toBe("Test pack");
+    expect(doc.getPage(0).getSize().width).toBeCloseTo((210 * 72) / 25.4, 1);
+    expect(doc.getPage(1).getSize().height).toBeCloseTo((279.4 * 72) / 25.4, 1);
+    expect(Buffer.from(await renderCardsPdf([TEST_LAYOUT, TEST_LAYOUT_LETTER, { ...TEST_LAYOUT, title: "Third" }], { title: "Test pack" })).equals(Buffer.from(bytes))).toBe(true);
+  });
+
+  it("a one-layout pack is the single-card PDF, and an empty pack is refused", async () => {
+    const { renderCardsPdf } = await import("../render/pdf");
+    const single = await renderCardPdf(TEST_LAYOUT);
+    const pack = await renderCardsPdf([TEST_LAYOUT], { title: `${TEST_LAYOUT.title} (${TEST_LAYOUT.id} v${TEST_LAYOUT.version})` });
+    expect(Buffer.from(pack).equals(Buffer.from(single))).toBe(true);
+    await expect(renderCardsPdf([])).rejects.toThrow(/at least one layout/);
+  });
+});

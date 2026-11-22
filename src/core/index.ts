@@ -46,6 +46,15 @@ export { CameraError, startWebcamScan, type CameraErrorKind, type WebcamScan } f
 
 export type SuccessfulScan = Extract<ScanResult, { ok: true }>;
 
+/**
+ * Multi-page vector PDF, one page per layout (e.g. a 4-week pack). Loaded on demand so pdf-lib
+ * stays out of the initial bundle.
+ */
+export async function renderCardsPdf(layouts: CardLayout[], opts?: { title?: string }): Promise<Uint8Array> {
+  const m = await import("./render/pdf");
+  return m.renderCardsPdf(layouts, opts);
+}
+
 /** One-page vector PDF. Loaded on demand so pdf-lib stays out of the initial bundle. */
 export async function renderCardPdf(layout: CardLayout): Promise<Uint8Array> {
   const m = await import("./render/pdf");

@@ -11,8 +11,9 @@ import { gradeSheet, readMarks } from "./grade";
 import { describeAnswerBubble, STUDY_LAYOUTS } from "./layout";
 import { STUDY_SAMPLES } from "./samples";
 
-export const ANSWER_KEY_STORAGE = "study-bridge.key.v1";
-export const CLASS_STORAGE = "study-bridge.class.v1";
+import { ANSWER_KEY_STORAGE, CLASS_STORAGE } from "./storage-keys";
+import { STUDY_BATCH } from "./batch";
+export { ANSWER_KEY_STORAGE, CLASS_STORAGE };
 const NO_STUDENTS: ClassEntry[] = [];
 
 export function StudyBridgeApp() {
@@ -59,5 +60,5 @@ export function StudyBridgeApp() {
   );
 }
 
-export const appMeta: AppMeta = { id: "study-bridge", label: "Study Bridge", icon: "book", order: 2 };
+export const appMeta: AppMeta = { id: "study-bridge", label: "Study Bridge", icon: "book", order: 2, layouts: STUDY_LAYOUTS, batch: STUDY_BATCH };
 export default StudyBridgeApp;
