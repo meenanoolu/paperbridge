@@ -1,8 +1,7 @@
 import { Icon, type IconName } from "../../../shell/components/Icon";
 import { Callout, Card, StatusBadge, type Tone } from "../../../shell/components/ui";
-import type { KeyEntry } from "../answer-key";
+import type { AnswerKey } from "../answer-key";
 import { WEAK_TOPIC_BELOW_PCT, type GradeReport, type QuestionStatus } from "../grade";
-import type { QuestionId } from "../layout";
 
 const STATUS: Record<QuestionStatus, { tone: Tone; icon: IconName; text: string }> = {
   correct: { tone: "good", icon: "check", text: "Correct" },
@@ -15,7 +14,7 @@ const STATUS: Record<QuestionStatus, { tone: Tone; icon: IconName; text: string 
 const fmt = (iso: string) =>
   new Date(`${iso}T12:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
 
-export function StudyResults({ report, quiz }: { report: GradeReport; quiz: Record<QuestionId, KeyEntry> }) {
+export function StudyResults({ report, quiz }: { report: GradeReport; quiz: AnswerKey }) {
   const pass = report.scorePct >= WEAK_TOPIC_BELOW_PCT;
   return (
     <div className="space-y-6">
@@ -97,17 +96,18 @@ export function StudyResults({ report, quiz }: { report: GradeReport; quiz: Reco
               {report.questions.map((q) => {
                 const s = STATUS[q.status];
                 const choices = quiz[q.q].choices;
+                const opt = (o: string) => (choices ? `${o}: ${choices[o as keyof typeof choices]}` : o);
                 return (
                   <tr key={q.q} className="border-b border-slate-300">
                     <th scope="row" className="px-2 py-2">{q.q.slice(1)}</th>
                     <td className="px-2 py-2">
-                      {q.prompt} <span className="text-lg text-slate-700">({q.topic})</span>
+                      {q.prompt ?? `Question ${q.q.slice(1)}`} <span className="text-lg text-slate-700">({q.topic})</span>
                     </td>
                     <td className="px-2 py-2 font-bold">
-                      {q.marked.length ? q.marked.map((m) => `${m}: ${choices[m]}`).join(", ") : "-"}
+                      {q.marked.length ? q.marked.map(opt).join(", ") : "-"}
                     </td>
                     <td className="px-2 py-2">
-                      {q.answer}: {choices[q.answer]}
+                      {opt(q.answer)}
                     </td>
                     <td className="px-2 py-2">
                       <StatusBadge tone={s.tone}>{s.text}</StatusBadge>

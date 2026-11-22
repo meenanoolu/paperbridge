@@ -1,5 +1,5 @@
 import { bubbleKey, readingsByKey, type SuccessfulScan } from "../../core";
-import type { KeyEntry } from "./answer-key";
+import type { AnswerKey } from "./answer-key";
 import { OPTIONS, QUESTIONS, type Option, type QuestionId } from "./layout";
 
 /**
@@ -12,7 +12,8 @@ export type QuestionStatus = "correct" | "incorrect" | "blank" | "invalid" | "re
 export interface QuestionResult {
   q: QuestionId;
   topic: string;
-  prompt: string;
+  /** The practice quiz's question text; absent for a teacher's own key. */
+  prompt?: string;
   answer: Option;
   marked: Option[];
   status: QuestionStatus;
@@ -45,16 +46,38 @@ function addDays(date: Date, days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-/** Grade a decoded answer sheet. `today` is a parameter so the function stays pure. */
-export function gradeSheet(scan: SuccessfulScan, key: Record<QuestionId, KeyEntry>, today: Date): GradeReport {
+/** What a student marked on one question, independent of any answer key. */
+export interface QuestionMarks {
+  marked: Option[];
+  /** At least one bubble on this question was unclear. */
+  unclear: boolean;
+}
+export type SheetMarks = Record<QuestionId, QuestionMarks>;
+
+/** Read the marks off a decoded sheet. Storing these (not grades) lets a class be re-graded with a new key. */
+export function readMarks(scan: SuccessfulScan): SheetMarks {
   const r = readingsByKey(scan);
+  return Object.fromEntries(
+    QUESTIONS.map((q) => {
+      const states = OPTIONS.map((o) => r.get(bubbleKey("answers", q, o))?.state ?? "ambiguous");
+      return [q, { marked: OPTIONS.filter((_, i) => states[i] === "filled"), unclear: states.includes("ambiguous") }];
+    }),
+  ) as SheetMarks;
+}
+
+/** Grade a decoded answer sheet. `today` is a parameter so the function stays pure. */
+export function gradeSheet(scan: SuccessfulScan, key: AnswerKey, today: Date): GradeReport {
+  return gradeMarks(readMarks(scan), key, today);
+}
+
+/** Grade stored marks against a key. Pure. */
+export function gradeMarks(marks: SheetMarks, key: AnswerKey, today: Date): GradeReport {
   const questions: QuestionResult[] = QUESTIONS.map((q) => {
-    const states = OPTIONS.map((o) => r.get(bubbleKey("answers", q, o))?.state ?? "ambiguous");
-    const marked = OPTIONS.filter((_, i) => states[i] === "filled");
+    const { marked, unclear } = marks[q];
     const k = key[q];
     let status: QuestionStatus;
     if (marked.length > 1) status = "invalid";
-    else if (states.includes("ambiguous")) status = "review";
+    else if (unclear) status = "review";
     else if (marked.length === 0) status = "blank";
     else status = marked[0] === k.answer ? "correct" : "incorrect";
     return { q, topic: k.topic, prompt: k.prompt, answer: k.answer, marked, status };
