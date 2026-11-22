@@ -27,6 +27,14 @@ export interface ScanAlert {
   alerts: CareAlertItem[];
   /** Unclear marks a person resolved by looking at the paper card. Absent when none. */
   manualOverrides?: number;
+  /** Deterministic patterns PaperBridge found (symptom-to-miss, time-of-day barrier). Absent when none. */
+  patterns?: CarePatternItem[];
+}
+
+export interface CarePatternItem {
+  kind: "symptom-miss" | "slot-barrier";
+  title: string;
+  detail: string;
 }
 
 export type AlertSource = "browser-event" | "notification" | "demo" | "pasted";
@@ -79,7 +87,20 @@ export function parseScanAlert(v: unknown): ScanAlert | null {
     ...(Number.isInteger(v.manualOverrides) && (v.manualOverrides as number) > 0 && (v.manualOverrides as number) <= 1000
       ? { manualOverrides: v.manualOverrides as number }
       : {}),
+    ...patternsOf(v.patterns),
   };
+}
+
+function patternsOf(v: unknown): { patterns?: CarePatternItem[] } {
+  if (!Array.isArray(v)) return {};
+  const patterns = v
+    .filter(
+      (p): p is CarePatternItem =>
+        isObj(p) && (p.kind === "symptom-miss" || p.kind === "slot-barrier") && typeof p.title === "string" && typeof p.detail === "string",
+    )
+    .slice(0, 10)
+    .map((p) => ({ kind: p.kind, title: p.title.slice(0, 200), detail: p.detail.slice(0, 500) }));
+  return patterns.length ? { patterns } : {};
 }
 
 /** Find the first `{...}` JSON object in free text that parses as a PaperBridge alert. */
@@ -188,6 +209,13 @@ export function demoAlert(now: Date): ScanAlert {
     ],
     symptomDays: ["Thu", "Fri"],
     needsReview: ["Wednesday water"],
+    patterns: [
+      {
+        kind: "slot-barrier",
+        title: "3 of 4 missed doses were Night Meds",
+        detail: 'Misses cluster at one time of day: more likely a routine barrier than overall non-adherence. A routine anchor (e.g. "after dinner") or a different time may help.',
+      },
+    ],
     alerts: [
       { level: "high", title: "Medication taken 71% of the time", detail: "4 of 14 doses were missed. The goal is 80% or more." },
       { level: "high", title: "No medication at all on Thursday", detail: "Both morning and night doses were missed." },
@@ -201,13 +229,20 @@ export function demoAlert(now: Date): ScanAlert {
 
 /** The message seeded into the care-auditor chat. Contains the aggregate alert only. */
 export function checkInPrompt(a: ScanAlert): string {
-  const { type, app, cardId, scannedAt, severity, adherencePct, missed, symptomDays, needsReview, alerts, manualOverrides } = a;
+  const { type, app, cardId, scannedAt, severity, adherencePct, missed, symptomDays, needsReview, alerts, manualOverrides, patterns } = a;
   return [
     "Load the adherence-analysis skill and draft a caregiver check-in for this PaperBridge Weekly Care Card.",
     "Start with what went well, list what to ask about, and say whether to contact the clinician.",
+    ...(patterns?.length
+      ? [`PaperBridge found ${patterns.length === 1 ? "a pattern" : `${patterns.length} patterns`} with fixed rules (see "patterns"). Reference each one in the check-in as a gentle question, not a conclusion.`]
+      : []),
     "",
     "```json",
-    JSON.stringify({ type, app, cardId, scannedAt, severity, adherencePct, missed, symptomDays, needsReview, alerts, ...(manualOverrides ? { manualOverrides } : {}) }, null, 2),
+    JSON.stringify(
+      { type, app, cardId, scannedAt, severity, adherencePct, missed, symptomDays, needsReview, alerts, ...(manualOverrides ? { manualOverrides } : {}), ...(patterns?.length ? { patterns } : {}) },
+      null,
+      2,
+    ),
     "```",
   ].join("\n");
 }

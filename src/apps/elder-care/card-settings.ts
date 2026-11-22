@@ -1,4 +1,4 @@
-import type { CardLayout } from "../../core";
+import { COL_LABEL_SIZE_MM, COL_NOTE_SIZE_MM, estimateTextWidthMm as coreTextWidth, type CardLayout, type PrintStyle } from "../../core";
 import { CARE_COLS, DAYS, ELDER_LAYOUTS } from "./layout";
 
 /**
@@ -15,7 +15,32 @@ export interface CareCardSettings {
   weekStart: string;
   /** Printed label for each checklist column, e.g. "Metformin 500mg - Morning". */
   labels: Record<CareCol, string>;
+  /** Optional routine anchor per column, printed under its label, e.g. "With breakfast". */
+  anchors?: Partial<Record<CareCol, string>>;
+  /** Optional visual pill cue per column, printed under the anchor, e.g. "White oval". */
+  cues?: Partial<Record<CareCol, string>>;
+  /** Bolder, larger labels and stronger row shading for low vision and tremor. Print-only. */
+  highVisibility?: boolean;
 }
+
+export const MAX_NOTE = 24;
+/** Each note (anchor or cue) may take at most this many printed lines. */
+export const NOTE_MAX_LINES = 2;
+/**
+ * Printed width available to a column's label and notes: the 26 mm column pitch less the text
+ * clearance, so two neighbouring columns at full width still do not touch (checkPrintedText).
+ */
+export const COLUMN_TEXT_MM = 25.6;
+
+/** High-visibility print style. Bubble positions, borders and interiors are unchanged. */
+/**
+ * High-visibility print style. Bubble positions, borders and interiors are unchanged.
+ * Day labels are 20% larger and everything prints bold. Column labels keep the standard size:
+ * they already fill the 26 mm column, and larger type would split medication names mid-word.
+ * Bands at 0.90 (standard 0.93): visibly stronger, while faint marks on shaded rows still read
+ * as unclear rather than blank (see print-modes.test.ts).
+ */
+export const HIGH_VISIBILITY_STYLE: PrintStyle = { boldText: true, bandGrey: 0.9, rowLabelScale: 1.2, colLabelScale: 1 };
 
 export const DEFAULT_LABELS: Record<CareCol, string> = {
   am: "Morning Meds",
@@ -105,6 +130,65 @@ export function wrapLabel(text: string, perLine = LABEL_CHARS_PER_LINE, maxLines
   return lines.length <= maxLines ? lines : null;
 }
 
+/** Word-wrap to a printed width (estimated). Long words are split. Null if it needs more than `maxLines`. */
+export function wrapToWidth(text: string, sizeMm: number, widthMm: number, maxLines: number, bold = false): string[] | null {
+  const fits = (t: string) => coreTextWidth(t, sizeMm, bold) <= widthMm;
+  const words: string[] = [];
+  for (const w of printableText(text).split(" ").filter(Boolean)) {
+    if (fits(w)) {
+      words.push(w);
+      continue;
+    }
+    let part = "";
+    for (const c of w) {
+      if (part && !fits(part + c)) {
+        words.push(part);
+        part = "";
+      }
+      part += c;
+    }
+    if (part) words.push(part);
+  }
+  const lines: string[] = [];
+  for (const w of words) {
+    const last = lines[lines.length - 1];
+    if (last !== undefined && fits(`${last} ${w}`)) lines[lines.length - 1] = `${last} ${w}`;
+    else lines.push(w);
+  }
+  if (lines.length === 0) return null;
+  return lines.length <= maxLines ? lines : null;
+}
+
+/** Elder card base label scale (layout.ts labelScale). */
+const CARE_LABEL_SCALE = 1.45;
+const colScale = (s: CareCardSettings) => CARE_LABEL_SCALE * (s.highVisibility ? HIGH_VISIBILITY_STYLE.colLabelScale ?? 1 : 1);
+export const noteSizeMm = (s: CareCardSettings) => COL_NOTE_SIZE_MM * colScale(s);
+
+/** Printed lines of a column's anchor or cue, or null if it does not fit 2 lines. */
+export function wrapNote(s: CareCardSettings, text: string): string[] | null {
+  return wrapToWidth(text, noteSizeMm(s), COLUMN_TEXT_MM, NOTE_MAX_LINES, !!s.highVisibility);
+}
+
+/** Printed lines of a column label: standard cards keep the 9-character wrap; high-visibility wraps by width. */
+export function wrapColumnLabel(s: CareCardSettings, text: string): string[] | null {
+  const size = COL_LABEL_SIZE_MM * colScale(s);
+  // Keep the familiar 9-character wrap when every line really fits the column (labels print bold);
+  // otherwise (wide capitals, or high-visibility size) wrap by measured width.
+  // The width fallback only re-wraps labels the 9-character rule accepts; it never loosens it.
+  if (s.highVisibility) return wrapToWidth(text, size, COLUMN_TEXT_MM, LABEL_MAX_LINES, true);
+  const byChars = wrapLabel(text);
+  if (!byChars) return null;
+  if (byChars.every((l) => coreTextWidth(l, size, true) <= COLUMN_TEXT_MM)) return byChars;
+  return wrapToWidth(text, size, COLUMN_TEXT_MM, LABEL_MAX_LINES, true);
+}
+
+export function anchorOf(s: CareCardSettings, col: CareCol): string {
+  return printableText(s.anchors?.[col] ?? "");
+}
+export function cueOf(s: CareCardSettings, col: CareCol): string {
+  return printableText(s.cues?.[col] ?? "");
+}
+
 function parseIsoDate(s: string): Date | null {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
   if (!m) return null;
@@ -143,7 +227,7 @@ export function formatDay(isoDate: string): string {
 }
 
 export interface SettingsProblem {
-  field: "patientName" | "weekStart" | CareCol;
+  field: "patientName" | "weekStart" | CareCol | `${CareCol}.anchor` | `${CareCol}.cue`;
   message: string;
 }
 
@@ -158,9 +242,26 @@ export function validateSettings(s: CareCardSettings): SettingsProblem[] {
     const label = s.labels[col];
     if (!printableText(label)) problems.push({ field: col, message: "Enter a label." });
     else if (label.length > MAX_LABEL) problems.push({ field: col, message: `Use at most ${MAX_LABEL} characters.` });
-    else if (!wrapLabel(label)) problems.push({ field: col, message: `Too long to fit the column. Keep it to ${LABEL_MAX_LINES} short lines.` });
+    else if (!wrapColumnLabel(s, label))
+      problems.push({
+        field: col,
+        message: s.highVisibility
+          ? `Too long for High-Visibility print. Keep it to ${LABEL_MAX_LINES} short lines.`
+          : `Too long to fit the column. Keep it to ${LABEL_MAX_LINES} short lines.`,
+      });
     const bad = unprintableChars(label);
     if (bad.length) problems.push({ field: col, message: `These characters cannot be printed: ${bad.join(" ")}` });
+    for (const [kind, value] of [
+      ["anchor", s.anchors?.[col] ?? ""],
+      ["cue", s.cues?.[col] ?? ""],
+    ] as const) {
+      if (!value.trim()) continue;
+      const field = `${col}.${kind}` as const;
+      if (value.length > MAX_NOTE) problems.push({ field, message: `Use at most ${MAX_NOTE} characters.` });
+      else if (!wrapNote(s, value)) problems.push({ field, message: `Too long to fit under the column. Keep it to ${NOTE_MAX_LINES} short lines.` });
+      const badNote = unprintableChars(value);
+      if (badNote.length) problems.push({ field, message: `These characters cannot be printed: ${badNote.join(" ")}` });
+    }
   }
   return problems;
 }
@@ -178,11 +279,39 @@ export function parseCareSettings(raw: unknown): CareCardSettings | null {
     if (v.trim()) labels[col] = v;
   }
   const weekStart = typeof raw.weekStart === "string" ? mondayOf(raw.weekStart) : "";
-  return { patientName: str(raw.patientName, MAX_NAME), weekStart, labels };
+  const out: CareCardSettings = { patientName: str(raw.patientName, MAX_NAME), weekStart, labels };
+  // Optional fields are only present when set, so settings saved by older versions round-trip unchanged.
+  for (const key of ["anchors", "cues"] as const) {
+    const src = isObj(raw[key]) ? (raw[key] as Record<string, unknown>) : {};
+    const notes: Partial<Record<CareCol, string>> = {};
+    for (const col of CARE_COLS) {
+      const v = str(src[col], MAX_NOTE);
+      if (v.trim()) notes[col] = v;
+    }
+    if (Object.keys(notes).length) out[key] = notes;
+  }
+  if (raw.highVisibility === true) out.highVisibility = true;
+  return out;
+}
+
+/** Trim and drop empty optional fields, as stored. `parseCareSettings(normalizeSettings(s))` equals it. */
+export function normalizeSettings(s: CareCardSettings): CareCardSettings {
+  const out: CareCardSettings = { patientName: s.patientName.trim(), weekStart: mondayOf(s.weekStart), labels: { ...s.labels } };
+  for (const key of ["anchors", "cues"] as const) {
+    const notes = Object.fromEntries(CARE_COLS.flatMap((c) => (s[key]?.[c]?.trim() ? [[c, s[key]![c]!.trim()]] : [])));
+    if (Object.keys(notes).length) out[key] = notes;
+  }
+  if (s.highVisibility) out.highVisibility = true;
+  return out;
 }
 
 export function isDefaultSettings(s: CareCardSettings): boolean {
-  return !s.patientName.trim() && !s.weekStart && CARE_COLS.every((c) => printableText(s.labels[c]) === DEFAULT_LABELS[c]);
+  return (
+    !s.patientName.trim() &&
+    !s.weekStart &&
+    !s.highVisibility &&
+    CARE_COLS.every((c) => printableText(s.labels[c]) === DEFAULT_LABELS[c] && !anchorOf(s, c) && !cueOf(s, c))
+  );
 }
 
 /** Display label for a checklist column (falls back to the default if invalid). */
@@ -198,6 +327,12 @@ export function customizeCareLayout(base: CardLayout, s: CareCardSettings): Card
   const name = s.patientName.trim() ? fitNameToHeader(s.patientName) : "";
   const dates = weekDates(s.weekStart);
   const week = dates.length ? `Week of ${weekRange(dates[0], dates[6])}` : "";
+  const notes = CARE_COLS.map((col) =>
+    [anchorOf(s, col), cueOf(s, col)]
+      .filter(Boolean)
+      .flatMap((t) => wrapNote(s, t) ?? [])
+      .join("\n"),
+  );
   const groups = base.groups.map((g) => {
     if (g.key !== "care") return g;
     return {
@@ -205,9 +340,10 @@ export function customizeCareLayout(base: CardLayout, s: CareCardSettings): Card
       // The week replaces "Daily checklist": that heading sits in open space mid-card.
       title: week || g.title,
       colLabels: g.cols.map((col, j) => {
-        const lines = wrapLabel(columnLabel(s, col as CareCol));
+        const lines = wrapColumnLabel(s, columnLabel(s, col as CareCol));
         return lines ? lines.join("\n") : g.colLabels?.[j] ?? col;
       }),
+      colNotes: notes.some(Boolean) ? notes : g.colNotes,
       rowLabels: dates.length ? g.rows.map((_, i) => `${DAY_SHORT[i]} ${Number(dates[i].slice(8))}`) : g.rowLabels,
       // Dated row labels are wider; widen the shading so they sit inside it. Shading only.
       bands: dates.length && g.bands ? { ...g.bands, fromXMm: g.bands.fromXMm - 4 } : g.bands,
@@ -217,6 +353,7 @@ export function customizeCareLayout(base: CardLayout, s: CareCardSettings): Card
     ...base,
     // The header holds only the name: it must stay clear of the card-ID strip on the right.
     subtitle: name ? headerLine(name) : base.subtitle,
+    ...(s.highVisibility ? { printStyle: { ...base.printStyle, ...HIGH_VISIBILITY_STYLE } } : {}),
     groups,
     // The footer never grows: on Letter paper extra lines would reach the bottom corner markers.
     // With a name in the header, the pen instruction takes the place of the last footer line.

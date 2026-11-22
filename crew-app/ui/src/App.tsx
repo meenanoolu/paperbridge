@@ -63,6 +63,22 @@ function AlertCard({ alert, onReview, onDraft }: { alert: StoredAlert; onReview:
         </ul>
       )}
 
+      {alert.patterns && alert.patterns.length > 0 && (
+        <div className="mt-3">
+          <p className="text-sm font-semibold">Patterns found by fixed rules (not AI)</p>
+          <ul className="mt-1 flex flex-col gap-2" aria-label="Patterns">
+            {alert.patterns.map((p) => (
+              <li key={p.title} className="flex items-start gap-2 text-sm">
+                <Badge variant="aim">{p.kind === "symptom-miss" ? "symptom + miss" : "time of day"}</Badge>
+                <span>
+                  <strong>{p.title}.</strong> <span className="text-muted">{p.detail}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {alert.needsReview.length > 0 && (
         <p className="mt-3 text-sm">
           <strong>Check on the paper card:</strong> {alert.needsReview.join(", ")}. Unclear marks are never guessed.

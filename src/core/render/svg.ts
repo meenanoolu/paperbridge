@@ -2,8 +2,11 @@ import { pageSizeMm } from "../layout";
 import type { CardLayout } from "../types";
 import { BAND_GREY, cardPrimitives } from "./primitives";
 
-const grey = Math.round(BAND_GREY * 255).toString(16).padStart(2, "0");
-const RECT_FILL = { black: "#000", white: "#fff", band: `#${grey}${grey}${grey}` } as const;
+const greyHex = (g: number) => {
+  const h = Math.round(g * 255).toString(16).padStart(2, "0");
+  return `#${h}${h}${h}`;
+};
+const RECT_FILL = { black: "#000", white: "#fff", band: greyHex(BAND_GREY) } as const;
 
 function esc(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -20,7 +23,7 @@ export function renderCardSvg(layout: CardLayout): string {
   ];
   for (const p of cardPrimitives(layout)) {
     if (p.kind === "rect") {
-      parts.push(`<rect x="${n(p.x)}" y="${n(p.y)}" width="${n(p.w)}" height="${n(p.h)}" fill="${RECT_FILL[p.fill]}"/>`);
+      parts.push(`<rect x="${n(p.x)}" y="${n(p.y)}" width="${n(p.w)}" height="${n(p.h)}" fill="${p.grey !== undefined ? greyHex(p.grey) : RECT_FILL[p.fill]}"/>`);
     } else if (p.kind === "circle") {
       const fill = p.fill ? "#000" : "#fff";
       const stroke = p.strokeMm ? ` stroke="#000" stroke-width="${n(p.strokeMm)}"` : "";

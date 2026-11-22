@@ -9,6 +9,8 @@ import {
   isDefaultSettings,
   MAX_LABEL,
   MAX_NAME,
+  MAX_NOTE,
+  normalizeSettings,
   mondayOf,
   validateSettings,
   type CareCardSettings,
@@ -115,7 +117,7 @@ export function CustomizeCardPanel({
             setMessage(`Fix ${problems.length} ${problems.length === 1 ? "problem" : "problems"} before saving.`);
             return;
           }
-          onSave({ ...draft, patientName: draft.patientName.trim(), weekStart: mondayOf(draft.weekStart) });
+          onSave(normalizeSettings(draft));
           setMessage("Saved. Print the card to use the new labels. Scans still decode exactly the same.");
         }}
       >
@@ -156,23 +158,77 @@ export function CustomizeCardPanel({
               />
             )}
           </Field>
-          <fieldset className="space-y-4">
+          <div className="rounded-xl border-2 border-slate-950 p-4">
+            <div className="flex items-start gap-3">
+              <input
+                id={`${uid}-hv`}
+                type="checkbox"
+                checked={!!draft.highVisibility}
+                onChange={(e) => setDraft({ ...draft, highVisibility: e.target.checked })}
+                aria-describedby={`${uid}-hv-hint`}
+                className="mt-1 h-7 w-7 shrink-0 cursor-pointer accent-slate-950"
+              />
+              <div>
+                <label htmlFor={`${uid}-hv`} className="block cursor-pointer text-lg font-bold">
+                  High-Visibility Print Mode
+                </label>
+                <p id={`${uid}-hv-hint`} className="text-lg text-slate-800">
+                  All text bold, larger day names, and stronger shading on alternate days, for low vision or a shaky hand. The
+                  circles stay exactly where they are.
+                </p>
+              </div>
+            </div>
+          </div>
+          <fieldset className="space-y-5">
             <legend className="text-xl font-extrabold">Checklist columns</legend>
+            <p className="text-lg text-slate-800">
+              Optional: a routine anchor (when to take it) and a pill cue (what it looks like) print in small type under each label.
+            </p>
             {LABEL_FIELDS.map(({ col, name, hint }) => (
-              <Field key={col} id={`${uid}-${col}`} label={name} hint={`${hint}. Default: "${DEFAULT_LABELS[col]}".`} problems={forField(col)}>
-                {(d) => (
-                  <input
-                    id={`${uid}-${col}`}
-                    className={inputCls}
-                    value={draft.labels[col]}
-                    maxLength={MAX_LABEL}
-                    autoComplete="off"
-                    aria-invalid={forField(col).length > 0}
-                    aria-describedby={d || undefined}
-                    onChange={(e) => setDraft({ ...draft, labels: { ...draft.labels, [col]: e.target.value } })}
-                  />
-                )}
-              </Field>
+              <fieldset key={col} className="space-y-3 rounded-xl border-2 border-slate-300 p-3">
+                <legend className="px-1 text-lg font-extrabold">{name}</legend>
+                <Field id={`${uid}-${col}`} label="Label" hint={`${hint}. Default: "${DEFAULT_LABELS[col]}".`} problems={forField(col)}>
+                  {(d) => (
+                    <input
+                      id={`${uid}-${col}`}
+                      className={inputCls}
+                      value={draft.labels[col]}
+                      maxLength={MAX_LABEL}
+                      autoComplete="off"
+                      aria-invalid={forField(col).length > 0}
+                      aria-describedby={d || undefined}
+                      onChange={(e) => setDraft({ ...draft, labels: { ...draft.labels, [col]: e.target.value } })}
+                    />
+                  )}
+                </Field>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {(
+                    [
+                      ["anchor", "anchors", "Routine anchor", 'e.g. "With breakfast"'],
+                      ["cue", "cues", "Pill cue", 'e.g. "White oval"'],
+                    ] as const
+                  ).map(([kind, key, label, example]) => {
+                    const field = `${col}.${kind}` as const;
+                    const id = `${uid}-${col}-${kind}`;
+                    return (
+                      <Field key={kind} id={id} label={`${label} (optional)`} hint={example} problems={forField(field)}>
+                        {(d) => (
+                          <input
+                            id={id}
+                            className={inputCls}
+                            value={draft[key]?.[col] ?? ""}
+                            maxLength={MAX_NOTE + 6}
+                            autoComplete="off"
+                            aria-invalid={forField(field).length > 0}
+                            aria-describedby={d || undefined}
+                            onChange={(e) => setDraft({ ...draft, [key]: { ...draft[key], [col]: e.target.value } })}
+                          />
+                        )}
+                      </Field>
+                    );
+                  })}
+                </div>
+              </fieldset>
             ))}
           </fieldset>
           <div className="flex flex-wrap gap-3">

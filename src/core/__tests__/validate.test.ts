@@ -87,3 +87,34 @@ describe("checkLayout (Layout Validator)", () => {
     expect(overlaps[25].message).toMatch(/^\d+ more bubble pairs are too close/);
   });
 });
+
+describe("checkPrintedText", () => {
+  it("passes every shipped card", async () => {
+    const { checkPrintedText } = await import("../validate");
+    for (const l of [...ELDER_LAYOUTS, ...STUDY_LAYOUTS]) expect(checkPrintedText(l)).toEqual([]);
+  });
+
+  it("flags a header line that runs into the card-ID strip", async () => {
+    const { checkPrintedText } = await import("../validate");
+    const l = clone(STUDY_LAYOUTS[0]);
+    l.subtitle = "Fill one circle per question. Erase fully to change.";
+    expect(checkPrintedText(l).map((e) => e.message)).toContain('Text "Fill one circle per question. Erase f..." touches the card-ID strip.');
+  });
+
+  it("flags column notes that collide with the next column and text off the page", async () => {
+    const { checkPrintedText } = await import("../validate");
+    const l = clone(ELDER_LAYOUTS[0]);
+    l.groups[0].colNotes = ["A very long routine anchor line", "", "", ""];
+    l.footer = { yMm: 280, lines: ["x".repeat(80)] };
+    const codes = checkPrintedText(l).map((e) => e.code);
+    expect(codes).toContain("TEXT_OVERLAP");
+    expect(codes).toContain("TEXT_OUT_OF_BOUNDS");
+  });
+
+  it("is opt-in on validateLayoutJson", () => {
+    const l = clone(STUDY_LAYOUTS[0]);
+    l.subtitle = "Fill one circle per question. Erase fully to change.";
+    expect(validateLayoutJson(l).ok).toBe(true);
+    expect(validateLayoutJson(l, { checkText: true })).toMatchObject({ ok: false, errors: [{ code: "TEXT_OVERLAP", message: expect.stringMatching(/touches the card-ID strip/) }] });
+  });
+});

@@ -13,7 +13,8 @@ function bubbleSheet(page: PageSize): CardLayout {
     id: "study-mcq-10",
     version: 1,
     title: "Quiz Answer Sheet",
-    subtitle: "Fill one circle per question. Erase fully to change.",
+    // Kept short: the header line must end before the card-ID strip (checkPrintedText).
+    subtitle: "Fill one circle per question.",
     page,
     fiducial: { sizeMm: 16, insetMm: 6 },
     labelScale: 1.25,
@@ -32,7 +33,7 @@ function bubbleSheet(page: PageSize): CardLayout {
     ],
     footer: {
       yMm: FIRST_ROW_Y + 9 * ROW_PITCH + 18,
-      lines: ["Name: ______________________    Date: ____________"],
+      lines: ["Name: ______________________    Date: ____________", "To change an answer, erase it fully."],
     },
   };
 }

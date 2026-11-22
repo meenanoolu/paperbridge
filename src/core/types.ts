@@ -16,6 +16,11 @@ export interface BubbleGroup {
   /** Centre of the first bubble (top-left of the grid). */
   /** Hide row labels, e.g. when a neighbouring group already labels the same rows. */
   hideRowLabels?: boolean;
+  /**
+   * Small printed lines between each column label and its bubbles, e.g. a routine anchor and
+   * a pill description. One entry per column; "\n" separates lines. Text only: no bubble moves.
+   */
+  colNotes?: string[];
   /** Shade alternate rows from `fromXMm` to `toXMm` to help the eye track a row. */
   bands?: { fromXMm: number; toXMm: number };
   originMm: [number, number];
@@ -34,9 +39,23 @@ export interface CardLayout {
   fiducial: { sizeMm: number; insetMm: number };
   /** Multiplier for printed label sizes. Use >1 for large print. Does not move bubbles. */
   labelScale?: number;
+  /** Print-only styling (e.g. high-visibility mode). Never changes bubbles or markers. */
+  printStyle?: PrintStyle;
   /** Instruction lines printed near the bottom of the card. */
   footer?: { yMm: number; lines: string[] };
   groups: BubbleGroup[];
+}
+
+/** Print-only styling. Omitted fields keep the standard look. */
+export interface PrintStyle {
+  /** Draw every label in bold (standard: only headings and labels). */
+  boldText?: boolean;
+  /** Grey level 0..1 of alternate-row bands (standard 0.93). Bubble interiors stay white. */
+  bandGrey?: number;
+  /** Extra multiplier for row labels (e.g. weekday names). Default 1. */
+  rowLabelScale?: number;
+  /** Extra multiplier for column labels, notes and group titles. Default 1. */
+  colLabelScale?: number;
 }
 
 export type BubbleState = "filled" | "blank" | "ambiguous";

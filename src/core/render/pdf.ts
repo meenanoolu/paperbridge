@@ -29,7 +29,7 @@ export async function renderCardPdf(layout: CardLayout): Promise<Uint8Array> {
 
   for (const p of cardPrimitives(layout)) {
     if (p.kind === "rect") {
-      page.drawRectangle({ x: X(p.x), y: Y(p.y + p.h), width: X(p.w), height: X(p.h), color: p.fill === "black" ? black : p.fill === "band" ? band : white });
+      page.drawRectangle({ x: X(p.x), y: Y(p.y + p.h), width: X(p.w), height: X(p.h), color: p.fill === "black" ? black : p.fill === "band" ? (p.grey !== undefined ? rgb(p.grey, p.grey, p.grey) : band) : white });
     } else if (p.kind === "circle") {
       page.drawCircle({
         x: X(p.cx),

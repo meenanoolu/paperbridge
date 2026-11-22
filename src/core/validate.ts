@@ -6,6 +6,8 @@ import {
   PAGE_SIZE_MM,
   type BubbleCenter,
 } from "./layout";
+import { HELVETICA_BOLD_WIDTHS, HELVETICA_WIDTHS } from "./render/helvetica-metrics";
+import { BUBBLE_STROKE_MM, cardPrimitives } from "./render/primitives";
 import type { BubbleGroup, CardLayout, PageSize } from "./types";
 
 /**
@@ -21,7 +23,9 @@ export type DiagnosticCode =
   | "ID_STRIP_OVERLAP"
   | "BUBBLE_OVERLAP"
   | "DUPLICATE_ID"
-  | "EMPTY_GROUP";
+  | "EMPTY_GROUP"
+  | "TEXT_OVERLAP"
+  | "TEXT_OUT_OF_BOUNDS";
 
 export interface LayoutDiagnostic {
   code: DiagnosticCode;
@@ -160,9 +164,96 @@ export function checkLayout(layout: CardLayout): LayoutReport {
   return { ok: errors.length === 0, errors, stats: { groups: layout.groups.length, bubbles: bubbles.length, page: layout.page, pageMm: page } };
 }
 
-/** Parse untrusted JSON and run every check. The MCP tool's entry point. */
-export function validateLayoutJson(raw: unknown): LayoutReport {
+/**
+ * Parse untrusted JSON and run every geometric check. The MCP tool's entry point.
+ * `checkText` also checks printed text placement (see checkPrintedText).
+ */
+export function validateLayoutJson(raw: unknown, opts: { checkText?: boolean } = {}): LayoutReport {
   const parsed = parseCardLayout(raw);
   if (!parsed.layout) return { ok: false, errors: parsed.errors, stats: { groups: 0, bubbles: 0, page: null, pageMm: null } };
-  return checkLayout(parsed.layout);
+  const report = checkLayout(parsed.layout);
+  if (!opts.checkText) return report;
+  const errors = [...report.errors, ...checkPrintedText(parsed.layout)];
+  return { ...report, ok: errors.length === 0, errors };
+}
+
+// ---------------------------------------------------------------------------
+// Printed text
+// ---------------------------------------------------------------------------
+
+/** Clearance kept around printed text, in mm. */
+export const TEXT_CLEARANCE_MM = 0.4;
+
+/**
+ * Multiplier on measured widths. 1: the PDF draws with exactly these metrics, and Arial (the
+ * SVG font) shares Helvetica's advance widths. TEXT_CLEARANCE_MM provides the margin.
+ */
+export const TEXT_WIDTH_SAFETY = 1;
+
+/**
+ * Printed width of `text` in mm at `sizeMm`, from the Helvetica / Helvetica-Bold metrics the PDF
+ * embeds, plus a small safety margin. Characters without a Latin-1 glyph count as 1 em.
+ */
+export function estimateTextWidthMm(text: string, sizeMm: number, bold = false): number {
+  const table = bold ? HELVETICA_BOLD_WIDTHS : HELVETICA_WIDTHS;
+  let units = 0;
+  for (const ch of text) {
+    const code = ch.codePointAt(0)!;
+    const w = code >= 32 && code <= 255 ? table[code - 32] : 0;
+    units += w || 1000;
+  }
+  return (units / 1000) * sizeMm * TEXT_WIDTH_SAFETY;
+}
+
+export interface TextBox {
+  text: string;
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+}
+
+/** Estimated box of every printed string (cap height above the baseline, descender below). */
+export function textBoxes(layout: CardLayout): TextBox[] {
+  return cardPrimitives(layout).flatMap((p) => {
+    if (p.kind !== "text" || !p.text.trim()) return [];
+    const w = estimateTextWidthMm(p.text, p.sizeMm, p.bold);
+    const x0 = p.anchor === "middle" ? p.x - w / 2 : p.anchor === "end" ? p.x - w : p.x;
+    return [{ text: p.text, x0, y0: p.y - 0.75 * p.sizeMm, x1: x0 + w, y1: p.y + 0.22 * p.sizeMm }];
+  });
+}
+
+const overlaps = (a: { x0: number; y0: number; x1: number; y1: number }, b: { x0: number; y0: number; x1: number; y1: number }, pad = 0) =>
+  a.x0 < b.x1 + pad && b.x0 < a.x1 + pad && a.y0 < b.y1 + pad && b.y0 < a.y1 + pad;
+
+/**
+ * Printed text must stay on the page, off every bubble, corner marker, and the card-ID strip,
+ * and off other text. Pure; uses estimated glyph widths, so it is conservative.
+ */
+export function checkPrintedText(layout: CardLayout): LayoutDiagnostic[] {
+  const errors: LayoutDiagnostic[] = [];
+  const page = PAGE_SIZE_MM[layout.page];
+  const { sizeMm, insetMm } = layout.fiducial;
+  const boxes = textBoxes(layout);
+  const solids: { what: string; x0: number; y0: number; x1: number; y1: number }[] = [];
+  const half = sizeMm / 2;
+  fiducialCenters(layout).forEach(([x, y], i) =>
+    solids.push({ what: `${["top-left", "top-right", "bottom-right", "bottom-left"][i]} corner marker`, x0: x - half, y0: y - half, x1: x + half, y1: y + half }),
+  );
+  for (const b of [...bubbleCenters(layout), ...idBubbleCenters(layout)]) {
+    const r = b.r + BUBBLE_STROKE_MM / 2;
+    solids.push({ what: b.group === ID_GROUP_KEY ? "the card-ID strip" : `bubble ${idOf(b)}`, x0: b.x - r, y0: b.y - r, x1: b.x + r, y1: b.y + r });
+  }
+  const shown = (t: string) => (t.length > 40 ? `${t.slice(0, 37)}...` : t);
+  for (const t of boxes) {
+    if (t.x0 < insetMm || t.y0 < insetMm || t.x1 > page.width - insetMm || t.y1 > page.height - insetMm)
+      errors.push({ code: "TEXT_OUT_OF_BOUNDS", message: `Text "${shown(t.text)}" runs past the page margin.` });
+    const hit = solids.find((s) => overlaps(t, s, TEXT_CLEARANCE_MM));
+    if (hit) errors.push({ code: "TEXT_OVERLAP", message: `Text "${shown(t.text)}" touches ${hit.what}.` });
+  }
+  for (let i = 0; i < boxes.length; i++)
+    for (let j = i + 1; j < boxes.length; j++)
+      if (overlaps(boxes[i], boxes[j], TEXT_CLEARANCE_MM / 2))
+        errors.push({ code: "TEXT_OVERLAP", message: `Text "${shown(boxes[i].text)}" overlaps text "${shown(boxes[j].text)}".` });
+  return errors;
 }

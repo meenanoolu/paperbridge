@@ -2,10 +2,11 @@ import type { ReactNode } from "react";
 import { Icon, type IconName } from "../../../shell/components/Icon";
 import { Callout, Card, StatusBadge, type Tone } from "../../../shell/components/ui";
 import { CopyButton } from "../../../shell/components/CopyButton";
-import { columnLabel, DEFAULT_CARE_SETTINGS, formatDay, weekDates, weekRange, type CareCardSettings } from "../card-settings";
+import { anchorOf, columnLabel, cueOf, DEFAULT_CARE_SETTINGS, formatDay, weekDates, weekRange, type CareCardSettings } from "../card-settings";
 import type { CareReport, Mark, ScanAlert } from "../interpret";
 import { ADHERENCE_TARGET_PCT, LOW_ENERGY_MAX } from "../interpret";
 import { DAY_NAMES, DAYS } from "../layout";
+import type { CareCol } from "../card-settings";
 
 function AdherenceRing({ pct }: { pct: number | null }) {
   const r = 52;
@@ -76,6 +77,17 @@ function EnergyBar({ value, review }: { value: number | null; review: boolean })
         {value} of 5{low ? " (low)" : ""}
       </span>
     </span>
+  );
+}
+
+/** Column header with the card's routine anchor and pill cue, when set. */
+function ColumnHead({ card, col }: { card: CareCardSettings; col: CareCol }) {
+  const notes = [anchorOf(card, col), cueOf(card, col)].filter(Boolean).join(" · ");
+  return (
+    <th scope="col" className="px-2 py-2 align-bottom">
+      {columnLabel(card, col)}
+      {notes && <span className="block text-lg font-normal text-slate-800">{notes}</span>}
+    </th>
   );
 }
 
@@ -162,6 +174,21 @@ export function CareDashboard({
         {actions && <div className="mt-5 border-t-2 border-slate-200 pt-4">{actions}</div>}
       </Card>
 
+      {report.patterns.length > 0 && (
+        <Card title="Patterns to discuss">
+          <p className="mb-3 text-lg text-slate-800">Found by fixed rules over this week's marks, not by AI. They are prompts for a conversation, not a diagnosis.</p>
+          <ul className="space-y-3">
+            {report.patterns.map((p) => (
+              <li key={p.title}>
+                <Callout tone="info" title={p.title}>
+                  {p.detail}
+                </Callout>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
       <Card title="Alerts for the caregiver">
         {report.alerts.length === 0 ? (
           <Callout tone="good" title="All good this week">
@@ -198,10 +225,10 @@ export function CareDashboard({
             <thead>
               <tr className="border-b-2 border-slate-950">
                 <th scope="col" className="px-2 py-2">Day</th>
-                <th scope="col" className="px-2 py-2">{columnLabel(card, "am")}</th>
-                <th scope="col" className="px-2 py-2">{columnLabel(card, "pm")}</th>
-                <th scope="col" className="px-2 py-2">{columnLabel(card, "water")}</th>
-                <th scope="col" className="px-2 py-2">{columnLabel(card, "dizzy")}</th>
+                <ColumnHead card={card} col="am" />
+                <ColumnHead card={card} col="pm" />
+                <ColumnHead card={card} col="water" />
+                <ColumnHead card={card} col="dizzy" />
                 <th scope="col" className="px-2 py-2">Energy</th>
               </tr>
             </thead>

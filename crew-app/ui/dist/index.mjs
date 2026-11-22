@@ -30,10 +30,20 @@ function w(e) {
 			title: e.title.slice(0, 200),
 			detail: e.detail.slice(0, 500)
 		})),
-		...Number.isInteger(e.manualOverrides) && e.manualOverrides > 0 && e.manualOverrides <= 1e3 ? { manualOverrides: e.manualOverrides } : {}
+		...Number.isInteger(e.manualOverrides) && e.manualOverrides > 0 && e.manualOverrides <= 1e3 ? { manualOverrides: e.manualOverrides } : {},
+		...T(e.patterns)
 	};
 }
 function T(e) {
+	if (!Array.isArray(e)) return {};
+	let t = e.filter((e) => S(e) && (e.kind === "symptom-miss" || e.kind === "slot-barrier") && typeof e.title == "string" && typeof e.detail == "string").slice(0, 10).map((e) => ({
+		kind: e.kind,
+		title: e.title.slice(0, 200),
+		detail: e.detail.slice(0, 500)
+	}));
+	return t.length ? { patterns: t } : {};
+}
+function E(e) {
 	if (!e.includes("paperbridge:scan-alert")) return null;
 	for (let t = e.indexOf("{"); t !== -1; t = e.indexOf("{", t + 1)) {
 		let n = 0;
@@ -46,7 +56,7 @@ function T(e) {
 	}
 	return null;
 }
-function E(e) {
+function D(e) {
 	let t = w(e);
 	if (t) return t;
 	if (!S(e)) return null;
@@ -67,17 +77,17 @@ function E(e) {
 	]) {
 		let n = e[t];
 		if (typeof n == "string") {
-			let e = T(n);
+			let e = E(n);
 			if (e) return e;
 		}
 	}
 	return null;
 }
-function D(e) {
+function O(e) {
 	return `${e.cardId}@${e.scannedAt}`;
 }
-function O(e, t, n, r) {
-	let i = D(t), a = e.find((e) => e.id === i);
+function k(e, t, n, r) {
+	let i = O(t), a = e.find((e) => e.id === i);
 	return [{
 		...t,
 		id: i,
@@ -86,13 +96,13 @@ function O(e, t, n, r) {
 		reviewed: a?.reviewed ?? !1
 	}, ...e.filter((e) => e.id !== i)].sort((e, t) => Date.parse(t.scannedAt) - Date.parse(e.scannedAt)).slice(0, 50);
 }
-function k(e) {
+function A(e) {
 	return e.filter((e) => !e.reviewed && e.severity !== "none").length;
 }
-function A(e) {
+function j(e) {
 	return `kirocrew.app.${e}.alerts.v1`;
 }
-function j(e, t) {
+function M(e, t) {
 	try {
 		let n = e?.getItem(t);
 		if (!n) return [];
@@ -108,7 +118,7 @@ function j(e, t) {
 			].find((t) => t === e.source) ?? "pasted", r = typeof e.receivedAt == "string" ? e.receivedAt : t.scannedAt;
 			return [{
 				...t,
-				id: D(t),
+				id: O(t),
 				source: n,
 				receivedAt: r,
 				reviewed: e.reviewed === !0
@@ -118,12 +128,12 @@ function j(e, t) {
 		return [];
 	}
 }
-function M(e, t, n) {
+function N(e, t, n) {
 	try {
 		e?.setItem(t, JSON.stringify(n.slice(0, 50)));
 	} catch {}
 }
-function N(e) {
+function P(e) {
 	return {
 		type: x,
 		app: "elder-care",
@@ -151,6 +161,11 @@ function N(e) {
 		],
 		symptomDays: ["Thu", "Fri"],
 		needsReview: ["Wednesday water"],
+		patterns: [{
+			kind: "slot-barrier",
+			title: "3 of 4 missed doses were Night Meds",
+			detail: "Misses cluster at one time of day: more likely a routine barrier than overall non-adherence. A routine anchor (e.g. \"after dinner\") or a different time may help."
+		}],
 		alerts: [
 			{
 				level: "high",
@@ -185,11 +200,12 @@ function N(e) {
 		]
 	};
 }
-function P(e) {
-	let { type: t, app: n, cardId: r, scannedAt: i, severity: a, adherencePct: o, missed: s, symptomDays: c, needsReview: l, alerts: u, manualOverrides: d } = e;
+function F(e) {
+	let { type: t, app: n, cardId: r, scannedAt: i, severity: a, adherencePct: o, missed: s, symptomDays: c, needsReview: l, alerts: u, manualOverrides: d, patterns: f } = e;
 	return [
 		"Load the adherence-analysis skill and draft a caregiver check-in for this PaperBridge Weekly Care Card.",
 		"Start with what went well, list what to ask about, and say whether to contact the clinician.",
+		...f?.length ? [`PaperBridge found ${f.length === 1 ? "a pattern" : `${f.length} patterns`} with fixed rules (see "patterns"). Reference each one in the check-in as a gentle question, not a conclusion.`] : [],
 		"",
 		"```json",
 		JSON.stringify({
@@ -203,33 +219,34 @@ function P(e) {
 			symptomDays: c,
 			needsReview: l,
 			alerts: u,
-			...d ? { manualOverrides: d } : {}
+			...d ? { manualOverrides: d } : {},
+			...f?.length ? { patterns: f } : {}
 		}, null, 2),
 		"```"
 	].join("\n");
 }
 // src/sdk.ts
-var F = "care-auditor";
-function I() {
-	let e = m(), t = f(), n = _(), r = g(), i = A(e.name), [a, o] = d(() => j(globalThis.localStorage, i)), [h, v] = d({ online: null }), y = u(n);
+var I = "care-auditor";
+function L() {
+	let e = m(), t = f(), n = _(), r = g(), i = j(e.name), [a, o] = d(() => M(globalThis.localStorage, i)), [h, v] = d({ online: null }), y = u(n);
 	y.current = n;
 	let b = s((e, t, n = !0) => {
-		o((r) => (!r.some((t) => t.cardId === e.cardId && t.scannedAt === e.scannedAt) && n && e.severity === "high" && y.current(`PaperBridge: ${e.alerts[0]?.title ?? "new care card alert"}`, { type: "error" }), O(r, e, t, /* @__PURE__ */ new Date())));
+		o((r) => (!r.some((t) => t.cardId === e.cardId && t.scannedAt === e.scannedAt) && n && e.severity === "high" && y.current(`PaperBridge: ${e.alerts[0]?.title ?? "new care card alert"}`, { type: "error" }), k(r, e, t, /* @__PURE__ */ new Date())));
 	}, []);
 	c(() => {
-		M(globalThis.localStorage, i, a), r(k(a));
+		N(globalThis.localStorage, i, a), r(A(a));
 	}, [
 		a,
 		i,
 		r
 	]), p("notification", (e) => {
-		let t = E(e);
+		let t = D(e);
 		t && b(t, "notification");
 	}), p("task_complete", (e) => {
 		JSON.stringify(e ?? "").includes("care-auditor") && y.current("care-auditor finished a check-in draft", { type: "success" });
 	}), c(() => {
 		let e = (e) => {
-			let t = E(e.detail);
+			let t = D(e.detail);
 			t && b(t, "browser-event");
 		};
 		return window.addEventListener(x, e), () => window.removeEventListener(x, e);
@@ -237,7 +254,7 @@ function I() {
 		let e = !1;
 		return t.get("/api/notifications").then((t) => {
 			if (!e) for (let e of t?.notifications ?? []) {
-				let t = E(e);
+				let t = D(e);
 				t && b(t, "notification", !1);
 			}
 		}).catch(() => void 0), t.get("/api/status").then((t) => !e && v({
@@ -269,16 +286,16 @@ function I() {
 		n
 	]);
 }
-function L() {
+function R() {
 	let { openChat: e } = h();
 	return s((t) => e({
-		agent: F,
-		message: P(t),
+		agent: I,
+		message: F(t),
 		autoSend: !1
 	}), [e]);
 }
 // src/App.tsx
-var R = {
+var z = {
 	Mon: "Monday",
 	Tue: "Tuesday",
 	Wed: "Wednesday",
@@ -286,7 +303,7 @@ var R = {
 	Fri: "Friday",
 	Sat: "Saturday",
 	Sun: "Sunday"
-}, z = (e) => R[e] ?? e, B = {
+}, B = (e) => z[e] ?? e, V = {
 	high: {
 		variant: "err",
 		label: "Needs attention"
@@ -299,17 +316,17 @@ var R = {
 		variant: "ok",
 		label: "All good"
 	}
-}, V = {
+}, H = {
 	high: "err",
 	medium: "warn",
 	info: "muted"
-}, H = {
+}, U = {
 	"browser-event": "PaperBridge scan",
 	notification: "Crew notification",
 	demo: "Demo alert",
 	pasted: "Pasted JSON"
 };
-function U(e) {
+function W(e) {
 	return new Date(e).toLocaleString(void 0, {
 		weekday: "short",
 		month: "short",
@@ -318,12 +335,12 @@ function U(e) {
 		minute: "2-digit"
 	});
 }
-function W({ alert: i, onReview: a, onDraft: o }) {
-	let s = B[i.severity];
+function G({ alert: i, onReview: a, onDraft: o }) {
+	let s = V[i.severity];
 	return /* @__PURE__ */ b(n, { children: [
 		/* @__PURE__ */ b("div", {
 			className: "flex flex-wrap items-center justify-between gap-2",
-			children: [/* @__PURE__ */ b(r, { children: ["Weekly Care Card, scanned ", U(i.scannedAt)] }), /* @__PURE__ */ b("div", {
+			children: [/* @__PURE__ */ b(r, { children: ["Weekly Care Card, scanned ", W(i.scannedAt)] }), /* @__PURE__ */ b("div", {
 				className: "flex items-center gap-2",
 				children: [
 					/* @__PURE__ */ y(e, {
@@ -350,8 +367,8 @@ function W({ alert: i, onReview: a, onDraft: o }) {
 			className: "text-sm",
 			children: [
 				/* @__PURE__ */ y("strong", { children: i.adherencePct === null ? "Adherence unknown" : `${i.adherencePct}% of doses taken` }),
-				i.missed.length > 0 && /* @__PURE__ */ b(v, { children: [" · Missed: ", i.missed.map((e) => `${z(e.day)} ${e.slot.toLowerCase()}`).join(", ")] }),
-				i.symptomDays.length > 0 && /* @__PURE__ */ b(v, { children: [" · Dizzy or pain: ", i.symptomDays.map(z).join(", ")] })
+				i.missed.length > 0 && /* @__PURE__ */ b(v, { children: [" · Missed: ", i.missed.map((e) => `${B(e.day)} ${e.slot.toLowerCase()}`).join(", ")] }),
+				i.symptomDays.length > 0 && /* @__PURE__ */ b(v, { children: [" · Dizzy or pain: ", i.symptomDays.map(B).join(", ")] })
 			]
 		}),
 		i.alerts.length > 0 && /* @__PURE__ */ y("ul", {
@@ -360,7 +377,7 @@ function W({ alert: i, onReview: a, onDraft: o }) {
 			children: i.alerts.map((t) => /* @__PURE__ */ b("li", {
 				className: "flex items-start gap-2 text-sm",
 				children: [/* @__PURE__ */ y(e, {
-					variant: V[t.level],
+					variant: H[t.level],
 					children: t.level
 				}), /* @__PURE__ */ b("span", { children: [
 					/* @__PURE__ */ b("strong", { children: [t.title, "."] }),
@@ -371,6 +388,30 @@ function W({ alert: i, onReview: a, onDraft: o }) {
 					})
 				] })]
 			}, t.title))
+		}),
+		i.patterns && i.patterns.length > 0 && /* @__PURE__ */ b("div", {
+			className: "mt-3",
+			children: [/* @__PURE__ */ y("p", {
+				className: "text-sm font-semibold",
+				children: "Patterns found by fixed rules (not AI)"
+			}), /* @__PURE__ */ y("ul", {
+				className: "mt-1 flex flex-col gap-2",
+				"aria-label": "Patterns",
+				children: i.patterns.map((t) => /* @__PURE__ */ b("li", {
+					className: "flex items-start gap-2 text-sm",
+					children: [/* @__PURE__ */ y(e, {
+						variant: "aim",
+						children: t.kind === "symptom-miss" ? "symptom + miss" : "time of day"
+					}), /* @__PURE__ */ b("span", { children: [
+						/* @__PURE__ */ b("strong", { children: [t.title, "."] }),
+						" ",
+						/* @__PURE__ */ y("span", {
+							className: "text-muted",
+							children: t.detail
+						})
+					] })]
+				}, t.title))
+			})]
 		}),
 		i.needsReview.length > 0 && /* @__PURE__ */ b("p", {
 			className: "mt-3 text-sm",
@@ -395,13 +436,13 @@ function W({ alert: i, onReview: a, onDraft: o }) {
 				}),
 				/* @__PURE__ */ b("span", {
 					className: "text-muted text-[13px]",
-					children: ["Source: ", H[i.source]]
+					children: ["Source: ", U[i.source]]
 				})
 			]
 		})
 	] });
 }
-function G({ onAdd: e }) {
+function K({ onAdd: e }) {
 	let [i, a] = d(""), [o, s] = d("");
 	return /* @__PURE__ */ b(n, { children: [
 		/* @__PURE__ */ y(r, { children: "Paste a PaperBridge alert" }),
@@ -444,8 +485,8 @@ function G({ onAdd: e }) {
 		})
 	] });
 }
-function K() {
-	let { alerts: e, add: r, markReviewed: s, clear: c, status: l } = I(), u = L(), [f, p] = d(!1), m = e[0], h = k(e);
+function q() {
+	let { alerts: e, add: r, markReviewed: s, clear: c, status: l } = L(), u = R(), [f, p] = d(!1), m = e[0], h = A(e);
 	return /* @__PURE__ */ b(v, { children: [/* @__PURE__ */ y(a, {
 		title: "PaperBridge Care",
 		subtitle: "Alerts from paper Weekly Care Cards, decoded without AI. Draft the caregiver check-in in one click.",
@@ -454,7 +495,7 @@ function K() {
 			children: [
 				/* @__PURE__ */ y(t, {
 					primary: !0,
-					onClick: () => r(N(/* @__PURE__ */ new Date()), "demo"),
+					onClick: () => r(P(/* @__PURE__ */ new Date()), "demo"),
 					children: "Load demo alert"
 				}),
 				/* @__PURE__ */ y(t, {
@@ -501,7 +542,7 @@ function K() {
 			/* @__PURE__ */ b("div", {
 				className: "flex flex-col gap-4",
 				"aria-live": "polite",
-				children: [f && /* @__PURE__ */ y(G, { onAdd: (e) => {
+				children: [f && /* @__PURE__ */ y(K, { onAdd: (e) => {
 					let t = w(e.trim());
 					return t && r(t, "pasted"), t !== null;
 				} }), e.length === 0 ? /* @__PURE__ */ y(n, { children: /* @__PURE__ */ y(i, {
@@ -513,10 +554,10 @@ function K() {
 					subtitle: "Scan a PaperBridge Weekly Care Card, or load the demo alert to see how it works.",
 					action: /* @__PURE__ */ y(t, {
 						primary: !0,
-						onClick: () => r(N(/* @__PURE__ */ new Date()), "demo"),
+						onClick: () => r(P(/* @__PURE__ */ new Date()), "demo"),
 						children: "Load demo alert"
 					})
-				}) }) : e.map((e) => /* @__PURE__ */ y(W, {
+				}) }) : e.map((e) => /* @__PURE__ */ y(G, {
 					alert: e,
 					onReview: (t) => s(e.id, t),
 					onDraft: () => u(e)
@@ -529,4 +570,4 @@ function K() {
 		]
 	})] });
 }
-export { K as default };
+export { q as default };

@@ -130,3 +130,26 @@ PaperBridge turns a printed bubble card into structured data using deterministic
 1. A local stdio MCP server in `mcp/` SHALL expose `validate_card_layout`, which accepts a `CardLayout` object or JSON string and returns pass/fail with one diagnostic (code, message, bubble IDs, JSON path) per problem: shape errors, out of bounds, fiducial quiet-zone overlap, card-ID strip overlap, bubble-to-bubble overlap (centres closer than 1.1 x the sum of radii), and duplicate IDs.
 2. THE server SHALL expose `list_registered_apps`, which lists every `src/apps/` folder with its label, card ID, pages, groups, bubble count, layout status, sample photo count, and problems (including card-ID code clashes).
 3. Both tools SHALL be read-only. `.kiro/settings/mcp.json` SHALL configure the server for Kiro.
+
+## R20. Routine anchors and pill cues (Phase 4)
+1. THE Customize Card panel SHALL offer an optional routine anchor and pill cue per checklist column (up to 24 characters, 2 printed lines each), persisted with the card settings and cleared by "Reset to defaults".
+2. THE card SHALL print them in small type between each column label and its bubbles, in both the PDF and the preview, and SHALL NOT move any bubble, corner marker or card-ID bit.
+3. Printed text SHALL stay clear of neighbouring columns, the card-ID strip, corner markers, bubbles and other text, as measured by `checkPrintedText` with Helvetica metrics.
+4. A photographed card with anchors and cues SHALL decode bubble for bubble identically to the standard card.
+
+## R21. Deterministic symptom-to-miss correlation (Phase 4)
+1. THE app SHALL flag a symptom-to-miss pattern WHEN a dose slot is missed on at least 2 days on which dizziness/pain or low energy was marked, AND those days are at least half of that slot's misses.
+2. THE app SHALL flag a time-of-day barrier WHEN at least 3 doses are missed AND at least 75% of them are in one slot.
+3. Patterns SHALL be computed by a pure function (`patterns.ts`) for one week (dashboard, scan alert) and across saved weeks (Doctor Visit Summary and PDF), and worded observationally, never as a diagnosis.
+4. THE `paperbridge:scan-alert` payload SHALL include an optional `patterns` array; THE Crew App SHALL keep, show and pass it to `care-auditor`, which SHALL reference each pattern as a question in the check-in.
+
+## R22. High-Visibility Print Mode (Phase 4)
+1. THE Customize Card panel SHALL offer a persisted "High-Visibility Print Mode" toggle.
+2. WHEN enabled, THE card SHALL print all text bold, day labels 20% larger, and alternate-day bands at grey 0.90, with bubble interiors white and borders unchanged.
+3. THE High-Visibility card SHALL pass `validate_card_layout` (geometry and printed text) and SHALL decode bubble for bubble identically to the standard card, with faint marks on shaded rows still reported as unclear.
+4. THE renderer SHALL refuse band grey darker than 0.88.
+
+## R23. Doctor Visit PDF (Phase 4)
+1. THE history section SHALL offer "Download Doctor Visit PDF", generated on the device with pdf-lib and available offline.
+2. THE PDF SHALL fit one page and include: patient, generation date, weeks covered, medications with routine anchors and pill cues, overview, missed doses by time of day, patterns, a week table (adherence, missed, dizzy/pain days, marks checked by hand), and a footer on deterministic local decoding with human-verification counts.
+3. WHEN the history does not fit, THE table SHALL list the latest weeks and state how many earlier weeks are counted but not listed. All text SHALL be reduced to the PDF fonts' character set so generation never fails.
