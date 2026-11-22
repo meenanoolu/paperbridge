@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ElderCareApp } from "../apps/elder-care/App";
 import { StudyBridgeApp } from "../apps/study-bridge/App";
 import { Icon, type IconName } from "./components/Icon";
+import { OfflineBadge } from "./components/OfflineBadge";
 
 type AppId = "elder-care" | "study-bridge";
 
@@ -51,6 +52,7 @@ export function App() {
             </span>
             PaperBridge
           </a>
+          <OfflineBadge />
           <nav aria-label="Choose an app">
             <ul className="flex gap-2">
               {APPS.map((a) => (
@@ -76,7 +78,7 @@ export function App() {
       </main>
       <footer className="border-t-2 border-slate-300 bg-white">
         <p className="mx-auto max-w-6xl px-4 py-5 text-lg text-slate-800 sm:px-6">
-          PaperBridge runs fully in your browser. Cards need only paper and a pen: no smartphone, login, or upload. One
+          PaperBridge runs fully in your browser and keeps working offline once loaded (install it from the browser menu). Cards need only paper and a pen: no smartphone, login, or upload. One
           shared optical core powers both apps.
         </p>
       </footer>
