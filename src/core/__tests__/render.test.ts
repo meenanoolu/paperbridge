@@ -49,3 +49,30 @@ describe("card generator", () => {
     await expect(renderCardPdf({ ...TEST_LAYOUT, title: "Weekly – 薬 ✓" })).resolves.toBeInstanceOf(Uint8Array);
   });
 });
+
+describe("print-only options", () => {
+  it("leave bubbles and markers untouched and change only text and shading", async () => {
+    const { cardPrimitives } = await import("../render/primitives");
+    const base = cardPrimitives(TEST_LAYOUT);
+    const styled = cardPrimitives({
+      ...TEST_LAYOUT,
+      printStyle: { boldText: true, bandGrey: 0.5, rowLabelScale: 1.2, colLabelScale: 1.1 },
+      groups: TEST_LAYOUT.groups.map((g) => ({ ...g, colNotes: g.cols.map((c) => `note ${c}\nline 2`), bands: { fromXMm: 30, toXMm: 190 } })),
+    });
+    const shapes = (ps: typeof base) => ps.filter((p) => p.kind === "circle" || (p.kind === "rect" && p.fill !== "band"));
+    expect(shapes(styled)).toEqual(shapes(base));
+    expect(styled.filter((p) => p.kind === "text" && p.text.startsWith("note "))).toHaveLength(11); // first line of each of the 6 + 5 columns
+    // Band grey is clamped so shading can never read as a mark.
+    expect(styled.find((p) => p.kind === "rect" && p.fill === "band")).toMatchObject({ grey: 0.8 });
+    // Everything is bold except the small card-ID caption, which stays narrow beside the ID strip.
+    expect(styled.filter((p) => p.kind === "text" && !p.bold).map((p) => p.kind === "text" && p.text)).toEqual(["CARD test-card v1"]);
+  });
+
+  it("render band grey in SVG and PDF", async () => {
+    const svg = renderCardSvg({ ...TEST_LAYOUT, printStyle: { bandGrey: 0.88 }, groups: [{ ...TEST_LAYOUT.groups[0], bands: { fromXMm: 30, toXMm: 190 } }] });
+    expect(svg).toContain('fill="#e0e0e0"');
+    expect(svg).not.toContain('fill="#ededed"');
+    const pdf = await renderCardPdf({ ...TEST_LAYOUT, printStyle: { bandGrey: 0.88 }, groups: [{ ...TEST_LAYOUT.groups[0], colNotes: ["With breakfast", "", "", "", "", ""] }] });
+    expect(Buffer.from(pdf.slice(0, 5)).toString()).toBe("%PDF-");
+  });
+});

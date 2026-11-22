@@ -8,7 +8,7 @@ import {
 import type { CardLayout } from "../types";
 
 export type Primitive =
-  | { kind: "rect"; x: number; y: number; w: number; h: number; fill: "black" | "white" | "band" }
+  | { kind: "rect"; x: number; y: number; w: number; h: number; fill: "black" | "white" | "band"; grey?: number }
   | { kind: "circle"; cx: number; cy: number; r: number; fill?: "black"; strokeMm?: number }
   | {
       kind: "text";
@@ -23,7 +23,16 @@ export type Primitive =
 export const BUBBLE_STROKE_MM = 0.5;
 /** Grey level of alternate-row bands (0 black, 1 white). Light enough to never look like a mark. */
 export const BAND_GREY = 0.93;
-const LINE_HEIGHT = 1.15;
+/** Darkest band allowed, so shading can never be read as a mark. */
+export const MIN_BAND_GREY = 0.8;
+export const LINE_HEIGHT = 1.15;
+/** Base text sizes in mm, before `labelScale` and `printStyle` multipliers. */
+export const COL_LABEL_SIZE_MM = 3.6;
+export const ROW_LABEL_SIZE_MM = 3.8;
+export const COL_NOTE_SIZE_MM = 2.5;
+export const GROUP_TITLE_SIZE_MM = 4.5;
+/** Gap between the column notes and the column label above them. */
+export const NOTE_GAP_MM = 1;
 
 /**
  * Everything printed on a card, in card-space millimetres. The SVG and PDF renderers
@@ -40,10 +49,11 @@ export function cardPrimitives(layout: CardLayout): Primitive[] {
     out.push({ kind: "rect", x: cx - 1.5 * u, y: cy - 1.5 * u, w: 3 * u, h: 3 * u, fill: "black" });
   }
 
+  const style = layout.printStyle ?? {};
   const textLeft = insetMm + sizeMm + 4;
   out.push({ kind: "text", x: textLeft, y: insetMm + 8, sizeMm: 8, text: layout.title, bold: true });
   if (layout.subtitle) {
-    out.push({ kind: "text", x: textLeft, y: insetMm + 14, sizeMm: 4.2, text: layout.subtitle });
+    out.push({ kind: "text", x: textLeft, y: insetMm + 14, sizeMm: 4.2, text: layout.subtitle, bold: style.boldText || undefined });
   }
 
   // Card ID: printed as text and as a strip of bubbles the decoder reads.
@@ -70,14 +80,35 @@ export function cardPrimitives(layout: CardLayout): Primitive[] {
     g.rows.forEach((_, i) => {
       if (i % 2 === 1) return;
       const cy = g.originMm[1] + i * g.pitchMm[1];
-      out.push({ kind: "rect", x: g.bands!.fromXMm, y: cy - g.pitchMm[1] / 2, w: g.bands!.toXMm - g.bands!.fromXMm, h: g.pitchMm[1], fill: "band" });
+      const band: Primitive = { kind: "rect", x: g.bands!.fromXMm, y: cy - g.pitchMm[1] / 2, w: g.bands!.toXMm - g.bands!.fromXMm, h: g.pitchMm[1], fill: "band" };
+      if (style.bandGrey !== undefined) band.grey = Math.min(1, Math.max(MIN_BAND_GREY, style.bandGrey));
+      out.push(band);
     });
   }
 
   for (const g of layout.groups) {
     const [ox, oy] = g.originMm;
-    const colSize = 3.6 * k;
-    const colBase = oy - g.radiusMm - 2.5;
+    const ck = k * (style.colLabelScale ?? 1);
+    const colSize = COL_LABEL_SIZE_MM * ck;
+    const noteSize = COL_NOTE_SIZE_MM * ck;
+    const bubbleTop = oy - g.radiusMm - 2.5;
+    // Notes sit directly above the bubbles; labels move up by the tallest column's notes.
+    const noteLines = g.cols.map((_, j) => (g.colNotes?.[j] ? g.colNotes[j].split("\n") : []));
+    const maxNotes = Math.max(0, ...noteLines.map((l) => l.length));
+    noteLines.forEach((lines, j) => {
+      lines.forEach((text, li) => {
+        out.push({
+          kind: "text",
+          x: ox + j * g.pitchMm[0],
+          y: bubbleTop - (lines.length - 1 - li) * noteSize * LINE_HEIGHT,
+          sizeMm: noteSize,
+          text,
+          bold: style.boldText || undefined,
+          anchor: "middle",
+        });
+      });
+    });
+    const colBase = maxNotes ? bubbleTop - maxNotes * noteSize * LINE_HEIGHT - NOTE_GAP_MM : bubbleTop;
     let maxLines = 1;
     g.cols.forEach((col, j) => {
       const lines = (g.colLabels?.[j] ?? col).split("\n");
@@ -99,13 +130,13 @@ export function cardPrimitives(layout: CardLayout): Primitive[] {
         kind: "text",
         x: ox - g.radiusMm,
         y: colBase - maxLines * colSize * LINE_HEIGHT - 2,
-        sizeMm: 4.5 * k,
+        sizeMm: GROUP_TITLE_SIZE_MM * ck,
         text: g.title,
         bold: true,
       });
     }
     if (!g.hideRowLabels) {
-      const rowSize = 3.8 * k;
+      const rowSize = ROW_LABEL_SIZE_MM * k * (style.rowLabelScale ?? 1);
       g.rows.forEach((row, i) => {
         out.push({
           kind: "text",
@@ -123,7 +154,7 @@ export function cardPrimitives(layout: CardLayout): Primitive[] {
   if (layout.footer) {
     const size = 3.8 * k;
     layout.footer.lines.forEach((text, i) => {
-      out.push({ kind: "text", x: layout.fiducial.insetMm + layout.fiducial.sizeMm + 4, y: layout.footer!.yMm + i * size * 1.4, sizeMm: size, text });
+      out.push({ kind: "text", x: layout.fiducial.insetMm + layout.fiducial.sizeMm + 4, y: layout.footer!.yMm + i * size * 1.4, sizeMm: size, text, bold: style.boldText || undefined });
     });
   }
 

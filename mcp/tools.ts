@@ -9,7 +9,7 @@ import { checkLayout, idCode, validateLayoutJson, type CardLayout, type LayoutRe
  */
 
 /** `validate_card_layout`: accepts a CardLayout object, or a JSON string of one. */
-export function validateCardLayout(input: unknown): LayoutReport & { summary: string } {
+export function validateCardLayout(input: unknown, opts: { checkText?: boolean } = {}): LayoutReport & { summary: string } {
   let raw = input;
   if (typeof input === "string") {
     try {
@@ -23,7 +23,7 @@ export function validateCardLayout(input: unknown): LayoutReport & { summary: st
       return { ...report, summary: summarize(report) };
     }
   }
-  const report = validateLayoutJson(raw);
+  const report = validateLayoutJson(raw, opts);
   return { ...report, summary: summarize(report) };
 }
 

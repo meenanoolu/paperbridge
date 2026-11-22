@@ -22,16 +22,20 @@ server.registerTool(
   {
     title: "Validate a PaperBridge CardLayout",
     description:
-      "Check a PaperBridge CardLayout (the JSON object an app's layout.ts exports) against every geometric invariant the optical decoder needs: bubbles inside the page margins, clear of the 4 corner fiducials and the card-ID strip, no bubble-to-bubble overlap, and unique group/row/col IDs. Returns pass/fail with one diagnostic per problem (code, message, bubble IDs, JSON path).",
+      "Check a PaperBridge CardLayout (the JSON object an app's layout.ts exports) against every geometric invariant the optical decoder needs: bubbles inside the page margins, clear of the 4 corner fiducials and the card-ID strip, no bubble-to-bubble overlap, and unique group/row/col IDs (and, with checkText, printed text placement). Returns pass/fail with one diagnostic per problem (code, message, bubble IDs, JSON path).",
     inputSchema: {
       layout: z
         .union([z.record(z.string(), z.unknown()), z.string()])
         .describe("The CardLayout object, or a JSON string of it. Units are millimetres."),
+      checkText: z
+        .boolean()
+        .optional()
+        .describe("Also check printed text: labels, notes and titles stay on the page and off bubbles, corner markers, the card-ID strip and each other. Default false."),
     },
     annotations: { readOnlyHint: true, openWorldHint: false },
   },
-  async ({ layout }) => {
-    const report = validateCardLayout(layout);
+  async ({ layout, checkText }) => {
+    const report = validateCardLayout(layout, { checkText });
     return { content: [{ type: "text", text: report.summary }], structuredContent: { ...report }, isError: false };
   },
 );

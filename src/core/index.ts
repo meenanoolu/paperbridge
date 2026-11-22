@@ -11,6 +11,7 @@ export type {
   CardLayout,
   DecodeErrorReason,
   PageSize,
+  PrintStyle,
   RasterImage,
   ScanResult,
 } from "./types";
@@ -25,6 +26,18 @@ export {
   validateLayout,
 } from "./layout";
 export { renderCardSvg } from "./render/svg";
+export {
+  BAND_GREY,
+  cardPrimitives,
+  COL_LABEL_SIZE_MM,
+  COL_NOTE_SIZE_MM,
+  GROUP_TITLE_SIZE_MM,
+  LINE_HEIGHT,
+  MIN_BAND_GREY,
+  NOTE_GAP_MM,
+  ROW_LABEL_SIZE_MM,
+  type Primitive,
+} from "./render/primitives";
 export { decode } from "./decode/decode";
 export { renderCardRaster, type SynthOptions } from "./testing/synth";
 export { createStabilityTracker, resultSignature, STABLE_FRAMES, type StabilityState } from "./capture/stability";
@@ -48,6 +61,9 @@ export function readingsByKey(result: ScanResult): Map<string, BubbleReading> {
 
 export {
   checkLayout,
+  checkPrintedText,
+  estimateTextWidthMm,
+  textBoxes,
   parseCardLayout,
   validateLayoutJson,
   type DiagnosticCode,
