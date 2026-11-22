@@ -5,7 +5,7 @@
   "description": "Caregiver inbox for PaperBridge paper care cards: adherence, missed-dose and symptom alerts, plus an agent that drafts the check-in call.",
   "author": "meenanoolu",
   "license": "MIT",
-  "repo": "paperbridge",
+  "repo": "paperbridge-care-monitor",
   "tags": ["caregiving", "health", "medication", "paper", "accessibility"],
   "highlights": [
     "Collects PaperBridge Weekly Care Card scan alerts in one caregiver inbox",
