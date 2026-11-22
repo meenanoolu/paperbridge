@@ -1,5 +1,6 @@
 import { readingsByKey, bubbleKey, type BubbleState, type SuccessfulScan } from "../../core";
 import { DAYS, DAY_NAMES, ENERGY_LEVELS, type Day } from "./layout";
+import { DEFAULT_DOSE_LABELS, detectPatterns, toAlertPatterns, type CarePattern, type DoseLabels, type PatternKind } from "./patterns";
 
 /** "review" means the decoder saw an unclear mark: a person should check the paper. */
 export type Mark = "yes" | "no" | "review";
@@ -38,6 +39,8 @@ export interface CareReport {
   lowEnergyDays: Day[];
   hydrationDays: number;
   alerts: CareAlert[];
+  /** Deterministic symptom-to-miss and time-of-day patterns (see patterns.ts). */
+  patterns: CarePattern[];
 }
 
 export const ADHERENCE_TARGET_PCT = 80;
@@ -49,7 +52,8 @@ const toMark = (s: BubbleState | undefined): Mark => (s === "filled" ? "yes" : s
 const list = (days: Day[]) => days.map((d) => DAY_NAMES[d]).join(", ");
 
 /** Turn a decoded Weekly Care Card into the caregiver report. Pure, so it is unit tested without a browser. */
-export function interpretCareCard(scan: SuccessfulScan): CareReport {
+/** `doseLabels`: printed names of the two dose columns, used in pattern wording. */
+export function interpretCareCard(scan: SuccessfulScan, opts: { doseLabels?: DoseLabels } = {}): CareReport {
   const r = readingsByKey(scan);
   const state = (group: string, row: string, col: string) => r.get(bubbleKey(group, row, col))?.state;
 
@@ -136,7 +140,8 @@ export function interpretCareCard(scan: SuccessfulScan): CareReport {
   const order: Record<AlertLevel, number> = { high: 0, medium: 1, info: 2 };
   alerts.sort((a, b) => order[a.level] - order[b.level]);
 
-  return { days, adherencePct, taken, scheduled, counted, missed, needsReview, symptomDays, lowEnergyDays, hydrationDays, alerts };
+  const patterns = detectPatterns([{ missed, symptomDays, lowEnergyDays }], opts.doseLabels ?? DEFAULT_DOSE_LABELS);
+  return { days, adherencePct, taken, scheduled, counted, missed, needsReview, symptomDays, lowEnergyDays, hydrationDays, alerts, patterns };
 }
 
 /** Aggregate-only alert payload for other tools (e.g. the Kiro Crew App). No images, no raw bubbles. */
@@ -153,6 +158,8 @@ export interface ScanAlert {
   alerts: CareAlert[];
   /** Present when a person resolved unclear marks by looking at the paper card. */
   manualOverrides?: number;
+  /** Present when deterministic patterns were found (symptom-to-miss, time-of-day barrier). */
+  patterns?: { kind: PatternKind; title: string; detail: string }[];
 }
 
 export const SCAN_ALERT_EVENT = "paperbridge:scan-alert";
@@ -172,5 +179,6 @@ export function toScanAlert(report: CareReport, cardId: string, scannedAt: Date,
     needsReview: report.needsReview,
     alerts: report.alerts,
     ...(manualOverrides > 0 ? { manualOverrides } : {}),
+    ...(report.patterns.length > 0 ? { patterns: toAlertPatterns(report.patterns) } : {}),
   };
 }

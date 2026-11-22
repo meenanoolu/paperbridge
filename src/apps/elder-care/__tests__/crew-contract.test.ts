@@ -50,3 +50,24 @@ describe("PaperBridge -> Kiro Crew alert contract", () => {
     expect(() => readFileSync(join(root, app.iconPath))).not.toThrow();
   });
 });
+
+describe("patterns reach Kiro Crew", () => {
+  it("the Crew demo alert carries the same pattern PaperBridge finds on the Missed-Dose sample", async () => {
+    const { demoAlert, checkInPrompt } = await import("../../../../crew-app/ui/src/alerts");
+    const result = decode(decodeJpeg(readFileSync(join(__dirname, "../samples/missed-dose.jpg"))), ELDER_LAYOUT);
+    if (!result.ok) throw new Error(result.reason);
+    const alert = toScanAlert(interpretCareCard(result), result.cardId, new Date("2026-11-21T10:00:00Z"));
+    expect(alert.patterns).toEqual(demoAlert(new Date()).patterns);
+    const prompt = checkInPrompt(alert);
+    expect(prompt).toContain("Reference each one in the check-in as a gentle question");
+    expect(prompt).toContain('"title": "3 of 4 missed doses were Night Meds"');
+  });
+
+  it("the Crew parser keeps valid patterns and drops malformed ones", async () => {
+    const { parseScanAlert, demoAlert } = await import("../../../../crew-app/ui/src/alerts");
+    const base = demoAlert(new Date());
+    const parsed = parseScanAlert({ ...base, patterns: [{ kind: "symptom-miss", title: "T", detail: "D", extra: 1 }, { kind: "guess", title: "x", detail: "y" }, 7] });
+    expect(parsed?.patterns).toEqual([{ kind: "symptom-miss", title: "T", detail: "D" }]);
+    expect(parseScanAlert({ ...base, patterns: [] })).not.toHaveProperty("patterns");
+  });
+});

@@ -35,6 +35,12 @@ one alert with aggregate data only.
 - `manualOverrides` (optional) counts unclear marks the caregiver resolved by looking at the
   paper card. Those marks are already included in the numbers; mention that the week was
   partly verified by hand.
+- `patterns` (optional) lists what PaperBridge's fixed rules found. No AI is involved:
+  - `symptom-miss`: a dose was missed on at least 2 days when a symptom (dizziness or pain,
+    or low energy) was marked, and those days make up at least half of that dose's misses.
+    Example: "Night Meds missed on 3 days when low energy was marked."
+  - `slot-barrier`: of at least 3 misses, at least 75% are at one time of day.
+    Example: "4 of 5 missed doses were Night Meds."
 - `severity` is `high` if any alert is high, `medium` if any is medium, else `none`.
 
 ## Thresholds PaperBridge uses
@@ -57,12 +63,19 @@ one alert with aggregate data only.
 3. Group missed doses by day. A whole missed day is more important than a single slot.
 4. Pair symptoms with missed doses on the same or previous day; mention the overlap
    as something to ask about, not as a cause.
-5. Write the check-in: 3-6 short sentences, open questions, no blame.
+5. If `patterns` is present, reference each pattern by name in the check-in, as a gentle
+   question rather than a conclusion:
+   - `symptom-miss`: "On the days you felt dizzy, the evening pill was often skipped. Does it
+     make you feel unwell?" Suggest raising it with the clinician. Never call it a side effect.
+   - `slot-barrier`: ask what gets in the way at that time of day, and suggest a routine anchor
+     (e.g. "with dinner") or a pill-box placement.
+6. Write the check-in: 3-6 short sentences, open questions, no blame.
 
 ## When to suggest contacting a clinician
 
 - Both doses missed on 2 or more days, or adherence below 60%.
 - Dizziness or pain on 3 or more days, or on 2 days in a row together with missed doses.
+- A `symptom-miss` pattern on two or more saved weeks in a row.
 - The caregiver reports a fall, confusion, chest pain, or trouble breathing:
   tell them to call emergency services now.
 

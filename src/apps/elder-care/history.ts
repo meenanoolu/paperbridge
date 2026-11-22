@@ -1,6 +1,7 @@
 import { columnLabel, formatDay, weekDates, weekRange, type CareCardSettings } from "./card-settings";
 import { ADHERENCE_TARGET_PCT, type CareReport, type Slot } from "./interpret";
 import { DAY_NAMES, DAYS, type Day } from "./layout";
+import { detectPatterns, type CarePattern } from "./patterns";
 
 /**
  * Saved weekly summaries for longitudinal tracking. Stored in this browser only. Entries hold
@@ -175,8 +176,57 @@ export function parseHistory(raw: unknown): WeekEntry[] | null {
   return list;
 }
 
+/** Patterns across saved weeks, worded with the latest week's dose labels. */
+export function historyPatterns(weeks: WeekEntry[]): CarePattern[] {
+  if (weeks.length === 0) return [];
+  return detectPatterns(weeks, weeks[weeks.length - 1].doseLabels);
+}
+
 // ---------------------------------------------------------------------------
 // Doctor visit summary
+
+export interface WeekStats {
+  /** Adherence % of each week with a known value, oldest first. */
+  pcts: number[];
+  taken: number;
+  counted: number;
+  totalMissed: number;
+  /** Missed doses per slot. */
+  missedBySlot: Record<"Morning" | "Night", number>;
+  /** Missed doses per printed dose label (labels can change between weeks). */
+  byLabel: Map<string, number>;
+  fullDaysMissed: number;
+  symptomDays: number;
+  lowEnergy: number;
+  verified: number;
+  unresolved: number;
+  below: number;
+}
+
+/** Totals over saved weeks, shared by the text summary and the Doctor Visit PDF. Pure. */
+export function weekStats(weeks: WeekEntry[]): WeekStats {
+  const known = weeks.filter((w) => w.adherencePct !== null);
+  const byLabel = new Map<string, number>();
+  for (const w of weeks) for (const m of w.missed) byLabel.set(w.doseLabels[m.slot], (byLabel.get(w.doseLabels[m.slot]) ?? 0) + 1);
+  const sum = (f: (w: WeekEntry) => number, list = weeks) => list.reduce((s, w) => s + f(w), 0);
+  return {
+    pcts: known.map((w) => w.adherencePct as number),
+    taken: sum((w) => w.taken, known),
+    counted: sum((w) => w.counted, known),
+    totalMissed: sum((w) => w.missed.length),
+    missedBySlot: {
+      Morning: sum((w) => w.missed.filter((m) => m.slot === "Morning").length),
+      Night: sum((w) => w.missed.filter((m) => m.slot === "Night").length),
+    },
+    byLabel,
+    fullDaysMissed: sum((w) => DAYS.filter((d) => w.missed.some((m) => m.day === d && m.slot === "Morning") && w.missed.some((m) => m.day === d && m.slot === "Night")).length),
+    symptomDays: sum((w) => w.symptomDays.length),
+    lowEnergy: sum((w) => w.lowEnergyDays.length),
+    verified: sum((w) => w.manualOverrides),
+    unresolved: sum((w) => w.needsReview),
+    below: known.filter((w) => (w.adherencePct as number) < ADHERENCE_TARGET_PCT).length,
+  };
+}
 // ---------------------------------------------------------------------------
 
 const short = (d: Day) => DAY_NAMES[d].slice(0, 3);
@@ -186,29 +236,18 @@ const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? o
  * Plain-text / Markdown summary of saved weeks for a clinician. Pure and deterministic:
  * the generation date is a parameter and dates are formatted without the browser locale.
  */
-export function formatDoctorSummary(weeks: WeekEntry[], opts: { patientName: string; generatedAt: Date }): string {
+/**
+ * `patterns`: optional findings (see historyPatterns) listed under "Patterns to discuss".
+ * Without it the summary is unchanged from earlier versions.
+ */
+export function formatDoctorSummary(weeks: WeekEntry[], opts: { patientName: string; generatedAt: Date; patterns?: CarePattern[] }): string {
   const name = opts.patientName.trim() || "Unnamed patient";
   const lines: string[] = [`# Medication adherence summary: ${name}`, ""];
   if (weeks.length === 0) {
     lines.push("No weeks saved yet.");
     return lines.join("\n");
   }
-  const known = weeks.filter((w) => w.adherencePct !== null);
-  const pcts = known.map((w) => w.adherencePct as number);
-  const taken = known.reduce((s, w) => s + w.taken, 0);
-  const counted = known.reduce((s, w) => s + w.counted, 0);
-  const totalMissed = weeks.reduce((s, w) => s + w.missed.length, 0);
-  const symptomDays = weeks.reduce((s, w) => s + w.symptomDays.length, 0);
-  const lowEnergy = weeks.reduce((s, w) => s + w.lowEnergyDays.length, 0);
-  const verified = weeks.reduce((s, w) => s + w.manualOverrides, 0);
-  const unresolved = weeks.reduce((s, w) => s + w.needsReview, 0);
-  const below = known.filter((w) => (w.adherencePct as number) < ADHERENCE_TARGET_PCT).length;
-  const fullDaysMissed = weeks.reduce(
-    (s, w) => s + DAYS.filter((d) => w.missed.some((m) => m.day === d && m.slot === "Morning") && w.missed.some((m) => m.day === d && m.slot === "Night")).length,
-    0,
-  );
-  const byLabel = new Map<string, number>();
-  for (const w of weeks) for (const m of w.missed) byLabel.set(w.doseLabels[m.slot], (byLabel.get(w.doseLabels[m.slot]) ?? 0) + 1);
+  const { pcts, taken, counted, totalMissed, symptomDays, lowEnergy, verified, unresolved, below, fullDaysMissed, byLabel } = weekStats(weeks);
 
   lines.push(
     `Generated ${formatDay(localIsoDate(opts.generatedAt))} from ${plural(weeks.length, "PaperBridge Weekly Care Card")}: ${weekLabel(weeks[0]).replace(/^Week of |^Scanned /, "")} to ${weekLabel(weeks[weeks.length - 1]).replace(/^Week of |^Scanned /, "")}.`,
@@ -227,6 +266,10 @@ export function formatDoctorSummary(weeks: WeekEntry[], opts: { patientName: str
   if (pcts.length >= 2) {
     const change = pcts[pcts.length - 1] - pcts[0];
     lines.push(`- Trend: ${change === 0 ? "no change" : `${change > 0 ? "up" : "down"} ${Math.abs(change)} points`} from the first to the latest week.`);
+  }
+  if (opts.patterns?.length) {
+    lines.push("", "## Patterns to discuss", "", "Found by fixed rules over the marks above (no AI):", "");
+    for (const p of opts.patterns) lines.push(`- **${p.title}.** ${p.detail}`);
   }
   lines.push("", "## Week by week", "", "| Week | Adherence | Missed doses | Dizzy or pain | Low energy | Water 6+ cups |", "|---|---|---|---|---|---|");
   for (const w of weeks) {
