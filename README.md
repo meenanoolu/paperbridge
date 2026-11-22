@@ -1,42 +1,46 @@
-# paperbridge
-Optical paper-to-digital bridge powered by deterministic perspective unwarping and Kiro
+# PaperBridge
 
-**PaperBridge** brings back the 1960s bubble sheet. You print a card, someone fills it in
-with a pen, and one photo turns it into structured data. There is no smartphone, login, or
-cloud upload for the person holding the pen, and no AI guessing at the marks: the card is
-read with corner markers, a perspective transform, and local thresholds. The same image
-always gives the same answer.
-
-One reusable optical core powers two different apps, and a Kiro Crew App brings the alerts
-into Kiro Crew. It installs as an offline app, and `npm run create-app` scaffolds the next
-paper app. Built for **Kiroween 2026: Skeleton Crew**.
-
-**Live demo: [paperbridge-acvw.onrender.com](https://paperbridge-acvw.onrender.com/)**
-
-![Elder Care Bridge home page with the sample card panel](docs/images/elder-home.png)
+**Print a card, fill it in with a pen, take one photo: structured data, read on your device with no AI guessing at the marks.**
+One reusable optical skeleton powers two apps (Elder Care Bridge and Study Bridge), a Kiro Crew App, and a scaffolder for the next one.
+Built for **Kiroween 2026: Skeleton Crew**.
 
 | | |
 |---|---|
-| **Skeleton** | `src/core/`: card generator (SVG/PDF), optical decoder, webcam capture, simulated camera |
+| **Live demo** | [paperbridge-acvw.onrender.com](https://paperbridge-acvw.onrender.com/) (works offline after the first visit) |
+| **Demo video** | [YouTube link placeholder] |
+| **Kiro Crew App repo** | [meenanoolu/paperbridge-care-monitor](https://github.com/meenanoolu/paperbridge-care-monitor) (also in [`crew-app/`](crew-app/)) |
+| **Skeleton** | [`src/core/`](src/core/): card generator (SVG/PDF), optical decoder, webcam capture, Layout Validator. [`src/shell/`](src/shell/): shared scan UI, auto-routing, storage |
 | **App 1** | [`src/apps/elder-care/`](src/apps/elder-care/): Elder Care Bridge, a weekly medication and symptom card with a caregiver dashboard |
 | **App 2** | [`src/apps/study-bridge/`](src/apps/study-bridge/): Study Bridge, an offline 10-question quiz sheet with auto-grading and a class gradebook |
-| **Kiro Crew App** | [`crew-app/`](crew-app/): caregiver alert inbox plus a `care-auditor` agent |
-| **Offline PWA** | Installs from the browser and works with no network: scanning, printing, samples, history, CSV export |
 | **Dev kit** | [`npm run create-app`](docs/BUILD-YOUR-OWN-APP.md) scaffolder and the [Layout Validator MCP server](mcp/) |
 
-## Try it in 10 seconds (no printer needed)
+### Try it in 60 seconds (judge path, no printer needed)
 
-Open the [live demo](https://paperbridge-acvw.onrender.com/), or run it locally:
+1. Open the [live demo](https://paperbridge-acvw.onrender.com/). In the yellow **Try Sample Scanned Cards** panel, click **Missed-Dose Alert**: the photo is decoded from pixels in your browser, and the caregiver dashboard shows 71% adherence, patterns, and one unclear mark.
+2. Click the amber circle on the decoder's view to check that mark by hand. The dashboard recalculates and shows **Manually verified (1)**.
+3. Scroll to **Multi-Week Adherence Trend**, click **Load 4-Week Sample History**, then **Download Doctor Visit PDF**: a one-page sheet made on your device.
+4. Switch to **Study Bridge** in the top bar and click **Sam: Needs Review**: the same core grades a quiz sheet.
+
+> **Not medical advice.** Elder Care Bridge helps people track doses and symptoms on paper and talk to their care team. It does not diagnose or recommend treatment.
+
+![Elder Care Bridge home page with the sample card panel](docs/images/elder-home.png)
+
+### How it differs from classroom OMR tools
+Bubble-sheet graders such as ZipGrade and OMRChecker are built to grade answer sheets. PaperBridge is
+a reusable skeleton for any paper workflow: apps define their own cards and meanings (a caregiver's
+medication week, a quiz, the next scaffolded app), everything runs offline in the browser with no
+account or upload, and unclear marks go to a person instead of being guessed.
+
+## Run it locally
+
+
 
 ```bash
 npm install
 npm run dev        # open the URL Vite prints
 ```
 
-1. The yellow **Try Sample Scanned Cards (No Printer Needed)** panel is the first thing on the page.
-2. Click **Missed-Dose Alert**. The app loads a photo of a filled-in card and decodes its pixels in your browser, using the same decoder as the webcam.
-3. You get the caregiver dashboard, the decoder's view of the photo (corner markers, filled bubbles, one unclear mark), the decode time, and the raw JSON.
-4. Switch to **Study Bridge** in the top bar and click **Sam: Needs Review**.
+Then follow the [60-second judge path](#try-it-in-60-seconds-judge-path-no-printer-needed).
 
 To use a real card: **Print blank card (PDF)**, choose A4 or US Letter, fill it in with a dark
 pen, then **Scan with webcam** or **Upload a photo**.
@@ -47,6 +51,8 @@ that app; a batch shows a summary like "4 cards decoded locally in 118 ms: 3 rea
 review", lists every file with its app, gives each failed file its own error, and bulk-saves Elder
 Care cards to the history and Study Bridge sheets to the class sheet. Files with unclear marks get
 a **Review** button.
+
+![Scan Any Card batch: 4 cards decoded locally, 3 ready, 1 needs human review, 2 photos not read with a reason each](docs/images/batch-summary.png)
 
 ## Featured apps
 
@@ -61,7 +67,7 @@ At the end of the week a caregiver scans it and gets:
 - symptom flags, low-energy days, and water days
 - a **needs a human check** list: unclear marks are never counted as taken or missed
 
-![Caregiver Adherence Dashboard: 71% adherence, 10 of 14 doses, dizzy Thu and Fri](docs/images/elder-dashboard.png)
+![Caregiver Adherence Dashboard: 71% adherence, 10 of 14 doses, dizzy Thu and Fri, and the pattern "3 of 4 missed doses were Night Meds"](docs/images/elder-dashboard.png)
 ![Alerts for the caregiver](docs/images/elder-alerts.png)
 
 Sample cards: **Normal Week** (100%), **Missed-Dose Alert** (71%, Thursday fully missed,
@@ -72,11 +78,17 @@ Caregiver workflow:
 
 - **Resolve unclear marks by hand:** click the amber circle on the photo (or use the list below it). The dashboard recalculates and shows **Manually verified (N)**. The decoder's output is never changed.
 - **Customize Card:** print the patient's name, the week's dates, and real medication names ("Metformin 500mg - Morning") on the card. Only text changes, so every version decodes the same way.
+- **Routine anchors and pill cues:** print "With breakfast" or "White oval" under each column, so the card matches the person's routine. Only text changes, so the card decodes the same way.
+- **Symptom-to-miss patterns:** fixed rules, not AI, flag doses missed on days with dizziness, pain or low energy, and misses that cluster at one time of day. They are worded as questions to ask, never as a diagnosis.
+- **High-Visibility Print Mode:** bold text, larger day labels and light row bands for low vision. The bubbles don't move, and faint marks on shaded rows are still flagged for a human check.
+- **Doctor Visit PDF:** a one-page sheet made on the device, offline: medications and routines, adherence by week, missed doses by time of day, patterns, and how many marks were checked by hand.
 - **Regimen presets:** BP & Diabetes, Post-Surgery Recovery, or Simple Morning & Night fill the columns, routine anchors and pill cues in one click. Everything stays editable.
 - **Download 4-Week Pack (1 Month):** one 4-page PDF, Week 1 to Week 4 from the chosen Monday, with the same names, cues and High-Visibility setting on every page.
 - **Save Week to History:** a multi-week adherence trend and a one-click **Doctor Visit Summary** in plain text.
 - **Load 4-Week Sample History:** with no saved weeks yet, load a demo patient (93% to 71% over 4 weeks, one hand-checked mark) to see the trend, patterns, summary and Doctor Visit PDF. **Clear History** removes it.
 - **Copy for Kiro Crew:** the alert JSON, ready to paste into the Crew App.
+
+![Doctor Visit PDF for the 4-week sample patient: medications and routines, overview, missed doses by time of day, patterns, and a week-by-week table](docs/images/doctor-visit-pdf.png)
 
 ![The decoder's view of the tilted, low-light sample](docs/images/decoder-overlay.png)
 
@@ -99,13 +111,16 @@ Teacher workflow:
 
 ### Kiro Crew App (`crew-app/`)
 
-**PaperBridge Care Monitor** is a caregiver inbox inside Kiro Crew.
+**PaperBridge Care Monitor** is a caregiver inbox inside Kiro Crew. It also lives in its own repo,
+[meenanoolu/paperbridge-care-monitor](https://github.com/meenanoolu/paperbridge-care-monitor), so it can be installed on its own.
 
-- **Alert inbox:** collects scan alerts from Crew `notification` events, the
-  `/api/notifications` log, same-window `paperbridge:scan-alert` events, or pasted JSON.
+Alerts arrive by copy and paste: click **Copy for Kiro Crew** in Elder Care Bridge, then
+**Paste alert JSON** in the Crew page (or click **Load demo alert**). PaperBridge never uploads anything.
+
+- **Alert inbox:** validates and stores pasted alerts. It also accepts alerts from Crew `notification` events and the `/api/notifications` log (for a Crew automation that posts them), and same-window `paperbridge:scan-alert` events.
 - **Sidebar badge:** `useNavBadge()` counts the alerts that still need review.
 - **Draft Caregiver Check-In:** opens a draft chat with the `care-auditor` agent, which uses
-  the `adherence-analysis` skill.
+  the `adherence-analysis` skill and turns each pattern into a gentle question.
 - **Cmd+K command:** **Audit latest PaperBridge care card** opens the same agent.
 - **Demo alert:** **Load demo alert** lets you try it without a scan.
 
@@ -118,7 +133,7 @@ precaches the whole app on first visit (about 1.9 MB): the page, the PDF generat
 sample photo. After that it runs with no network.
 
 - **Install:** use the browser's *Install app* / *Add to Home Screen*. It opens in its own window (`display: standalone`).
-- **Offline:** scanning (webcam and upload), sample cards, manual review, printing PDFs, history, the Doctor Visit Summary, and CSV export all keep working. They never needed the network: everything runs in the browser and saved data stays in `localStorage`.
+- **Offline:** scanning (webcam and upload), sample cards, manual review, printing PDFs, history, the Doctor Visit Summary and PDF, the 4-Week Pack, and CSV export all keep working. They never needed the network: everything runs in the browser and saved data stays in `localStorage`.
 - **Status:** when the device is offline, the header shows *Offline mode: scanning & printing still work locally* (a polite status message, AAA contrast).
 
 ## Build your own paper app
@@ -187,6 +202,7 @@ them. They found these bugs before any human saw a wrong answer:
 | fast-check P1 (strong perspective) | The **test generator** pushed card corners out of frame | The frame grows with perspective strength |
 | Sample bubble-by-bubble test | The "faint" mark meant to show "needs review" decoded as blank (fill 0.175) | Mark recalibrated to 0.29, mid-band |
 | Crew bundle smoke test | Two React copies (the UI package installed `react`), so hooks crashed | Types only in `crew-app/ui`; React comes from the host |
+| Batch test across paper sizes (5 samples x 5 cameras x 2 papers) | Every scan path tried A4 first and accepted it, so **Letter prints were read with A4 bubble positions**: 1 to 7 extra unclear marks, sometimes different readings | Decode every paper size and keep the best fit (fewest unclear marks, then highest confidence): 50 of 50 correct |
 | Keyboard audit | The skip link set `#main`, which switched Study Bridge back to Elder Care | Move focus without changing the hash |
 
 The tests also caught a mistake in our own expectations: we expected Sam's quiz to score
@@ -255,13 +271,15 @@ regenerates the sample photos, and saving any app file typechecks it.
 ## Project layout
 
 ```
-src/core/              optical skeleton: layout, validate, render (SVG/PDF), decode, capture, testing/synth
-src/shell/             shared UI: ScanWorkbench, app registry, overrides, storage, offline badge
-src/apps/elder-care/   layout, interpret, card settings, history, CareDashboard
-src/apps/study-bridge/ layout, answer key, grade, class sheet + CSV, StudyResults
+src/core/              optical skeleton: layout, validate (geometry + printed text), render (SVG/PDF, multi-page), decode, capture, testing/synth
+src/shell/             shared UI: ScanWorkbench, app registry, Scan Any Card routing + batch, overrides, storage, offline badge
+src/apps/elder-care/   layout, interpret, card settings (anchors, cues, High-Visibility), presets, monthly pack,
+                       patterns, history, sample history, Doctor Visit PDF, batch adapter, CareDashboard
+src/apps/study-bridge/ layout, answer key, grade, class sheet + CSV, batch adapter, StudyResults
+src/__tests__/         integration tests: shipped app layouts against the core Layout Validator
 scripts/               gen-samples.ts, create-app.mjs, gen-icons.ts
 mcp/                   Layout Validator MCP server (validate_card_layout, list_registered_apps)
-crew-app/              Kiro Crew App: app.json, agent, skill, ui (committed dist/index.mjs)
+crew-app/              Kiro Crew App: app.json, agent, skill, ui (committed dist/index.mjs); mirrored at meenanoolu/paperbridge-care-monitor
 public/                PWA icons
 docs/                  BUILD-YOUR-OWN-APP.md, screenshots
 .kiro/                 specs, steering, hooks, settings/mcp.json
@@ -272,7 +290,7 @@ docs/                  BUILD-YOUR-OWN-APP.md, screenshots
 | Command | What it does |
 |---|---|
 | `npm run dev` | Start the app |
-| `npm test` | 215 tests: property tests, end-to-end sample decodes, interpreters, overrides, history, CSV, layout validator, scaffolder, MCP tools, auto-routing and batch scan, monthly pack, presets, Crew App contract and bundle |
+| `npm test` | 217 tests: property tests, end-to-end sample decodes, interpreters, overrides, history, CSV, layout validator, scaffolder, MCP tools, auto-routing and batch scan, monthly pack, presets, Crew App contract and bundle |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run build` | Production build plus service worker and `manifest.webmanifest` (pdf-lib loads only when printing) |
 | `npm run gen:samples` | Regenerate every app's sample photos (deterministic, byte-identical) |

@@ -107,3 +107,9 @@ Requirement references use the numbering in `requirements.md`.
   - [x] 17.6 4-Week Monthly Pack: consecutive Mondays, headings with fallback, geometry, text and photographed-decode tests; download button _(R26)_
   - [x] 17.7 Load 4-Week Sample History with trend, pattern, override and Doctor PDF tests; Clear History removes it _(R28)_
   - [x] 17.8 axe-core audit (0 violations, AAA contrast on Elder Care), keyboard pass, focus rings on new buttons and presets _(R9.2)_
+
+- [x] 18. Judge-readiness polish (branch `docs/judge-readiness-polish`)
+  - [x] 18.1 README: top summary (live demo, video, Crew App repo), 60-second judge path, Phase 4 features, OMR comparison, not-medical-advice line, refreshed layout, paper-size bug row, new screenshots (dashboard with patterns, batch summary, Doctor Visit PDF)
+  - [x] 18.2 `crew-app/` README works as the standalone `paperbridge-care-monitor` repo; `app.json` `repo` set to it
+  - [x] 18.3 `product.md` steering covers the whole skeleton; shipped-layout checks moved to `src/__tests__/` so `src/core` has no imports from `src/apps`
+  - [x] 18.4 Elder Care footer: "For tracking only; not medical advice" via `appMeta.footerNote` (AAA contrast, 18 px)
