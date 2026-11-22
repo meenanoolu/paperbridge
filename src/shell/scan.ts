@@ -1,6 +1,5 @@
 import { useCallback, useRef, useState } from "react";
 import {
-  decode,
   rasterFromFile,
   rasterFromUrl,
   rasterToDataUrl,
@@ -11,6 +10,7 @@ import {
   type SuccessfulScan,
 } from "../core";
 import type { ManualOverrides } from "./overrides";
+import { decodeBestFit } from "./route";
 
 export type ScanSource = "sample" | "webcam" | "upload";
 
@@ -61,20 +61,10 @@ export const DECODE_ERROR_TEXT: Record<DecodeErrorReason, { title: string; help:
 };
 
 /**
- * Decode against each accepted layout variant (e.g. A4 and Letter prints) and keep the first success.
- * Returns the first failure if none decode.
+ * Decode against each accepted paper variant (A4 and Letter prints of the same card).
+ * Kept for compatibility; see `decodeBestFit` for why the best fit, not the first success, wins.
  */
-export function decodeAny(raster: RasterImage, layouts: CardLayout[]): { result: ScanResult; layout: CardLayout } {
-  let first: { result: ScanResult; layout: CardLayout } | null = null;
-  for (const layout of layouts) {
-    const result = decode(raster, layout);
-    if (result.ok) return { result, layout };
-    // A missing fiducial fails the same way for every variant, so stop early.
-    if (result.reason === "FIDUCIALS_NOT_FOUND") return { result, layout };
-    first ??= { result, layout };
-  }
-  return first!;
-}
+export const decodeAny = decodeBestFit;
 
 /** Yield to the browser so "Decoding..." paints before the CPU-bound decode starts. */
 const nextFrame = () => new Promise<void>((r) => requestAnimationFrame(() => setTimeout(r, 0)));
@@ -135,5 +125,11 @@ export function useScanner(layouts: CardLayout[]) {
     [finish],
   );
 
-  return { state, scanUrl, scanFile, scanFrame };
+  /** Show a scan decoded elsewhere (e.g. auto-routed from "Scan Any Card"). */
+  const loadScan = useCallback((scan: CompletedScan) => {
+    ++run.current;
+    setState({ status: "done", scan });
+  }, []);
+
+  return { state, scanUrl, scanFile, scanFrame, loadScan };
 }

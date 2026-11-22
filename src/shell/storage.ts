@@ -27,12 +27,20 @@ export function loadJson<T>(name: string, parse: Parse<T>, fallback: T): T {
   }
 }
 
+/** Fired on `window` after every write, so open pages that show the same data reload it. */
+export const STORAGE_EVENT = "paperbridge:storage";
+
+function announce(name: string) {
+  if (typeof window !== "undefined" && typeof CustomEvent !== "undefined") window.dispatchEvent(new CustomEvent(STORAGE_EVENT, { detail: name }));
+}
+
 /** Returns false when storage is full or unavailable, so the UI can say so. */
 export function saveJson(name: string, value: unknown): boolean {
   try {
     const s = storage();
     if (!s) return false;
     s.setItem(storageKey(name), JSON.stringify(value));
+    announce(name);
     return true;
   } catch {
     return false;
@@ -42,6 +50,7 @@ export function saveJson(name: string, value: unknown): boolean {
 export function removeJson(name: string): void {
   try {
     storage()?.removeItem(storageKey(name));
+    announce(name);
   } catch {
     // ignore
   }

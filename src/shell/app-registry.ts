@@ -1,4 +1,6 @@
 import type { ComponentType } from "react";
+import type { CardLayout } from "../core";
+import type { BatchAdapter } from "./batch";
 import type { IconName } from "./components/Icon";
 
 /**
@@ -12,6 +14,10 @@ export interface AppMeta {
   icon: IconName;
   /** Lower comes first in the switcher. */
   order?: number;
+  /** Printed card variants (A4, Letter). Lets "Scan Any Card" route a photo here by its card ID. */
+  layouts?: CardLayout[];
+  /** Optional bulk save for "Scan Any Card" batches (e.g. to history or a class sheet). */
+  batch?: BatchAdapter;
 }
 
 export interface RegisteredApp extends AppMeta {
@@ -34,6 +40,11 @@ export function collectApps(modules: Record<string, AppModule>): RegisteredApp[]
 }
 
 export const APPS: RegisteredApp[] = collectApps(import.meta.glob<AppModule>("../apps/*/App.tsx", { eager: true }));
+
+/** Apps that can receive auto-routed scans. */
+export function routableApps(apps: RegisteredApp[] = APPS): (RegisteredApp & { layouts: CardLayout[] })[] {
+  return apps.filter((a): a is RegisteredApp & { layouts: CardLayout[] } => !!a.layouts?.length);
+}
 
 export function appFromHash(hash: string, apps: RegisteredApp[] = APPS): RegisteredApp {
   const id = hash.replace(/^#/, "");

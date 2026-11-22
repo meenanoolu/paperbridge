@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { CardLayout } from "../../core";
 import { applyManualOverrides, countActiveOverrides, NO_OVERRIDES, setOverride, unclearBubbles, type ManualOverrides } from "../overrides";
+import { takeRoutedScan, useRoutedScan } from "../routed-scan";
 import { DECODE_ERROR_TEXT, useScanner, type CompletedScan, type ReviewedScan } from "../scan";
 import { DecodeFacts } from "./DecodeFacts";
 import { Icon, type IconName } from "./Icon";
@@ -38,7 +39,15 @@ const prefersReducedMotion = () =>
 
 /** Shared page frame: sample panel first, then own-card options, then the decoded result. */
 export function ScanWorkbench({ icon, title, tagline, layouts, samples, steps, renderResult, onScan, announce, describeBubble = defaultDescribe, printLayouts, setup }: WorkbenchProps) {
-  const { state, scanUrl, scanFile, scanFrame } = useScanner(layouts);
+  const { state, scanUrl, scanFile, scanFrame, loadScan } = useScanner(layouts);
+  const routed = useRoutedScan();
+  useEffect(() => {
+    const scan = routed && takeRoutedScan(layouts.map((l) => l.id));
+    if (!scan) return;
+    setCamera(false);
+    setActiveSample(null);
+    loadScan(scan);
+  }, [routed, layouts, loadScan]);
   const [activeSample, setActiveSample] = useState<string | null>(null);
   const [camera, setCamera] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);

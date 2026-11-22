@@ -19,8 +19,9 @@ export function alertFor(scan: ReviewedScan, doseLabels?: DoseLabels): ScanAlert
   return toScanAlert(interpretCareCard(scan.result, { doseLabels }), scan.result.cardId, scan.scannedAt, scan.manualOverrides);
 }
 
-export const CARE_SETTINGS_KEY = "elder-care.card.v1";
-export const HISTORY_KEY = "elder-care.history.v1";
+import { CARE_SETTINGS_KEY, HISTORY_KEY } from "./storage-keys";
+import { ELDER_BATCH } from "./batch";
+export { CARE_SETTINGS_KEY, HISTORY_KEY };
 const NO_WEEKS: WeekEntry[] = [];
 
 function SaveWeek({ entry, history, onSave }: { entry: WeekEntry; history: WeekEntry[]; onSave: (e: WeekEntry) => void }) {
@@ -113,5 +114,5 @@ export function ElderCareApp() {
   );
 }
 
-export const appMeta: AppMeta = { id: "elder-care", label: "Elder Care Bridge", icon: "heart", order: 1 };
+export const appMeta: AppMeta = { id: "elder-care", label: "Elder Care Bridge", icon: "heart", order: 1, layouts: ELDER_LAYOUTS, batch: ELDER_BATCH };
 export default ElderCareApp;
