@@ -116,5 +116,13 @@ export function ElderCareApp() {
   );
 }
 
-export const appMeta: AppMeta = { id: "elder-care", label: "Elder Care Bridge", icon: "heart", order: 1, layouts: ELDER_LAYOUTS, batch: ELDER_BATCH };
+export const appMeta: AppMeta = {
+  id: "elder-care",
+  label: "Elder Care Bridge",
+  icon: "heart",
+  order: 1,
+  layouts: ELDER_LAYOUTS,
+  batch: ELDER_BATCH,
+  footerNote: "For tracking only; not medical advice. Talk to a doctor or pharmacist before changing any medication.",
+};
 export default ElderCareApp;

@@ -76,6 +76,7 @@ export function App() {
           PaperBridge runs fully in your browser and keeps working offline once loaded (install it from the browser menu). Cards need only paper and a pen: no smartphone, login, or upload. One
           shared optical core powers every app.
         </p>
+        {app.footerNote && <p className="mx-auto max-w-6xl px-4 -mt-2 pb-5 text-lg text-slate-800 sm:px-6">{app.footerNote}</p>}
       </footer>
     </div>
   );

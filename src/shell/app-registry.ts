@@ -18,6 +18,8 @@ export interface AppMeta {
   layouts?: CardLayout[];
   /** Optional bulk save for "Scan Any Card" batches (e.g. to history or a class sheet). */
   batch?: BatchAdapter;
+  /** One short line shown in the page footer while this app is open, e.g. a disclaimer. */
+  footerNote?: string;
 }
 
 export interface RegisteredApp extends AppMeta {
