@@ -145,7 +145,7 @@ export function CareDashboard({
             </div>
             <div className="rounded-xl border-2 border-slate-300 p-4">
               <p className="flex items-center gap-2 text-lg font-bold">
-                <Icon name="alert" /> Dizzy or pain
+                <Icon name="alert" /> {columnLabel(card, "dizzy")}
               </p>
               <p className="text-3xl font-black">
                 {report.symptomDays.length} day{report.symptomDays.length === 1 ? "" : "s"}
@@ -158,7 +158,7 @@ export function CareDashboard({
             </div>
             <div className="rounded-xl border-2 border-slate-300 p-4">
               <p className="flex items-center gap-2 text-lg font-bold">
-                <Icon name="drop" /> Water 6+ cups
+                <Icon name="drop" /> {columnLabel(card, "water")}
               </p>
               <p className="text-3xl font-black">{report.hydrationDays} of 7 days</p>
             </div>

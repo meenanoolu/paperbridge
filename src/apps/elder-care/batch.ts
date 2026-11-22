@@ -36,7 +36,7 @@ export const ELDER_BATCH: BatchAdapter = {
     let list: WeekEntry[] = loadJson(HISTORY_KEY, parseHistory, []);
     let replaced = 0;
     for (const it of items) {
-      const entry = toWeekEntry(interpretCareCard(it.scan, { doseLabels }), {
+      const entry = toWeekEntry(interpretCareCard(it.scan, { doseLabels, habitLabel: columnLabel(card, "water") }), {
         scannedAt: it.scannedAt,
         savedAt: now,
         card: { ...card, weekStart: it.value ? mondayOf(it.value) : "" },

@@ -1,6 +1,9 @@
 import { useEffect, useId, useMemo, useState, type ReactNode } from "react";
-import { renderCardSvg } from "../../../core";
+import { renderCardsPdf, renderCardSvg, type PageSize } from "../../../core";
+import { defaultPageSize, downloadBytes } from "../../../shell/components/PrintCard";
 import { Button, Callout } from "../../../shell/components/ui";
+import { monthlyPackLayouts, packFileName, packMondays, packTitle, PACK_WEEKS } from "../monthly-pack";
+import { applyPreset, REGIMEN_PRESETS } from "../presets";
 import {
   customizeCareLayout,
   DEFAULT_CARE_SETTINGS,
@@ -60,6 +63,61 @@ function Field({
           {problems.map((p) => p.message).join(" ")}
         </p>
       )}
+    </div>
+  );
+}
+
+/** "Download 4-Week Pack (1 Month)": 4 dated cards from the saved Monday in one PDF. */
+function MonthlyPack({ settings, dirty }: { settings: CareCardSettings; dirty: boolean }) {
+  const uid = useId();
+  const [page, setPage] = useState<PageSize>(defaultPageSize);
+  const [state, setState] = useState<{ busy: boolean; message: string; error?: boolean }>({ busy: false, message: "" });
+  const mondays = packMondays(settings.weekStart);
+  const ready = mondays.length === PACK_WEEKS;
+  const hint = ready
+    ? `${PACK_WEEKS} pages: weeks starting ${mondays.map((m) => formatDay(m).slice(0, -5)).join(", ")}${dirty ? ". Uses the saved card: save your changes first" : ""}.`
+    : "Set a week start date and press Save card first: the pack starts on that Monday.";
+  return (
+    <div className="rounded-xl border-2 border-slate-950 p-4">
+      <p className="text-xl font-extrabold">Print a month</p>
+      <p id={`${uid}-hint`} className="text-lg text-slate-800">
+        {hint}
+      </p>
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        <fieldset className="flex items-center gap-1 rounded-xl border-2 border-slate-950 p-1">
+          <legend className="sr-only">Paper size for the 4-week pack</legend>
+          {(["A4", "Letter"] as const).map((p) => (
+            <label
+              key={p}
+              className={`cursor-pointer rounded-lg px-3 py-2 text-lg font-bold has-[:focus-visible]:outline-4 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-slate-950 ${page === p ? "bg-slate-950 text-white" : "text-slate-950"}`}
+            >
+              <input type="radio" name={`${uid}-page`} value={p} checked={page === p} onChange={() => setPage(p)} className="sr-only" />
+              {p === "Letter" ? "US Letter" : "A4"}
+            </label>
+          ))}
+        </fieldset>
+        <Button
+          icon="printer"
+          disabled={!ready || state.busy}
+          aria-describedby={`${uid}-hint`}
+          onClick={async () => {
+            setState({ busy: true, message: "" });
+            try {
+              const bytes = await renderCardsPdf(monthlyPackLayouts(settings, page), { title: packTitle(settings) });
+              const name = packFileName(settings, page);
+              downloadBytes(new Uint8Array(bytes), "application/pdf", name);
+              setState({ busy: false, message: `Downloaded ${name} (${PACK_WEEKS} pages).` });
+            } catch {
+              setState({ busy: false, message: "The pack could not be created.", error: true });
+            }
+          }}
+        >
+          {state.busy ? "Preparing pack..." : `Download ${PACK_WEEKS}-Week Pack (1 Month)`}
+        </Button>
+        <span role="status" aria-live="polite" className={`text-lg font-bold ${state.error ? "text-red-900" : "text-green-900"}`}>
+          {state.message}
+        </span>
+      </div>
     </div>
   );
 }
@@ -179,6 +237,32 @@ export function CustomizeCardPanel({
               </div>
             </div>
           </div>
+          <div role="group" aria-labelledby={`${uid}-presets`} className="rounded-xl border-2 border-slate-950 p-4">
+            <p id={`${uid}-presets`} className="text-xl font-extrabold">
+              Start from a regimen
+            </p>
+            <p className="text-lg text-slate-800">Fills the four columns below in one click. You can still edit everything, then press Save card.</p>
+            <ul className="mt-3 grid gap-3 md:grid-cols-3">
+              {REGIMEN_PRESETS.map((p) => (
+                <li key={p.id}>
+                  <button
+                    type="button"
+                    aria-describedby={`${uid}-preset-${p.id}`}
+                    onClick={() => {
+                      setDraft(applyPreset(draft, p));
+                      setMessage(`Loaded the ${p.name} preset. Check the columns, then press Save card.`);
+                    }}
+                    className="flex h-full min-h-14 w-full flex-col items-start rounded-xl border-2 border-slate-950 bg-white px-4 py-3 text-left hover:bg-slate-100"
+                  >
+                    <span className="text-lg font-extrabold">{p.name}</span>
+                    <span id={`${uid}-preset-${p.id}`} className="text-lg text-slate-800">
+                      {p.summary}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
           <fieldset className="space-y-5">
             <legend className="text-xl font-extrabold">Checklist columns</legend>
             <p className="text-lg text-slate-800">
@@ -249,6 +333,7 @@ export function CustomizeCardPanel({
           <p role="status" aria-live="polite" className="text-lg font-bold">
             {message}
           </p>
+          <MonthlyPack settings={settings} dirty={dirty} />
           {!saved && (
             <Callout tone="warn" title="This browser did not save the settings">
               They apply until you close the page. Check that site storage is allowed.
