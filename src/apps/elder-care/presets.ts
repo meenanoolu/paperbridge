@@ -24,10 +24,10 @@ export const REGIMEN_PRESETS: RegimenPreset[] = [
   {
     id: "bp-diabetes",
     name: "BP & Diabetes",
-    summary: "Morning BP pill + Metformin, evening Metformin, water.",
-    labels: { am: "BP Pill + Metformin", pm: "Metformin", water: "Water 6+ Cups", dizzy: "Dizzy or Pain" },
+    summary: "Morning Metformin + BP pill, evening Metformin, water.",
+    labels: { am: "Metformin + BP Pill", pm: "Metformin", water: "Water 6+ Cups", dizzy: "Dizzy or Pain" },
     anchors: { am: "With breakfast", pm: "After dinner", water: "All day" },
-    cues: { am: "White oval, large white", pm: "Large white", water: "6 glasses" },
+    cues: { am: "Large white, white oval", pm: "Large white", water: "6 glasses" },
   },
   {
     id: "post-surgery",

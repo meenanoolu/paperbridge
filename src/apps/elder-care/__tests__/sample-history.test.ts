@@ -33,7 +33,7 @@ describe("4-Week Sample History", () => {
     ]);
     expect(trend(weeks).map((t) => t.delta)).toEqual([null, -7, -7, -8]);
     expect(weeks.reduce((s, w) => s + w.manualOverrides, 0)).toBe(1);
-    expect(weeks[0].doseLabels).toEqual({ Morning: "BP Pill + Metformin", Night: "Metformin" });
+    expect(weeks[0].doseLabels).toEqual({ Morning: "Metformin + BP Pill", Night: "Metformin" });
     expect(sampleHistory(NOW)).toEqual(weeks);
   });
 
@@ -59,6 +59,6 @@ describe("4-Week Sample History", () => {
     expect((await PDFDocument.load(pdf.bytes)).getPageCount()).toBe(1);
     expect(pdf.rowsListed).toBe(4);
     expect(pdf.minBodyY).toBeGreaterThan(pdf.footerTop);
-    expect(drawnText(pdf.bytes).join(" ")).toContain("BP Pill + Metformin · Routine: With breakfast · Looks like: White oval, large white");
+    expect(drawnText(pdf.bytes).join(" ")).toContain("Metformin + BP Pill · Routine: With breakfast · Looks like: Large white, white oval");
   });
 });

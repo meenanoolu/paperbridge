@@ -255,8 +255,9 @@ export function AutoRoutePanel({ onRoute }: { onRoute: (app: RegisteredApp) => v
                           )}
                         </td>
                         <td className="px-2 py-2 text-right">
+                          {/* The accessible name starts with the visible word (WCAG 2.5.3 Label in Name). */}
                           {item.result && app && (
-                            <Button onClick={() => open(item)} aria-label={`Open ${item.fileName} in ${app.label}${item.unclear ? " to check its unclear marks" : ""}`}>
+                            <Button onClick={() => open(item)} aria-label={`${item.unclear ? "Review" : "Open"} ${item.fileName} in ${app.label}`}>
                               {item.unclear ? "Review" : "Open"}
                             </Button>
                           )}

@@ -4,7 +4,7 @@ import { inflateSync } from "node:zlib";
 import { PDFDocument } from "pdf-lib";
 import { describe, expect, it } from "vitest";
 import { decodeJpeg, encodeJpeg, photographSample } from "../../../../scripts/lib/photo";
-import { bubbleCenters, checkLayout, checkPrintedText, decode, fiducialCenters, idBits, renderCardsPdf } from "../../../core";
+import { bubbleCenters, checkLayout, checkPrintedText, decode, fiducialCenters, idBits, renderCardsPdf, textBoxes } from "../../../core";
 import { customizedElderLayouts, DEFAULT_CARE_SETTINGS, parseCareSettings, validateSettings, type CareCardSettings } from "../card-settings";
 import { interpretCareCard } from "../interpret";
 import { ELDER_LAYOUT, ELDER_LAYOUTS } from "../layout";
@@ -116,12 +116,31 @@ describe("Regimen presets", () => {
       }
   });
 
+  it("leaves at least 1.5 mm between neighbouring printed words so labels read as separate columns", () => {
+    for (const p of REGIMEN_PRESETS)
+      for (const highVisibility of [false, true]) {
+        const s = applyPreset({ ...DEFAULT_CARE_SETTINGS, patientName: "Rosa Martínez", weekStart: "2026-12-28", highVisibility }, p);
+        for (const l of customizedElderLayouts(s)) {
+          const boxes = textBoxes(l);
+          let min = Infinity;
+          let pair = "";
+          for (const a of boxes)
+            for (const b of boxes)
+              if (a !== b && a.y0 < b.y1 && b.y0 < a.y1 && a.x1 <= b.x0 && b.x0 - a.x1 < min) {
+                min = b.x0 - a.x1;
+                pair = `${a.text} | ${b.text}`;
+              }
+          expect({ preset: p.id, highVisibility, page: l.page, pair, ok: min >= 1.5 }).toEqual({ preset: p.id, highVisibility, page: l.page, pair, ok: true });
+        }
+      }
+  });
+
   it("keeps each column's meaning: doses in columns 1-2, a habit in 3, the symptom in 4", () => {
     const bp = REGIMEN_PRESETS[0];
-    expect(bp.labels).toEqual({ am: "BP Pill + Metformin", pm: "Metformin", water: "Water 6+ Cups", dizzy: "Dizzy or Pain" });
+    expect(bp.labels).toEqual({ am: "Metformin + BP Pill", pm: "Metformin", water: "Water 6+ Cups", dizzy: "Dizzy or Pain" });
     expect([bp.anchors.am, bp.cues.am, bp.anchors.pm, bp.cues.pm, bp.anchors.water, bp.cues.water]).toEqual([
       "With breakfast",
-      "White oval, large white",
+      "Large white, white oval",
       "After dinner",
       "Large white",
       "All day",
