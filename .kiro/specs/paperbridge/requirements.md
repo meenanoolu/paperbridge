@@ -76,3 +76,21 @@ PaperBridge turns a printed bubble card into structured data using deterministic
 2. All UI text SHALL meet WCAG AA contrast, with AAA for the Elder Care app.
 3. Apps SHALL import only from the public `src/core/index.ts`.
 4. Stack: React, TypeScript, Vite, Tailwind CSS, Vitest, fast-check.
+
+## R10. Human review of unclear marks (Phase 1)
+1. WHEN a scan contains ambiguous bubbles, THE scan view SHALL make each one a keyboard- and mouse-operable control with an accessible name and visible focus ring.
+2. WHEN a person activates an unclear bubble, THE app SHALL cycle its override through filled, blank, and unclear, and SHALL offer the same three choices in a large-target list.
+3. THE app SHALL apply overrides with a pure function and SHALL NOT modify the decoder's `ScanResult`.
+4. Overrides SHALL apply only to bubbles the decoder reported as ambiguous.
+5. WHEN overrides change, BOTH apps SHALL recalculate their results, show "Manually verified (N)", and announce the update through the live region.
+
+## R11. Webcam alignment guide (Phase 1)
+1. WHILE the webcam is open, THE scanner SHALL draw 4 corner brackets matching the card's aspect ratio over the video.
+2. WHILE fewer than 4 corner markers are found, THE brackets SHALL be dashed amber with the prompt "Align all 4 corner markers inside the frame."
+3. WHEN all 4 markers are found, THE brackets SHALL turn solid green and the status SHALL say "4/4 corners locked".
+4. THE overlay SHALL be `aria-hidden`, SHALL respect `prefers-reduced-motion`, and its state SHALL be available in a polite status line.
+
+## R12. Copy for Kiro Crew (Phase 1)
+1. WHEN an Elder Care scan is shown, THE dashboard SHALL offer "Copy for Kiro Crew", which copies the `paperbridge:scan-alert` JSON with overrides applied.
+2. WHEN overrides are active, THE alert SHALL include `manualOverrides`, and THE Crew App SHALL keep and display it.
+3. IF the clipboard is unavailable, THEN THE app SHALL show the JSON for manual copying.
