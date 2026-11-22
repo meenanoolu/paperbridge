@@ -45,3 +45,12 @@ export function readingsByKey(result: ScanResult): Map<string, BubbleReading> {
   if (result.ok) for (const b of result.bubbles) map.set(bubbleKey(b.group, b.row, b.col), b);
   return map;
 }
+
+export {
+  checkLayout,
+  parseCardLayout,
+  validateLayoutJson,
+  type DiagnosticCode,
+  type LayoutDiagnostic,
+  type LayoutReport,
+} from "./validate";

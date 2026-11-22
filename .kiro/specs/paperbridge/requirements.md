@@ -114,3 +114,19 @@ PaperBridge turns a printed bubble card into structured data using deterministic
 
 ## R16. Local data (Phase 2)
 1. All saved settings, history, and class sheets SHALL stay in this browser's localStorage and SHALL be validated by a pure parser on load.
+
+## R17. Offline-first PWA (Phase 3)
+1. THE app SHALL be installable as a standalone PWA with a `manifest.webmanifest` (name and short_name "PaperBridge", `display: standalone`, theme colour #020617, PNG, maskable and SVG icons).
+2. THE service worker SHALL precache the app shell, every JS/CSS chunk (including the lazily loaded PDF generator), all sample photos, and the icons, so scanning, printing, samples, manual review, history, and CSV export work with no network.
+3. WHILE `navigator.onLine` is false, THE header SHALL show "Offline mode: scanning & printing still work locally" in a polite status region at AAA contrast.
+
+## R18. App scaffolder and developer guide (Phase 3)
+1. `npm run create-app <slug> "<Display Name>"` SHALL write `src/apps/<slug>/` with `layout.ts`, `interpret.ts`, `App.tsx`, `samples/`, and `__tests__/layout.test.ts`, and SHALL refuse invalid slugs, unprintable names, and existing folders with a clear message.
+2. THE generated layout SHALL pass `checkLayout` on A4 and Letter; THE generated tests SHALL include a fast-check property that random fills decode exactly, and an interpreter test that resolves an unclear mark with `applyManualOverrides`.
+3. Apps SHALL register themselves: any `src/apps/*/App.tsx` exporting `appMeta` and a default component appears in the switcher, and any `samples/specs.ts` exporting `SAMPLE_SET` is rendered by `gen:samples`.
+4. `docs/BUILD-YOUR-OWN-APP.md` SHALL document the 3-file contract, the scaffolder, and a ready-to-paste Kiro prompt.
+
+## R19. Layout Validator MCP server (Phase 3)
+1. A local stdio MCP server in `mcp/` SHALL expose `validate_card_layout`, which accepts a `CardLayout` object or JSON string and returns pass/fail with one diagnostic (code, message, bubble IDs, JSON path) per problem: shape errors, out of bounds, fiducial quiet-zone overlap, card-ID strip overlap, bubble-to-bubble overlap (centres closer than 1.1 x the sum of radii), and duplicate IDs.
+2. THE server SHALL expose `list_registered_apps`, which lists every `src/apps/` folder with its label, card ID, pages, groups, bubble count, layout status, sample photo count, and problems (including card-ID code clashes).
+3. Both tools SHALL be read-only. `.kiro/settings/mcp.json` SHALL configure the server for Kiro.

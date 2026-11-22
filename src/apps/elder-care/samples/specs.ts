@@ -1,5 +1,5 @@
-import type { MarkStyle, SampleSpec } from "../../../shell/sample-spec";
-import { DAYS, type Day } from "../layout";
+import type { MarkStyle, SampleSet, SampleSpec } from "../../../shell/sample-spec";
+import { ELDER_LAYOUT, DAYS, type Day } from "../layout";
 
 type Week = Record<Day, { am?: boolean; pm?: boolean; water?: boolean; dizzy?: boolean; energy?: number; faint?: string[] }>;
 
@@ -106,3 +106,6 @@ export const ELDER_SAMPLE_SPECS: SampleSpec[] = [
     },
   },
 ];
+
+/** Picked up by `npm run gen:samples`. */
+export const SAMPLE_SET: SampleSet = { layout: ELDER_LAYOUT, specs: ELDER_SAMPLE_SPECS };

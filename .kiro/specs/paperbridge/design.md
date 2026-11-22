@@ -149,3 +149,10 @@ Verified against the Crew docs and the KiroCrew sources (`website/src/app-sdk/in
 | Kiro Crew SDK/schema drift | Verified against docs and sources in task 11.1; SDK isolated behind `sdk.ts`; bundle smoke test |
 | Test runtime too long | Small synthetic resolution (about 800 px), bounded `numRuns` |
 | Sample cards look fake to judges | Sample images include noise, perspective, and shadow produced by the same synth |
+
+## 14. Phase 3: offline PWA and developer kit
+- **PWA:** `vite-plugin-pwa` in generateSW mode with `registerType: "autoUpdate"`. `globPatterns` covers js/css/html/svg/png/jpg; the plugin adds the manifest itself, and manifest icons are not listed twice. `navigateFallback: index.html` suits the hash-routed single page. `useOnline()` (`useSyncExternalStore` over online/offline events) drives the header badge.
+- **Layout checks:** `src/core/validate.ts` is additive and leaves `validateLayout` and the decoder unchanged. It is a strict superset: margins, fiducial quiet zone, card-ID strip, all-pairs bubble spacing (1.1 x the sum of radii, matching the 2.2r pitch rule), unique IDs, and a JSON shape parser for untrusted input.
+- **Registries:** the shell finds apps with `import.meta.glob("../apps/*/App.tsx", { eager: true })` and `appMeta`. `gen:samples` imports every `samples/specs.ts` and reads `SAMPLE_SET`. A scaffolded app's `samples/index.ts` globs `./*.jpg`, so it builds before its photos exist (the sample panel then says so).
+- **Scaffolder:** `scripts/create-app.mjs` is plain Node ESM with a pure `createApp({ slug, displayName, appsDir })`. Names are inserted with `JSON.stringify` so quotes and backslashes are safe. Its test builds the repo shape in a temp dir (symlinked core, shell, node_modules) and imports the generated test file so its suite runs in the same Vitest run.
+- **MCP server:** `mcp/server.ts` (stdio, `McpServer.registerTool`, zod input schemas, read-only annotations) is a thin wrapper over `mcp/tools.ts`. `list_registered_apps` imports `layout.ts` files and reads `appMeta` as text, because App.tsx needs React and Vite-only APIs. It runs with `npx tsx`, so it imports the TypeScript core directly.

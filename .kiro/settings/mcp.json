@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "paperbridge": {
+      "command": "npx",
+      "args": ["tsx", "mcp/server.ts"],
+      "env": {},
+      "disabled": false,
+      "autoApprove": ["validate_card_layout", "list_registered_apps"]
+    }
+  }
+}
