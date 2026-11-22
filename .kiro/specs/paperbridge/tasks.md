@@ -81,3 +81,11 @@ Requirement references use the numbering in `requirements.md`.
   - [x] 14.4 `history.ts` (entries, trend, `formatDoctorSummary`) with tests; Save Week, trend section, Clear History _(R14)_
   - [x] 14.5 `class-sheet.ts` (roster, breakdown, `csvCell`, `gradebookCsv`) with tests; Add to Class Sheet, breakdown, CSV export _(R15)_
   - [x] 14.6 axe-core audit of new controls (0 violations; AAA contrast on Elder Care), keyboard pass _(R9.2)_
+
+- [x] 15. Phase 3: offline PWA and developer kit (branch `feat/offline-pwa-and-dev-kit`)
+  - [x] 15.1 `vite-plugin-pwa` (generateSW, autoUpdate), manifest and icons (`scripts/gen-icons.ts`), offline badge; precache verified and full flow run with the network off _(R17)_
+  - [x] 15.2 `src/core/validate.ts` (`parseCardLayout`, `checkLayout`, `validateLayoutJson`) with tests; shipped layouts pass _(R19.1)_
+  - [x] 15.3 Self-registering apps (`src/shell/app-registry.ts`) and sample sets (`SAMPLE_SET` in `gen:samples`) _(R18.3)_
+  - [x] 15.4 `scripts/create-app.mjs` with temp-dir test that runs the generated suite; `docs/BUILD-YOUR-OWN-APP.md` _(R18.1, R18.2, R18.4)_
+  - [x] 15.5 `mcp/server.ts` + `mcp/tools.ts` with tests and a stdio smoke test; `.kiro/settings/mcp.json` _(R19)_
+  - [x] 15.6 README: live demo, app folder links, PWA, scaffolder, MCP server; LICENSE (MIT) confirmed
