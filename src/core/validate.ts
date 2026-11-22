@@ -6,6 +6,7 @@ import {
   PAGE_SIZE_MM,
   type BubbleCenter,
 } from "./layout";
+import { HELVETICA_BOLD_WIDTHS, HELVETICA_WIDTHS } from "./render/helvetica-metrics";
 import { BUBBLE_STROKE_MM, cardPrimitives } from "./render/primitives";
 import type { BubbleGroup, CardLayout, PageSize } from "./types";
 
@@ -183,15 +184,25 @@ export function validateLayoutJson(raw: unknown, opts: { checkText?: boolean } =
 /** Clearance kept around printed text, in mm. */
 export const TEXT_CLEARANCE_MM = 0.4;
 
-// Approximate Helvetica advance widths in em. Deliberately generous so the estimate errs wide.
-const NARROW = new Set([..."iljI.,;:'!|`()[]{} "]);
-const WIDE = new Set([..."mwMW@%"]);
+/**
+ * Multiplier on measured widths. 1: the PDF draws with exactly these metrics, and Arial (the
+ * SVG font) shares Helvetica's advance widths. TEXT_CLEARANCE_MM provides the margin.
+ */
+export const TEXT_WIDTH_SAFETY = 1;
 
-/** Estimated printed width of `text` in mm at `sizeMm`. Bold text is about 6% wider. */
+/**
+ * Printed width of `text` in mm at `sizeMm`, from the Helvetica / Helvetica-Bold metrics the PDF
+ * embeds, plus a small safety margin. Characters without a Latin-1 glyph count as 1 em.
+ */
 export function estimateTextWidthMm(text: string, sizeMm: number, bold = false): number {
-  let em = 0;
-  for (const c of text) em += NARROW.has(c) ? 0.3 : WIDE.has(c) ? 0.95 : c >= "A" && c <= "Z" ? 0.72 : c >= "0" && c <= "9" ? 0.58 : 0.6;
-  return em * sizeMm * (bold ? 1.06 : 1);
+  const table = bold ? HELVETICA_BOLD_WIDTHS : HELVETICA_WIDTHS;
+  let units = 0;
+  for (const ch of text) {
+    const code = ch.codePointAt(0)!;
+    const w = code >= 32 && code <= 255 ? table[code - 32] : 0;
+    units += w || 1000;
+  }
+  return (units / 1000) * sizeMm * TEXT_WIDTH_SAFETY;
 }
 
 export interface TextBox {

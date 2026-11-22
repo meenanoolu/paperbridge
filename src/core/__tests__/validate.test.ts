@@ -115,6 +115,6 @@ describe("checkPrintedText", () => {
     const l = clone(STUDY_LAYOUTS[0]);
     l.subtitle = "Fill one circle per question. Erase fully to change.";
     expect(validateLayoutJson(l).ok).toBe(true);
-    expect(validateLayoutJson(l, { checkText: true })).toMatchObject({ ok: false, errors: [{ code: "TEXT_OVERLAP" }, { code: "TEXT_OVERLAP" }] });
+    expect(validateLayoutJson(l, { checkText: true })).toMatchObject({ ok: false, errors: [{ code: "TEXT_OVERLAP", message: expect.stringMatching(/touches the card-ID strip/) }] });
   });
 });

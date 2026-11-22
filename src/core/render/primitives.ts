@@ -23,8 +23,12 @@ export type Primitive =
 export const BUBBLE_STROKE_MM = 0.5;
 /** Grey level of alternate-row bands (0 black, 1 white). Light enough to never look like a mark. */
 export const BAND_GREY = 0.93;
-/** Darkest band allowed, so shading can never be read as a mark. */
-export const MIN_BAND_GREY = 0.8;
+/**
+ * Darkest band allowed. Darker shading lowers the measured fill of faint marks on shaded rows
+ * (measured: a faint mark's fill drops from 0.28 at 0.93 to 0.23 at 0.88, near BLANK_MAX 0.2),
+ * so the renderer refuses anything darker.
+ */
+export const MIN_BAND_GREY = 0.88;
 export const LINE_HEIGHT = 1.15;
 /** Base text sizes in mm, before `labelScale` and `printStyle` multipliers. */
 export const COL_LABEL_SIZE_MM = 3.6;

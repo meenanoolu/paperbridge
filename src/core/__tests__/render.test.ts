@@ -63,14 +63,14 @@ describe("print-only options", () => {
     expect(shapes(styled)).toEqual(shapes(base));
     expect(styled.filter((p) => p.kind === "text" && p.text.startsWith("note "))).toHaveLength(11); // first line of each of the 6 + 5 columns
     // Band grey is clamped so shading can never read as a mark.
-    expect(styled.find((p) => p.kind === "rect" && p.fill === "band")).toMatchObject({ grey: 0.8 });
+    expect(styled.find((p) => p.kind === "rect" && p.fill === "band")).toMatchObject({ grey: 0.88 });
     // Everything is bold except the small card-ID caption, which stays narrow beside the ID strip.
     expect(styled.filter((p) => p.kind === "text" && !p.bold).map((p) => p.kind === "text" && p.text)).toEqual(["CARD test-card v1"]);
   });
 
   it("render band grey in SVG and PDF", async () => {
-    const svg = renderCardSvg({ ...TEST_LAYOUT, printStyle: { bandGrey: 0.88 }, groups: [{ ...TEST_LAYOUT.groups[0], bands: { fromXMm: 30, toXMm: 190 } }] });
-    expect(svg).toContain('fill="#e0e0e0"');
+    const svg = renderCardSvg({ ...TEST_LAYOUT, printStyle: { bandGrey: 0.9 }, groups: [{ ...TEST_LAYOUT.groups[0], bands: { fromXMm: 30, toXMm: 190 } }] });
+    expect(svg).toContain('fill="#e6e6e6"');
     expect(svg).not.toContain('fill="#ededed"');
     const pdf = await renderCardPdf({ ...TEST_LAYOUT, printStyle: { bandGrey: 0.88 }, groups: [{ ...TEST_LAYOUT.groups[0], colNotes: ["With breakfast", "", "", "", "", ""] }] });
     expect(Buffer.from(pdf.slice(0, 5)).toString()).toBe("%PDF-");
