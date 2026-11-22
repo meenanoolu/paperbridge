@@ -89,3 +89,11 @@ Requirement references use the numbering in `requirements.md`.
   - [x] 15.4 `scripts/create-app.mjs` with temp-dir test that runs the generated suite; `docs/BUILD-YOUR-OWN-APP.md` _(R18.1, R18.2, R18.4)_
   - [x] 15.5 `mcp/server.ts` + `mcp/tools.ts` with tests and a stdio smoke test; `.kiro/settings/mcp.json` _(R19)_
   - [x] 15.6 README: live demo, app folder links, PWA, scaffolder, MCP server; LICENSE (MIT) confirmed
+
+- [x] 16. Phase 4: elder care clinical workflows (branch `feat/elder-care-clinical-workflows`)
+  - [x] 16.1 Core print-only options: `BubbleGroup.colNotes`, `CardLayout.printStyle` (bold, label scales, band grey, floor 0.88); defaults byte-identical _(R20.2, R22.2, R22.4)_
+  - [x] 16.2 `checkPrintedText` with Helvetica / Helvetica-Bold metrics; opt-in `checkText` on `validate_card_layout`; fixed the Study sheet subtitle touching the card-ID strip _(R20.3)_
+  - [x] 16.3 Card settings and panel: anchors, cues, High-Visibility toggle; width-based wrapping; worst-case text and decode-parity tests _(R20, R22)_
+  - [x] 16.4 `patterns.ts` with threshold tests; dashboard card, scan alert `patterns`, Doctor Summary section; Crew App parser, UI, prompt, skill and agent _(R21)_
+  - [x] 16.5 `doctor-pdf.ts` with layout guarantees and tests (empty, single, 2 years, special characters, deterministic); offline download in the history section _(R23)_
+  - [x] 16.6 Browser checks: panel, saved settings, PDFs, offline Doctor PDF, axe-core (0 violations, AAA contrast), keyboard pass
