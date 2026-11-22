@@ -1,4 +1,4 @@
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb, type PDFFont } from "pdf-lib";
 import { pageSizeMm } from "../layout";
 import type { CardLayout } from "../types";
 import { BAND_GREY, cardPrimitives } from "./primitives";
@@ -8,17 +8,9 @@ const PT_PER_MM = 72 / 25.4;
 /** Standard PDF fonts only cover WinAnsi; replace anything else so drawing never throws. */
 const safe = (s: string) => s.replace(/[^\x20-\x7e\xa0-\xff]/g, "?");
 
-/** One-page vector PDF drawn from the same primitives as the SVG. */
-export async function renderCardPdf(layout: CardLayout): Promise<Uint8Array> {
+/** Draw one card on a new page of `doc`, sized to the layout's paper. */
+function drawCard(doc: PDFDocument, layout: CardLayout, regular: PDFFont, bold: PDFFont): void {
   const { width, height } = pageSizeMm(layout);
-  const doc = await PDFDocument.create();
-  doc.setTitle(`${layout.title} (${layout.id} v${layout.version})`);
-  // Fixed dates keep the output deterministic for identical layouts.
-  const epoch = new Date(0);
-  doc.setCreationDate(epoch);
-  doc.setModificationDate(epoch);
-  const regular = await doc.embedFont(StandardFonts.Helvetica);
-  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
   const page = doc.addPage([width * PT_PER_MM, height * PT_PER_MM]);
 
   const X = (mm: number) => mm * PT_PER_MM;
@@ -48,5 +40,33 @@ export async function renderCardPdf(layout: CardLayout): Promise<Uint8Array> {
       page.drawText(text, { x: X(p.x) + dx, y: Y(p.y), size, font, color: black });
     }
   }
+}
+
+export interface CardsPdfOptions {
+  /** Document title. Defaults to the first card's title. */
+  title?: string;
+}
+
+/**
+ * Multi-page vector PDF: one page per layout, in order, each sized to its own paper. Any app can
+ * build a printable pack (e.g. 4 weekly cards) with no PDF code of its own. Deterministic: fixed
+ * dates, so identical layouts give identical bytes.
+ */
+export async function renderCardsPdf(layouts: CardLayout[], opts: CardsPdfOptions = {}): Promise<Uint8Array> {
+  if (layouts.length === 0) throw new Error("renderCardsPdf needs at least one layout");
+  const doc = await PDFDocument.create();
+  doc.setTitle(opts.title ?? layouts[0].title);
+  // Fixed dates keep the output deterministic for identical layouts.
+  const epoch = new Date(0);
+  doc.setCreationDate(epoch);
+  doc.setModificationDate(epoch);
+  const regular = await doc.embedFont(StandardFonts.Helvetica);
+  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
+  for (const layout of layouts) drawCard(doc, layout, regular, bold);
   return doc.save();
+}
+
+/** One-page vector PDF drawn from the same primitives as the SVG. */
+export async function renderCardPdf(layout: CardLayout): Promise<Uint8Array> {
+  return renderCardsPdf([layout], { title: `${layout.title} (${layout.id} v${layout.version})` });
 }
