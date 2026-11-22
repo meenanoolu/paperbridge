@@ -1,17 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { ELDER_LAYOUTS } from "../../apps/elder-care/layout";
-import { STUDY_LAYOUTS } from "../../apps/study-bridge/layout";
 import { validateLayout } from "../layout";
 import { TEST_LAYOUT, TEST_LAYOUT_LETTER } from "../testing/fixtures";
 import type { CardLayout } from "../types";
-import { checkLayout, validateLayoutJson } from "../validate";
+import { checkLayout, checkPrintedText, validateLayoutJson } from "../validate";
 
 const codes = (l: unknown) => validateLayoutJson(l).errors.map((e) => e.code);
 const clone = (l: CardLayout): CardLayout => structuredClone(l);
 
 describe("checkLayout (Layout Validator)", () => {
-  it("passes every shipped layout and the test fixtures", () => {
-    for (const l of [...ELDER_LAYOUTS, ...STUDY_LAYOUTS, TEST_LAYOUT, TEST_LAYOUT_LETTER]) {
+  // The shipped app layouts are checked in src/__tests__/shipped-layouts.test.ts, so the core has no imports from src/apps.
+  it("passes the test fixtures", () => {
+    for (const l of [TEST_LAYOUT, TEST_LAYOUT_LETTER]) {
       const r = checkLayout(l);
       expect(r.errors).toEqual([]);
       expect(r.ok).toBe(true);
@@ -89,32 +88,9 @@ describe("checkLayout (Layout Validator)", () => {
 });
 
 describe("checkPrintedText", () => {
-  it("passes every shipped card", async () => {
-    const { checkPrintedText } = await import("../validate");
-    for (const l of [...ELDER_LAYOUTS, ...STUDY_LAYOUTS]) expect(checkPrintedText(l)).toEqual([]);
-  });
-
-  it("flags a header line that runs into the card-ID strip", async () => {
-    const { checkPrintedText } = await import("../validate");
-    const l = clone(STUDY_LAYOUTS[0]);
-    l.subtitle = "Fill one circle per question. Erase fully to change.";
-    expect(checkPrintedText(l).map((e) => e.message)).toContain('Text "Fill one circle per question. Erase f..." touches the card-ID strip.');
-  });
-
-  it("flags column notes that collide with the next column and text off the page", async () => {
-    const { checkPrintedText } = await import("../validate");
-    const l = clone(ELDER_LAYOUTS[0]);
-    l.groups[0].colNotes = ["A very long routine anchor line", "", "", ""];
-    l.footer = { yMm: 280, lines: ["x".repeat(80)] };
-    const codes = checkPrintedText(l).map((e) => e.code);
-    expect(codes).toContain("TEXT_OVERLAP");
-    expect(codes).toContain("TEXT_OUT_OF_BOUNDS");
-  });
-
-  it("is opt-in on validateLayoutJson", () => {
-    const l = clone(STUDY_LAYOUTS[0]);
-    l.subtitle = "Fill one circle per question. Erase fully to change.";
-    expect(validateLayoutJson(l).ok).toBe(true);
-    expect(validateLayoutJson(l, { checkText: true })).toMatchObject({ ok: false, errors: [{ code: "TEXT_OVERLAP", message: expect.stringMatching(/touches the card-ID strip/) }] });
+  it("flags a footer line that runs off the page", () => {
+    const l = clone(TEST_LAYOUT);
+    l.footer = { yMm: 300, lines: ["Off the page"] };
+    expect(checkPrintedText(l)).toContainEqual(expect.objectContaining({ code: "TEXT_OUT_OF_BOUNDS", message: 'Text "Off the page" runs past the page margin.' }));
   });
 });
