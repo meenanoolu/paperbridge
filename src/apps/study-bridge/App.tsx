@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import type { AppMeta } from "../../shell/app-registry";
 import { ScanWorkbench } from "../../shell/components/ScanWorkbench";
 import { usePersistentState } from "../../shell/usePersistentState";
 import { DEFAULT_EDITABLE_KEY, parseEditableKey, toAnswerKey } from "./answer-key";
@@ -57,3 +58,6 @@ export function StudyBridgeApp() {
     </>
   );
 }
+
+export const appMeta: AppMeta = { id: "study-bridge", label: "Study Bridge", icon: "book", order: 2 };
+export default StudyBridgeApp;

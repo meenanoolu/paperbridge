@@ -6,23 +6,24 @@
  *
  * Usage: npm run gen:samples
  */
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
-import { fileURLToPath } from "node:url";
-import { decode, type CardLayout } from "../src/core";
-import { ELDER_LAYOUT } from "../src/apps/elder-care/layout";
-import { ELDER_SAMPLE_SPECS } from "../src/apps/elder-care/samples/specs";
-import { STUDY_LAYOUT } from "../src/apps/study-bridge/layout";
-import { STUDY_SAMPLE_SPECS } from "../src/apps/study-bridge/samples/specs";
-import type { SampleSpec } from "../src/shell/sample-spec";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { decode } from "../src/core";
+import type { SampleSet } from "../src/shell/sample-spec";
 import { decodeJpeg, encodeJpeg, photographSample } from "./lib/photo";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+const appsDir = join(root, "src/apps");
 
-const SETS: { dir: string; layout: CardLayout; specs: SampleSpec[] }[] = [
-  { dir: "src/apps/elder-care/samples", layout: ELDER_LAYOUT, specs: ELDER_SAMPLE_SPECS },
-  { dir: "src/apps/study-bridge/samples", layout: STUDY_LAYOUT, specs: STUDY_SAMPLE_SPECS },
-];
+// Every app with samples/specs.ts exporting SAMPLE_SET (see src/shell/sample-spec.ts).
+const SETS: (SampleSet & { dir: string })[] = [];
+for (const slug of readdirSync(appsDir).sort()) {
+  const specs = join(appsDir, slug, "samples/specs.ts");
+  if (!existsSync(specs)) continue;
+  const mod = (await import(pathToFileURL(specs).href)) as { SAMPLE_SET?: SampleSet };
+  if (mod.SAMPLE_SET) SETS.push({ ...mod.SAMPLE_SET, dir: relative(root, dirname(specs)) });
+}
 
 let failed = false;
 for (const set of SETS) {

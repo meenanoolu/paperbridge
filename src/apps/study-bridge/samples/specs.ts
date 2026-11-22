@@ -1,5 +1,5 @@
-import type { SampleSpec } from "../../../shell/sample-spec";
-import type { Option, QuestionId } from "../layout";
+import type { SampleSet, SampleSpec } from "../../../shell/sample-spec";
+import { STUDY_LAYOUT, type Option, type QuestionId } from "../layout";
 
 function answers(a: Partial<Record<QuestionId, Option | Option[]>>): SampleSpec["marks"] {
   return Object.entries(a).flatMap(([q, o]) => (Array.isArray(o) ? o : [o!]).map((opt) => ({ key: `answers/${q}/${opt}` })));
@@ -47,3 +47,6 @@ export const STUDY_SAMPLE_SPECS: SampleSpec[] = [
     },
   },
 ];
+
+/** Picked up by `npm run gen:samples`. */
+export const SAMPLE_SET: SampleSet = { layout: STUDY_LAYOUT, specs: STUDY_SAMPLE_SPECS };

@@ -1,3 +1,4 @@
+import type { CardLayout } from "../core";
 import type { CameraOptions } from "../core/testing/synth";
 
 /** How a sample's pen mark looks. "faint" is a light, partial mark that should decode as "needs review". */
@@ -19,4 +20,10 @@ export interface SampleSpec {
   camera: CameraOptions;
   /** Seed for the hand-drawn mark shapes. */
   inkSeed: number;
+}
+
+/** Exported as `SAMPLE_SET` from `src/apps/<slug>/samples/specs.ts`; `npm run gen:samples` finds it. */
+export interface SampleSet {
+  layout: CardLayout;
+  specs: SampleSpec[];
 }

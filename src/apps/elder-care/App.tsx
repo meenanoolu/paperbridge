@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import type { AppMeta } from "../../shell/app-registry";
 import { ScanWorkbench } from "../../shell/components/ScanWorkbench";
 import { Button } from "../../shell/components/ui";
 import type { ReviewedScan } from "../../shell/scan";
@@ -109,3 +110,6 @@ export function ElderCareApp() {
     </>
   );
 }
+
+export const appMeta: AppMeta = { id: "elder-care", label: "Elder Care Bridge", icon: "heart", order: 1 };
+export default ElderCareApp;
