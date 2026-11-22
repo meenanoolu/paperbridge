@@ -8,7 +8,9 @@
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "test": "vitest --run",
-    "gen:samples": "tsx scripts/gen-samples.ts"
+    "gen:samples": "tsx scripts/gen-samples.ts",
+    "create-app": "node scripts/create-app.mjs",
+    "mcp": "tsx mcp/server.ts"
   },
   "dependencies": {
     "pdf-lib": "^1.17.1",

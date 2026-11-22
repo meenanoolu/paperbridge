@@ -30,6 +30,11 @@ export function SamplePanel({
         </h2>
         <p className="text-lg font-semibold">One click. Real pixels. Same decoder as the webcam.</p>
       </div>
+      {samples.length === 0 && (
+        <p className="mt-5 rounded-2xl border-4 border-dashed border-slate-950 bg-white p-4 text-lg font-bold">
+          No sample photos yet. Run <code>npm run gen:samples</code> to render them from this app's samples/specs.ts.
+        </p>
+      )}
       <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {samples.map((s) => {
           const active = s.id === activeId;
