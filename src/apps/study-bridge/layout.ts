@@ -39,3 +39,8 @@ function bubbleSheet(page: PageSize): CardLayout {
 
 export const STUDY_LAYOUTS: CardLayout[] = [bubbleSheet("A4"), bubbleSheet("Letter")];
 export const STUDY_LAYOUT = STUDY_LAYOUTS[0];
+
+/** Plain-language name of a bubble, e.g. "Question 6, option C". */
+export function describeAnswerBubble(b: { row: string; col: string }): string {
+  return `Question ${b.row.replace(/^Q/, "")}, option ${b.col}`;
+}

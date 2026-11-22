@@ -25,6 +25,8 @@ export interface ScanAlert {
   symptomDays: string[];
   needsReview: string[];
   alerts: CareAlertItem[];
+  /** Unclear marks a person resolved by looking at the paper card. Absent when none. */
+  manualOverrides?: number;
 }
 
 export type AlertSource = "browser-event" | "notification" | "demo" | "pasted";
@@ -74,6 +76,9 @@ export function parseScanAlert(v: unknown): ScanAlert | null {
     symptomDays: v.symptomDays.map((d) => d.slice(0, 20)),
     needsReview: v.needsReview.map((d) => d.slice(0, 120)),
     alerts: alerts.map((a) => ({ level: a.level, title: a.title.slice(0, 200), detail: a.detail.slice(0, 500) })),
+    ...(Number.isInteger(v.manualOverrides) && (v.manualOverrides as number) > 0 && (v.manualOverrides as number) <= 1000
+      ? { manualOverrides: v.manualOverrides as number }
+      : {}),
   };
 }
 
@@ -196,13 +201,13 @@ export function demoAlert(now: Date): ScanAlert {
 
 /** The message seeded into the care-auditor chat. Contains the aggregate alert only. */
 export function checkInPrompt(a: ScanAlert): string {
-  const { type, app, cardId, scannedAt, severity, adherencePct, missed, symptomDays, needsReview, alerts } = a;
+  const { type, app, cardId, scannedAt, severity, adherencePct, missed, symptomDays, needsReview, alerts, manualOverrides } = a;
   return [
     "Load the adherence-analysis skill and draft a caregiver check-in for this PaperBridge Weekly Care Card.",
     "Start with what went well, list what to ask about, and say whether to contact the clinician.",
     "",
     "```json",
-    JSON.stringify({ type, app, cardId, scannedAt, severity, adherencePct, missed, symptomDays, needsReview, alerts }, null, 2),
+    JSON.stringify({ type, app, cardId, scannedAt, severity, adherencePct, missed, symptomDays, needsReview, alerts, ...(manualOverrides ? { manualOverrides } : {}) }, null, 2),
     "```",
   ].join("\n");
 }

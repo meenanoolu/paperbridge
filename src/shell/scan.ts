@@ -8,7 +8,9 @@ import {
   type DecodeErrorReason,
   type RasterImage,
   type ScanResult,
+  type SuccessfulScan,
 } from "../core";
+import type { ManualOverrides } from "./overrides";
 
 export type ScanSource = "sample" | "webcam" | "upload";
 
@@ -23,6 +25,18 @@ export interface CompletedScan {
   layout: CardLayout;
   decodeMs: number;
   scannedAt: Date;
+}
+
+/**
+ * A successful scan after human review. `result` has overrides applied and is what apps
+ * interpret; `rawResult` is the decoder's output, unchanged.
+ */
+export interface ReviewedScan extends CompletedScan {
+  result: SuccessfulScan;
+  rawResult: SuccessfulScan;
+  overrides: ManualOverrides;
+  /** Number of unclear marks a person resolved. */
+  manualOverrides: number;
 }
 
 export type ScanState =

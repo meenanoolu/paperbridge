@@ -9,6 +9,9 @@ fileMatchPattern: "src/apps/**"
 - Build each app page on `src/shell/components/ScanWorkbench.tsx` so the sample panel, webcam, upload, print, and decode preview behave the same in every app.
 - Each app owns: its `CardLayout` definition, its result interpretation (adherence, grading), its sample cards, and its UI.
 - Apps never send scan data off-device. No logins, no cloud uploads.
+- Card customization changes printed text only. A customized `CardLayout` must keep `bubbleCenters`, `fiducialCenters`, `idBits`, `id` and `version` identical to the base layout, and must not put text near the card-ID strip or corner markers. Decode with the base layouts.
+- Saved data (settings, history, class sheets) uses `src/shell/storage.ts` with a pure `parse*` validator, and stays in this browser.
+- Human overrides resolve only `ambiguous` bubbles and go through `applyManualOverrides` in `src/shell/overrides.ts`. Never mutate a `ScanResult`; interpret the `ReviewedScan.result` the workbench passes in.
 
 ## Required UI for every app
 - A prominent 1-click "Try Sample Scanned Cards (No Printer Needed)" panel. Samples must run through the real decoder from raw pixels, not through pre-baked results.

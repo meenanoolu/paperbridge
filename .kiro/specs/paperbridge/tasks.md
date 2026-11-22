@@ -66,3 +66,18 @@ Requirement references use the numbering in `requirements.md`.
   - [x] 12.2 Performance check: 1280x720 decode under 500 ms _(R9.1)_
   - [x] 12.3 README showcase: apps, Crew App, quick start, how Kiro built it, guarantees, 3rd-app spec (approved by user; original title and tagline kept)
   - [x] 12.4 Final check: `npm test`, `npm run build`, manual run of all four samples
+
+- [x] 13. Phase 1: real-world workflows (branch `feat/real-world-workflows`)
+  - [x] 13.1 `src/shell/overrides.ts` (`applyManualOverrides`, `countActiveOverrides`, `nextOverride`) with unit tests _(R10.3, R10.4)_
+  - [x] 13.2 Interactive unclear bubbles on the scan overlay, review list, audit badge, live announcement _(R10.1, R10.2, R10.5)_
+  - [x] 13.3 Override recalculation tests for Elder Care (adherence, missed doses, water) and Study Bridge (score, invalid, weak topics) _(R10.5)_
+  - [x] 13.4 Webcam alignment guide with pure `guideFor` / `guideGeometry` and tests _(R11)_
+  - [x] 13.5 "Copy for Kiro Crew" with clipboard fallback; Crew App accepts `manualOverrides`; contract test _(R12)_
+
+- [x] 14. Phase 2: customization, history, class sheets (branch `feat/real-world-workflows`)
+  - [x] 14.1 `card-settings.ts`: validation, label wrapping, header width limit, Monday snapping, `customizeCareLayout`; geometry and photographed-decode tests _(R13.1-R13.3)_
+  - [x] 14.2 Customize Card panel with live printed-card preview; custom labels in PDF/SVG and dashboard _(R13.1)_
+  - [x] 14.3 `readMarks` / `gradeMarks` split; editable answer key with tests; Edit Answer Key panel that re-grades on save _(R13.4)_
+  - [x] 14.4 `history.ts` (entries, trend, `formatDoctorSummary`) with tests; Save Week, trend section, Clear History _(R14)_
+  - [x] 14.5 `class-sheet.ts` (roster, breakdown, `csvCell`, `gradebookCsv`) with tests; Add to Class Sheet, breakdown, CSV export _(R15)_
+  - [x] 14.6 axe-core audit of new controls (0 violations; AAA contrast on Elder Care), keyboard pass _(R9.2)_

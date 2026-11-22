@@ -2,7 +2,7 @@ import type { CompletedScan } from "../scan";
 import { DECODE_ERROR_TEXT } from "../scan";
 import { Callout } from "./ui";
 
-export function DecodeFacts({ scan }: { scan: CompletedScan }) {
+export function DecodeFacts({ scan, manualOverrides = 0 }: { scan: CompletedScan; manualOverrides?: number }) {
   const { result } = scan;
   if (!result.ok) {
     const t = DECODE_ERROR_TEXT[result.reason];
@@ -20,6 +20,7 @@ export function DecodeFacts({ scan }: { scan: CompletedScan }) {
     ["Corner markers", "4 of 4 found"],
     ["Card", `${result.cardId} v${result.layoutVersion} (${scan.layout.page})`],
     ["Bubbles read", `${result.bubbles.length} (${filled} filled, ${unclear} ${unclear === 1 ? "needs" : "need"} review)`],
+    ...(unclear > 0 ? ([["Human review", `${manualOverrides} of ${unclear} unclear ${unclear === 1 ? "mark" : "marks"} resolved`]] as [string, string][]) : []),
     ["Image", `${scan.width} x ${scan.height} px`],
     ["Decode time", `${scan.decodeMs.toFixed(0)} ms on this device`],
   ];

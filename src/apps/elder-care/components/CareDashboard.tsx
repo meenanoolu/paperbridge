@@ -1,8 +1,11 @@
+import type { ReactNode } from "react";
 import { Icon, type IconName } from "../../../shell/components/Icon";
 import { Callout, Card, StatusBadge, type Tone } from "../../../shell/components/ui";
-import type { CareReport, Mark } from "../interpret";
+import { CopyButton } from "../../../shell/components/CopyButton";
+import { columnLabel, DEFAULT_CARE_SETTINGS, formatDay, weekDates, weekRange, type CareCardSettings } from "../card-settings";
+import type { CareReport, Mark, ScanAlert } from "../interpret";
 import { ADHERENCE_TARGET_PCT, LOW_ENERGY_MAX } from "../interpret";
-import { DAY_NAMES } from "../layout";
+import { DAY_NAMES, DAYS } from "../layout";
 
 function AdherenceRing({ pct }: { pct: number | null }) {
   const r = 52;
@@ -78,7 +81,22 @@ function EnergyBar({ value, review }: { value: number | null; review: boolean })
 
 const ALERT_TONE: Record<string, Tone> = { high: "bad", medium: "warn", info: "info" };
 
-export function CareDashboard({ report, scannedAt }: { report: CareReport; scannedAt: Date }) {
+export function CareDashboard({
+  report,
+  scannedAt,
+  alert,
+  card = DEFAULT_CARE_SETTINGS,
+  actions,
+}: {
+  report: CareReport;
+  scannedAt: Date;
+  alert: ScanAlert;
+  /** Saved card customization: patient, week and the printed column labels. */
+  card?: CareCardSettings;
+  /** Extra controls under the summary, e.g. Save Week to History. */
+  actions?: ReactNode;
+}) {
+  const dates = weekDates(card.weekStart);
   const good = report.adherencePct !== null && report.adherencePct >= ADHERENCE_TARGET_PCT;
   return (
     <div className="space-y-6">
@@ -92,6 +110,13 @@ export function CareDashboard({ report, scannedAt }: { report: CareReport; scann
           </span>
         }
       >
+        {(card.patientName || dates.length > 0) && (
+          <p className="mb-4 text-xl font-bold">
+            {card.patientName && <span>{card.patientName}</span>}
+            {card.patientName && dates.length > 0 && <span aria-hidden> · </span>}
+            {dates.length > 0 && <span>Week of {weekRange(dates[0], dates[6])}</span>}
+          </p>
+        )}
         <div className="flex flex-col gap-6 md:flex-row md:items-center">
           <AdherenceRing pct={report.adherencePct} />
           <div className="grid flex-1 gap-3 sm:grid-cols-2">
@@ -134,6 +159,7 @@ export function CareDashboard({ report, scannedAt }: { report: CareReport; scann
             </div>
           </div>
         </div>
+        {actions && <div className="mt-5 border-t-2 border-slate-200 pt-4">{actions}</div>}
       </Card>
 
       <Card title="Alerts for the caregiver">
@@ -152,6 +178,18 @@ export function CareDashboard({ report, scannedAt }: { report: CareReport; scann
             ))}
           </ul>
         )}
+        <div className="mt-5 border-t-2 border-slate-200 pt-4">
+          <h4 className="text-xl font-extrabold">Send to Kiro Crew</h4>
+          <p className="mb-3 text-lg text-slate-800">
+            Copies this week's alert{alert.manualOverrides ? `, including ${alert.manualOverrides} manually verified ${alert.manualOverrides === 1 ? "mark" : "marks"}` : ""}. In Kiro Crew,
+            open <strong>PaperBridge Care</strong> and choose <strong>Paste alert JSON</strong>. Summary data only: no photo, no names.
+          </p>
+          <CopyButton
+            text={JSON.stringify(alert, null, 2)}
+            label="Copy for Kiro Crew"
+            copiedMessage="Copied — paste into PaperBridge Care in Kiro Crew"
+          />
+        </div>
       </Card>
 
       <Card title="Day by day">
@@ -160,17 +198,20 @@ export function CareDashboard({ report, scannedAt }: { report: CareReport; scann
             <thead>
               <tr className="border-b-2 border-slate-950">
                 <th scope="col" className="px-2 py-2">Day</th>
-                <th scope="col" className="px-2 py-2">Morning meds</th>
-                <th scope="col" className="px-2 py-2">Night meds</th>
-                <th scope="col" className="px-2 py-2">Water</th>
-                <th scope="col" className="px-2 py-2">Dizzy / pain</th>
+                <th scope="col" className="px-2 py-2">{columnLabel(card, "am")}</th>
+                <th scope="col" className="px-2 py-2">{columnLabel(card, "pm")}</th>
+                <th scope="col" className="px-2 py-2">{columnLabel(card, "water")}</th>
+                <th scope="col" className="px-2 py-2">{columnLabel(card, "dizzy")}</th>
                 <th scope="col" className="px-2 py-2">Energy</th>
               </tr>
             </thead>
             <tbody>
               {report.days.map((d) => (
                 <tr key={d.day} className="border-b border-slate-300">
-                  <th scope="row" className="px-2 py-2 font-bold">{DAY_NAMES[d.day]}</th>
+                  <th scope="row" className="px-2 py-2 font-bold">
+                    {DAY_NAMES[d.day]}
+                    {dates.length > 0 && <span className="block text-lg font-normal text-slate-800">{formatDay(dates[DAYS.indexOf(d.day)])}</span>}
+                  </th>
                   <MarkCell mark={d.morning} bad="no" />
                   <MarkCell mark={d.night} bad="no" />
                   <MarkCell mark={d.water} bad="no" />

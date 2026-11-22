@@ -1,13 +1,7 @@
-import { useEffect, useRef, useState } from "react";
-import { CameraError, startWebcamScan, type CardLayout, type RasterImage, type WebcamScan } from "../../core";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { CameraError, startWebcamScan, type CardLayout, type RasterImage, type ScanResult, type WebcamScan } from "../../core";
+import { guideFor, guideGeometry } from "../webcam-guide";
 import { Callout, Button } from "./ui";
-
-type Live =
-  | { kind: "starting" }
-  | { kind: "searching" }
-  | { kind: "found"; streak: number }
-  | { kind: "unclear" }
-  | { kind: "error"; message: string };
 
 const CAMERA_HELP: Record<string, string> = {
   PERMISSION_DENIED: "Camera permission was denied.",
@@ -15,6 +9,15 @@ const CAMERA_HELP: Record<string, string> = {
   INSECURE_CONTEXT: "The camera only works on a secure (https) page.",
   UNSUPPORTED: "This browser does not support camera access.",
 };
+
+const AMBER = "#fbbf24";
+const GREEN = "#22c55e";
+
+interface Live {
+  result: ScanResult | null;
+  streak: number;
+  frame: { width: number; height: number };
+}
 
 export function WebcamScanner({
   layout,
@@ -27,7 +30,9 @@ export function WebcamScanner({
 }) {
   const video = useRef<HTMLVideoElement>(null);
   const scan = useRef<WebcamScan | null>(null);
-  const [live, setLive] = useState<Live>({ kind: "starting" });
+  const [started, setStarted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [live, setLive] = useState<Live>({ result: null, streak: 0, frame: { width: 1280, height: 720 } });
   const [hasFrame, setHasFrame] = useState(false);
 
   useEffect(() => {
@@ -35,10 +40,8 @@ export function WebcamScanner({
     startWebcamScan({
       video: video.current!,
       layout,
-      onFrame: (result, state) => {
-        if (!result.ok) setLive({ kind: "searching" });
-        else if (state.streak === 0) setLive({ kind: "unclear" });
-        else setLive({ kind: "found", streak: state.streak });
+      onFrame: (result, state, frame) => {
+        setLive({ result, streak: state.streak, frame });
         if (state.lastOk) setHasFrame(true);
       },
       onStable: (_result, frame) => {
@@ -50,12 +53,12 @@ export function WebcamScanner({
         if (cancelled) s.stop();
         else {
           scan.current = s;
-          setLive({ kind: "searching" });
+          setStarted(true);
         }
       })
       .catch((err: unknown) => {
         const message = err instanceof CameraError ? CAMERA_HELP[err.kind] ?? err.message : "The camera could not be started.";
-        if (!cancelled) setLive({ kind: "error", message });
+        if (!cancelled) setError(message);
       });
     return () => {
       cancelled = true;
@@ -72,36 +75,58 @@ export function WebcamScanner({
     onCapture(l.frame);
   };
 
-  const status =
-    live.kind === "starting"
-      ? "Starting camera..."
-      : live.kind === "searching"
-        ? "Looking for the 4 black corner squares. Hold the whole card in view."
-        : live.kind === "found"
-          ? "Card found. Hold still..."
-          : live.kind === "unclear"
-            ? "Card found, but some marks are unclear. Hold still, or use this frame."
-            : "";
+  const guide = guideFor(live.result, live.streak);
+  const { width: fw, height: fh } = live.frame;
+  const geo = useMemo(() => guideGeometry(fw, fh, layout), [fw, fh, layout]);
+  const color = guide.locked ? GREEN : AMBER;
+  const status = started ? guide.message : "Starting camera...";
+  const corners = guide.locked && live.result?.ok ? live.result.fiducials : [];
 
   return (
     <div className="rounded-2xl border-2 border-slate-950 bg-white p-4">
-      {live.kind === "error" ? (
-        <Callout tone="warn" title={live.message}>
+      {error ? (
+        <Callout tone="warn" title={error}>
           No problem: use the <strong>Try Sample Scanned Cards</strong> panel above. It runs the same decoder on real photo pixels.
         </Callout>
       ) : (
         <>
           <div className="relative overflow-hidden rounded-xl bg-slate-900">
             <video ref={video} className="block aspect-video w-full object-contain" aria-label="Live camera preview" />
-            <div className="pointer-events-none absolute inset-6 rounded-lg border-4 border-dashed border-yellow-300/80" aria-hidden />
+            {/* Purely visual: the status line below carries the same information for screen readers. */}
+            <svg
+              viewBox={`0 0 ${fw} ${fh}`}
+              preserveAspectRatio="xMidYMid meet"
+              className="pointer-events-none absolute inset-0 h-full w-full"
+              aria-hidden="true"
+              data-guide={guide.tone}
+            >
+              <rect x={geo.x} y={geo.y} width={geo.w} height={geo.h} fill="none" stroke={color} strokeOpacity={0.35} strokeWidth={geo.stroke / 3} />
+              <path
+                d={geo.path}
+                fill="none"
+                stroke={color}
+                strokeWidth={geo.stroke}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeDasharray={guide.locked ? undefined : `${geo.stroke * 2.2} ${geo.stroke * 1.4}`}
+                className={`motion-safe:transition-[stroke] motion-safe:duration-200 ${guide.locked ? "" : "motion-safe:animate-pulse"}`}
+              />
+              {corners.map(([x, y], i) => (
+                <circle key={i} cx={x} cy={y} r={geo.stroke * 2} fill="none" stroke={GREEN} strokeWidth={geo.stroke * 0.7} />
+              ))}
+            </svg>
           </div>
-          <p className="mt-3 text-lg font-semibold" role="status" aria-live="polite">
+          <p className="mt-3 flex items-center gap-2 text-lg font-semibold" role="status" aria-live="polite">
+            <span
+              aria-hidden
+              className={`inline-block h-4 w-4 shrink-0 rounded-full border-4 ${guide.locked ? "border-green-700 bg-green-700" : "border-dashed border-amber-600"}`}
+            />
             {status}
           </p>
         </>
       )}
       <div className="mt-3 flex flex-wrap gap-3">
-        {live.kind !== "error" && (
+        {!error && (
           <Button variant="primary" icon="camera" onClick={useLatest} disabled={!hasFrame}>
             Use this frame
           </Button>

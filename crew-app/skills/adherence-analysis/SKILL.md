@@ -32,6 +32,9 @@ one alert with aggregate data only.
   It is `null` when no dose could be read.
 - `needsReview` lists marks the decoder found unclear. They are **excluded** from adherence.
   Never treat them as taken or missed; ask the caregiver to check the paper.
+- `manualOverrides` (optional) counts unclear marks the caregiver resolved by looking at the
+  paper card. Those marks are already included in the numbers; mention that the week was
+  partly verified by hand.
 - `severity` is `high` if any alert is high, `medium` if any is medium, else `none`.
 
 ## Thresholds PaperBridge uses
