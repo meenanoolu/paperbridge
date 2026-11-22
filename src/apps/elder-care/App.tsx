@@ -1,17 +1,21 @@
 import { useCallback } from "react";
 import { ScanWorkbench } from "../../shell/components/ScanWorkbench";
-import type { CompletedScan } from "../../shell/scan";
+import type { ReviewedScan } from "../../shell/scan";
 import { CareDashboard } from "./components/CareDashboard";
-import { interpretCareCard, SCAN_ALERT_EVENT, toScanAlert } from "./interpret";
-import { ELDER_LAYOUTS } from "./layout";
+import { interpretCareCard, SCAN_ALERT_EVENT, toScanAlert, type ScanAlert } from "./interpret";
+import { describeCareBubble, ELDER_LAYOUTS } from "./layout";
 import { ELDER_SAMPLES } from "./samples";
 
+/** The alert for a reviewed scan: human overrides applied, with their count recorded. */
+export function alertFor(scan: ReviewedScan): ScanAlert {
+  return toScanAlert(interpretCareCard(scan.result), scan.result.cardId, scan.scannedAt, scan.manualOverrides);
+}
+
 export function ElderCareApp() {
-  // Emit an aggregate alert after every successful scan (task 9.6). The Kiro Crew App listens for it.
-  const onScan = useCallback((scan: CompletedScan) => {
-    if (!scan.result.ok) return;
-    const alert = toScanAlert(interpretCareCard(scan.result), scan.result.cardId, scan.scannedAt);
-    window.dispatchEvent(new CustomEvent(SCAN_ALERT_EVENT, { detail: alert }));
+  // Emit an aggregate alert after every scan and after every manual override (task 9.6).
+  // The Kiro Crew App dedupes by card + scan time, so a corrected alert replaces the earlier one.
+  const onScan = useCallback((scan: ReviewedScan) => {
+    window.dispatchEvent(new CustomEvent(SCAN_ALERT_EVENT, { detail: alertFor(scan) }));
   }, []);
 
   return (
@@ -27,6 +31,7 @@ export function ElderCareApp() {
         ["Scan", "Webcam or photo upload at the end of the week."],
         ["Review", "Adherence, missed doses, and symptom alerts."],
       ]}
+      describeBubble={describeCareBubble}
       onScan={onScan}
       announce={(scan) => {
         const r = interpretCareCard(scan.result);

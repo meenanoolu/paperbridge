@@ -151,11 +151,14 @@ export interface ScanAlert {
   symptomDays: Day[];
   needsReview: string[];
   alerts: CareAlert[];
+  /** Present when a person resolved unclear marks by looking at the paper card. */
+  manualOverrides?: number;
 }
 
 export const SCAN_ALERT_EVENT = "paperbridge:scan-alert";
 
-export function toScanAlert(report: CareReport, cardId: string, scannedAt: Date): ScanAlert {
+/** `manualOverrides`: how many unclear marks a person resolved before this report. */
+export function toScanAlert(report: CareReport, cardId: string, scannedAt: Date, manualOverrides = 0): ScanAlert {
   const severity = report.alerts.some((a) => a.level === "high") ? "high" : report.alerts.some((a) => a.level === "medium") ? "medium" : "none";
   return {
     type: SCAN_ALERT_EVENT,
@@ -168,5 +171,6 @@ export function toScanAlert(report: CareReport, cardId: string, scannedAt: Date)
     symptomDays: report.symptomDays,
     needsReview: report.needsReview,
     alerts: report.alerts,
+    ...(manualOverrides > 0 ? { manualOverrides } : {}),
   };
 }

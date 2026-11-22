@@ -2,7 +2,7 @@ import { ScanWorkbench } from "../../shell/components/ScanWorkbench";
 import { PRACTICE_QUIZ } from "./answer-key";
 import { StudyResults } from "./components/StudyResults";
 import { gradeSheet } from "./grade";
-import { STUDY_LAYOUTS } from "./layout";
+import { describeAnswerBubble, STUDY_LAYOUTS } from "./layout";
 import { STUDY_SAMPLES } from "./samples";
 
 export function StudyBridgeApp() {
@@ -19,6 +19,7 @@ export function StudyBridgeApp() {
         ["Scan", "Webcam or photo upload."],
         ["Learn", "Score, weak topics, review dates."],
       ]}
+      describeBubble={describeAnswerBubble}
       announce={(scan) => {
         const g = gradeSheet(scan.result, PRACTICE_QUIZ, scan.scannedAt);
         return `Score ${g.scorePct}%, ${g.correct} of ${g.total} correct. ${g.weakTopics.length ? `Weak topics: ${g.weakTopics.join(", ")}.` : "No weak topics."}`;

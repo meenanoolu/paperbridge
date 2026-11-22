@@ -1,13 +1,15 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import type { CardLayout, SuccessfulScan } from "../../core";
-import { DECODE_ERROR_TEXT, useScanner, type CompletedScan } from "../scan";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import type { CardLayout } from "../../core";
+import { applyManualOverrides, countActiveOverrides, NO_OVERRIDES, setOverride, unclearBubbles, type ManualOverrides } from "../overrides";
+import { DECODE_ERROR_TEXT, useScanner, type CompletedScan, type ReviewedScan } from "../scan";
 import { DecodeFacts } from "./DecodeFacts";
 import { Icon, type IconName } from "./Icon";
 import { PrintCard } from "./PrintCard";
+import { defaultDescribe, ReviewPanel, type DescribeBubble } from "./ReviewPanel";
 import { SamplePanel, type SampleCard } from "./SamplePanel";
 import { ScanPreview } from "./ScanPreview";
 import { WebcamScanner } from "./WebcamScanner";
-import { Button, Callout, Card } from "./ui";
+import { Button, Callout, Card, StatusBadge } from "./ui";
 
 export interface WorkbenchProps {
   icon: IconName;
@@ -17,32 +19,55 @@ export interface WorkbenchProps {
   layouts: CardLayout[];
   samples: SampleCard[];
   steps: [string, string][];
-  /** App-specific dashboard for a successful scan. */
-  renderResult: (scan: CompletedScan & { result: SuccessfulScan }) => ReactNode;
-  /** Called once per completed scan, e.g. to emit alerts. */
-  onScan?: (scan: CompletedScan) => void;
+  /** App-specific dashboard for a successful scan, with any human overrides applied. */
+  renderResult: (scan: ReviewedScan) => ReactNode;
+  /** Called after each successful scan and again whenever a person changes an override. */
+  onScan?: (scan: ReviewedScan) => void;
   /** One-sentence result read out by screen readers, e.g. "71% of doses taken, 6 alerts". */
-  announce?: (scan: CompletedScan & { result: SuccessfulScan }) => string;
+  announce?: (scan: ReviewedScan) => string;
+  /** Plain-language name of a bubble for the review list and screen readers, e.g. "Wednesday water". */
+  describeBubble?: DescribeBubble;
 }
 
 const prefersReducedMotion = () =>
   typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 /** Shared page frame: sample panel first, then own-card options, then the decoded result. */
-export function ScanWorkbench({ icon, title, tagline, layouts, samples, steps, renderResult, onScan, announce }: WorkbenchProps) {
+export function ScanWorkbench({ icon, title, tagline, layouts, samples, steps, renderResult, onScan, announce, describeBubble = defaultDescribe }: WorkbenchProps) {
   const { state, scanUrl, scanFile, scanFrame } = useScanner(layouts);
   const [activeSample, setActiveSample] = useState<string | null>(null);
   const [camera, setCamera] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const results = useRef<HTMLDivElement>(null);
-  const lastReported = useRef<CompletedScan | null>(null);
+  const lastScrolled = useRef<CompletedScan | null>(null);
+  // Overrides belong to one scan: a new scan starts with none, so there is no reset race.
+  const [review, setReview] = useState<{ scan: CompletedScan | null; overrides: ManualOverrides }>({ scan: null, overrides: NO_OVERRIDES });
+
+  const scan = state.status === "done" ? state.scan : null;
+  const overrides = review.scan === scan ? review.overrides : NO_OVERRIDES;
+  const reviewed = useMemo<ReviewedScan | null>(() => {
+    if (!scan || !scan.result.ok) return null;
+    return {
+      ...scan,
+      rawResult: scan.result,
+      result: applyManualOverrides(scan.result, overrides),
+      overrides,
+      manualOverrides: countActiveOverrides(scan.result, overrides),
+    };
+  }, [scan, overrides]);
+  const unclear = useMemo(() => (scan ? unclearBubbles(scan.result) : []), [scan]);
+  const editOverride = (key: string, value: Parameters<typeof setOverride>[2]) =>
+    setReview((r) => ({ scan, overrides: setOverride(r.scan === scan ? r.overrides : NO_OVERRIDES, key, value) }));
 
   useEffect(() => {
-    if (state.status !== "done" || lastReported.current === state.scan) return;
-    lastReported.current = state.scan;
-    onScan?.(state.scan);
+    if (!scan || lastScrolled.current === scan) return;
+    lastScrolled.current = scan;
     results.current?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" });
-  }, [state, onScan]);
+  }, [scan]);
+
+  useEffect(() => {
+    if (reviewed) onScan?.(reviewed);
+  }, [reviewed, onScan]);
 
   const busy = state.status === "busy";
   const liveMessage =
@@ -51,9 +76,11 @@ export function ScanWorkbench({ icon, title, tagline, layouts, samples, steps, r
       : state.status === "error"
         ? state.message
         : state.status === "done"
-          ? state.scan.result.ok
-            ? `Scanned ${state.scan.label}. ${announce?.(state.scan as CompletedScan & { result: SuccessfulScan }) ?? ""}`
-            : `Scan failed. ${DECODE_ERROR_TEXT[state.scan.result.reason].title}.`
+          ? reviewed
+            ? `${reviewed.manualOverrides > 0 ? `Updated. Manually verified (${reviewed.manualOverrides}).` : `Scanned ${reviewed.label}.`} ${announce?.(reviewed) ?? ""}`
+            : !state.scan.result.ok
+              ? `Scan failed. ${DECODE_ERROR_TEXT[state.scan.result.reason].title}.`
+              : ""
           : "";
 
   return (
@@ -154,13 +181,28 @@ export function ScanWorkbench({ icon, title, tagline, layouts, samples, steps, r
         {state.status === "error" && <Callout tone="bad" title={state.message} />}
         {state.status === "done" && (
           <>
-            {state.scan.result.ok && renderResult(state.scan as CompletedScan & { result: SuccessfulScan })}
+            {reviewed && reviewed.manualOverrides > 0 && (
+              <p className="flex flex-wrap items-center gap-3 text-lg">
+                <StatusBadge tone="info">Manually verified ({reviewed.manualOverrides})</StatusBadge>
+                <span className="text-slate-800">
+                  Results include {reviewed.manualOverrides} {reviewed.manualOverrides === 1 ? "mark" : "marks"} checked by a person. The decoder output below is unchanged.
+                </span>
+              </p>
+            )}
+            {reviewed && renderResult(reviewed)}
             <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
               <Card title="What the decoder saw">
-                <ScanPreview scan={state.scan} />
+                <ScanPreview scan={state.scan} overrides={overrides} onCycle={editOverride} describe={describeBubble} />
+                <ReviewPanel
+                  unclear={unclear}
+                  overrides={overrides}
+                  describe={describeBubble}
+                  onSet={editOverride}
+                  onResetAll={() => setReview({ scan, overrides: NO_OVERRIDES })}
+                />
               </Card>
               <Card title="Decode details">
-                <DecodeFacts scan={state.scan} />
+                <DecodeFacts scan={state.scan} manualOverrides={reviewed?.manualOverrides ?? 0} />
                 <details className="mt-4">
                   <summary className="cursor-pointer text-lg font-bold underline underline-offset-4">
                     Show raw JSON output
