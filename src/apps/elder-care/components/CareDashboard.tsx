@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Icon, type IconName } from "../../../shell/components/Icon";
 import { Callout, Card, StatusBadge, type Tone } from "../../../shell/components/ui";
 import { CopyButton } from "../../../shell/components/CopyButton";
@@ -85,12 +86,15 @@ export function CareDashboard({
   scannedAt,
   alert,
   card = DEFAULT_CARE_SETTINGS,
+  actions,
 }: {
   report: CareReport;
   scannedAt: Date;
   alert: ScanAlert;
   /** Saved card customization: patient, week and the printed column labels. */
   card?: CareCardSettings;
+  /** Extra controls under the summary, e.g. Save Week to History. */
+  actions?: ReactNode;
 }) {
   const dates = weekDates(card.weekStart);
   const good = report.adherencePct !== null && report.adherencePct >= ADHERENCE_TARGET_PCT;
@@ -155,6 +159,7 @@ export function CareDashboard({
             </div>
           </div>
         </div>
+        {actions && <div className="mt-5 border-t-2 border-slate-200 pt-4">{actions}</div>}
       </Card>
 
       <Card title="Alerts for the caregiver">
