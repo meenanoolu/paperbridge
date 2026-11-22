@@ -1,6 +1,9 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { ScanWorkbench } from "../../shell/components/ScanWorkbench";
 import type { ReviewedScan } from "../../shell/scan";
+import { usePersistentState } from "../../shell/usePersistentState";
+import { columnLabel, customizedElderLayouts, DEFAULT_CARE_SETTINGS, parseCareSettings } from "./card-settings";
+import { CustomizeCardPanel } from "./components/CustomizeCardPanel";
 import { CareDashboard } from "./components/CareDashboard";
 import { interpretCareCard, SCAN_ALERT_EVENT, toScanAlert, type ScanAlert } from "./interpret";
 import { describeCareBubble, ELDER_LAYOUTS } from "./layout";
@@ -11,7 +14,16 @@ export function alertFor(scan: ReviewedScan): ScanAlert {
   return toScanAlert(interpretCareCard(scan.result), scan.result.cardId, scan.scannedAt, scan.manualOverrides);
 }
 
+export const CARE_SETTINGS_KEY = "elder-care.card.v1";
+
 export function ElderCareApp() {
+  const [card, saveCard, resetCard, cardSaved] = usePersistentState(CARE_SETTINGS_KEY, parseCareSettings, DEFAULT_CARE_SETTINGS);
+  const printLayouts = useMemo(() => customizedElderLayouts(card), [card]);
+  const labels = useMemo(
+    () => ({ am: columnLabel(card, "am"), pm: columnLabel(card, "pm"), water: columnLabel(card, "water"), dizzy: columnLabel(card, "dizzy") }),
+    [card],
+  );
+
   // Emit an aggregate alert after every scan and after every manual override (task 9.6).
   // The Kiro Crew App dedupes by card + scan time, so a corrected alert replaces the earlier one.
   const onScan = useCallback((scan: ReviewedScan) => {
@@ -24,6 +36,8 @@ export function ElderCareApp() {
       title="Elder Care Bridge"
       tagline="A large-print weekly paper card for medication and symptoms. No smartphone or login for the person filling it in. Caregivers get adherence, missed doses, and symptom flags from one photo."
       layouts={ELDER_LAYOUTS}
+      printLayouts={printLayouts}
+      setup={<CustomizeCardPanel settings={card} onSave={saveCard} onReset={resetCard} saved={cardSaved} />}
       samples={ELDER_SAMPLES}
       steps={[
         ["Print", "One page, bold large print, A4 or US Letter."],
@@ -31,14 +45,14 @@ export function ElderCareApp() {
         ["Scan", "Webcam or photo upload at the end of the week."],
         ["Review", "Adherence, missed doses, and symptom alerts."],
       ]}
-      describeBubble={describeCareBubble}
+      describeBubble={(b) => describeCareBubble(b, labels)}
       onScan={onScan}
       announce={(scan) => {
         const r = interpretCareCard(scan.result);
         const pct = r.adherencePct === null ? "Adherence unknown" : `${r.adherencePct}% of doses taken`;
         return `${pct}. ${r.alerts.length === 0 ? "No alerts." : `${r.alerts.length} alert${r.alerts.length > 1 ? "s" : ""}, starting with: ${r.alerts[0].title}.`}`;
       }}
-      renderResult={(scan) => <CareDashboard report={interpretCareCard(scan.result)} scannedAt={scan.scannedAt} alert={alertFor(scan)} />}
+      renderResult={(scan) => <CareDashboard report={interpretCareCard(scan.result)} scannedAt={scan.scannedAt} alert={alertFor(scan)} card={card} />}
     />
   );
 }

@@ -25,6 +25,10 @@ export interface WorkbenchProps {
   onScan?: (scan: ReviewedScan) => void;
   /** One-sentence result read out by screen readers, e.g. "71% of doses taken, 6 alerts". */
   announce?: (scan: ReviewedScan) => string;
+  /** Card variants offered for printing. Defaults to `layouts`. Must share `layouts`' bubble geometry. */
+  printLayouts?: CardLayout[];
+  /** Extra panel in the "use your own card" section, e.g. card customization or an answer key. */
+  setup?: ReactNode;
   /** Plain-language name of a bubble for the review list and screen readers, e.g. "Wednesday water". */
   describeBubble?: DescribeBubble;
 }
@@ -33,7 +37,7 @@ const prefersReducedMotion = () =>
   typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 /** Shared page frame: sample panel first, then own-card options, then the decoded result. */
-export function ScanWorkbench({ icon, title, tagline, layouts, samples, steps, renderResult, onScan, announce, describeBubble = defaultDescribe }: WorkbenchProps) {
+export function ScanWorkbench({ icon, title, tagline, layouts, samples, steps, renderResult, onScan, announce, describeBubble = defaultDescribe, printLayouts, setup }: WorkbenchProps) {
   const { state, scanUrl, scanFile, scanFrame } = useScanner(layouts);
   const [activeSample, setActiveSample] = useState<string | null>(null);
   const [camera, setCamera] = useState(false);
@@ -141,8 +145,9 @@ export function ScanWorkbench({ icon, title, tagline, layouts, samples, steps, r
             }}
           />
           <span className="hidden h-10 w-0.5 bg-slate-300 sm:block" aria-hidden />
-          <PrintCard layouts={layouts} />
+          <PrintCard layouts={printLayouts ?? layouts} />
         </div>
+        {setup && <div className="mt-4">{setup}</div>}
         {camera && (
           <div className="mt-4">
             <WebcamScanner

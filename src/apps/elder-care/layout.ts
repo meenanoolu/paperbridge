@@ -64,9 +64,12 @@ export const ELDER_LAYOUT = ELDER_LAYOUTS[0];
 
 const CARE_COL_NAMES: Record<string, string> = { am: "morning meds", pm: "night meds", water: "water", dizzy: "dizzy or pain" };
 
-/** Plain-language name of a bubble, matching the dashboard's wording, e.g. "Wednesday water". */
-export function describeCareBubble(b: { group: string; row: string; col: string }): string {
+/**
+ * Plain-language name of a bubble, matching the dashboard's wording, e.g. "Wednesday water".
+ * Pass the card's custom column labels to name them as printed ("Wednesday Metformin 500mg").
+ */
+export function describeCareBubble(b: { group: string; row: string; col: string }, labels?: Partial<Record<string, string>>): string {
   const day = DAY_NAMES[b.row as Day] ?? b.row;
   if (b.group === "energy") return `${day} energy ${b.col}`;
-  return `${day} ${CARE_COL_NAMES[b.col] ?? b.col}`;
+  return `${day} ${labels?.[b.col] ?? CARE_COL_NAMES[b.col] ?? b.col}`;
 }
