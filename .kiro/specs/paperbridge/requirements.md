@@ -94,3 +94,23 @@ PaperBridge turns a printed bubble card into structured data using deterministic
 1. WHEN an Elder Care scan is shown, THE dashboard SHALL offer "Copy for Kiro Crew", which copies the `paperbridge:scan-alert` JSON with overrides applied.
 2. WHEN overrides are active, THE alert SHALL include `manualOverrides`, and THE Crew App SHALL keep and display it.
 3. IF the clipboard is unavailable, THEN THE app SHALL show the JSON for manual copying.
+
+## R13. Customizable cards (Phase 2)
+1. THE Elder Care app SHALL offer a collapsible "Customize Card" panel for patient name, week start date, and the 4 checklist column labels, persisted in localStorage with "Reset to defaults".
+2. THE customized card SHALL change only printed text; bubble centres, corner markers, the card-ID strip, and the layout id/version SHALL equal the default layout's, so the default decoder reads it unchanged.
+3. Printed text SHALL stay clear of the card-ID strip and corner markers: the header name is width-limited, labels wrap to the column (max 3 lines), and the footer never grows.
+4. THE Study app SHALL offer a collapsible "Edit Answer Key" panel for the answer (A-E) and topic of each question, persisted with "Reset to default key", and SHALL re-grade the loaded sheet when the key is saved.
+
+## R14. Elder Care history (Phase 2)
+1. WHEN "Save Week to History" is pressed, THE app SHALL store the week's summary (week, patient, adherence, missed doses, symptoms, manual verification count); re-saving the same patient and week SHALL replace it.
+2. THE app SHALL show a Multi-Week Adherence Trend with week-over-week change and a "Clear History" action that asks for confirmation.
+3. THE app SHALL copy a deterministic plain-text/Markdown Doctor Visit Summary of the saved weeks.
+
+## R15. Study Bridge class sheet (Phase 2)
+1. AFTER a scan, THE app SHALL accept a Student Name / ID and "Add to Class Sheet"; re-adding a student SHALL replace their sheet.
+2. THE class sheet SHALL store marks, not grades, so editing the key re-grades every student.
+3. THE app SHALL show a Class Weak-Topic Breakdown: per topic, the share of students below 70% and the class average.
+4. THE app SHALL export a CSV gradebook (Student, Score, %, Double-Marked, Blank, Unclear, Weak Topics) that follows RFC 4180, starts with a UTF-8 BOM, and neutralizes spreadsheet formulas.
+
+## R16. Local data (Phase 2)
+1. All saved settings, history, and class sheets SHALL stay in this browser's localStorage and SHALL be validated by a pure parser on load.

@@ -73,3 +73,11 @@ Requirement references use the numbering in `requirements.md`.
   - [x] 13.3 Override recalculation tests for Elder Care (adherence, missed doses, water) and Study Bridge (score, invalid, weak topics) _(R10.5)_
   - [x] 13.4 Webcam alignment guide with pure `guideFor` / `guideGeometry` and tests _(R11)_
   - [x] 13.5 "Copy for Kiro Crew" with clipboard fallback; Crew App accepts `manualOverrides`; contract test _(R12)_
+
+- [x] 14. Phase 2: customization, history, class sheets (branch `feat/real-world-workflows`)
+  - [x] 14.1 `card-settings.ts`: validation, label wrapping, header width limit, Monday snapping, `customizeCareLayout`; geometry and photographed-decode tests _(R13.1-R13.3)_
+  - [x] 14.2 Customize Card panel with live printed-card preview; custom labels in PDF/SVG and dashboard _(R13.1)_
+  - [x] 14.3 `readMarks` / `gradeMarks` split; editable answer key with tests; Edit Answer Key panel that re-grades on save _(R13.4)_
+  - [x] 14.4 `history.ts` (entries, trend, `formatDoctorSummary`) with tests; Save Week, trend section, Clear History _(R14)_
+  - [x] 14.5 `class-sheet.ts` (roster, breakdown, `csvCell`, `gradebookCsv`) with tests; Add to Class Sheet, breakdown, CSV export _(R15)_
+  - [x] 14.6 axe-core audit of new controls (0 violations; AAA contrast on Elder Care), keyboard pass _(R9.2)_
