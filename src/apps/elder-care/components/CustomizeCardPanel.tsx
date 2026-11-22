@@ -173,8 +173,8 @@ export function CustomizeCardPanel({
                   High-Visibility Print Mode
                 </label>
                 <p id={`${uid}-hv-hint`} className="text-lg text-slate-800">
-                  Bolder, larger day and column labels and stronger row shading, for low vision or a shaky hand. The circles stay
-                  exactly where they are.
+                  All text bold, larger day names, and stronger shading on alternate days, for low vision or a shaky hand. The
+                  circles stay exactly where they are.
                 </p>
               </div>
             </div>

@@ -253,6 +253,13 @@ export async function renderDoctorVisitPdfWithLayout(input: DoctorPdfInput): Pro
 }
 
 export function doctorPdfFileName(patientName: string, generatedAt: Date): string {
-  const slug = pdfSafe(patientName).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "patient";
+  // Fold accents ("Martínez" -> "martinez") so file names stay plain ASCII.
+  const slug =
+    pdfSafe(patientName)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "") || "patient";
   return `doctor-visit-${slug}-${localIsoDate(generatedAt)}.pdf`;
 }

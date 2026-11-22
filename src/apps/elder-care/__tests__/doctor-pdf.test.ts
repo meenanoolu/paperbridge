@@ -149,7 +149,9 @@ describe("Doctor Visit PDF", () => {
     expect(text).toContain("Patient: Zoë O'Brien - ? «?» <script>");
     expect(text).toContain('Café "Pill" ½ · Routine: Avant le dîner...');
     expect(pdfSafe("Zoë — 李")).toBe("Zoë - ?");
-    expect(doctorPdfFileName(odd, new Date(2026, 11, 7))).toBe("doctor-visit-zo-o-brien-script-2026-12-07.pdf");
+    expect(doctorPdfFileName(odd, new Date(2026, 11, 7))).toBe("doctor-visit-zoe-o-brien-script-2026-12-07.pdf");
+    expect(doctorPdfFileName("Rosa Martínez", new Date(2026, 11, 7))).toBe("doctor-visit-rosa-martinez-2026-12-07.pdf");
+    expect(doctorPdfFileName("", new Date(2026, 11, 7))).toBe("doctor-visit-patient-2026-12-07.pdf");
   });
 
   it("is deterministic", async () => {
