@@ -153,3 +153,31 @@ PaperBridge turns a printed bubble card into structured data using deterministic
 1. THE history section SHALL offer "Download Doctor Visit PDF", generated on the device with pdf-lib and available offline.
 2. THE PDF SHALL fit one page and include: patient, generation date, weeks covered, medications with routine anchors and pill cues, overview, missed doses by time of day, patterns, a week table (adherence, missed, dizzy/pain days, marks checked by hand), and a footer on deterministic local decoding with human-verification counts.
 3. WHEN the history does not fit, THE table SHALL list the latest weeks and state how many earlier weeks are counted but not listed. All text SHALL be reduced to the PDF fonts' character set so generation never fails.
+
+## R24. Scan Any Card: auto-routing and batch scan (Phase 5)
+1. THE shell SHALL offer a "Scan Any Card (Auto-Route)" file picker (multiple files) and drop zone that decodes each photo's card ID and routes it to the registered app that owns it, using each app's `appMeta.layouts`.
+2. WHEN one photo is given and it decodes, THE shell SHALL switch to the owning app and load the result into its Scan Workbench.
+3. WHEN several photos are given, THE shell SHALL decode them one after another on the device and show a summary such as "4 cards decoded locally in 118 ms: 3 ready, 1 needs human review", then list each file with its app and status.
+4. Each failed file SHALL get its own clear, accessible error (corner markers not found, perspective could not be corrected, or card not recognised) and SHALL NOT stop the rest of the batch.
+5. Files with unclear marks SHALL offer "Review", which opens the scan in its app for 1-click verification. Decoded files SHALL be bulk-saveable per app through its `appMeta.batch` adapter: Elder Care into Multi-Week History (one Monday per row, duplicates rejected), Study Bridge into the Class Sheet (student from the file name, duplicates rejected). Open apps SHALL update live.
+6. Every scan path (upload, webcam, auto-route) SHALL pick the paper size whose layout fits best (fewest unclear marks, then highest mean confidence), so Letter prints are never read with the A4 layout.
+
+## R25. Multi-page card PDFs (Phase 5)
+1. `src/core` SHALL export `renderCardsPdf(layouts, { title })`, which renders an array of `CardLayout` into one PDF with one page per layout, lazily loaded with pdf-lib.
+2. `renderCardPdf` SHALL produce byte-identical output to before.
+
+## R26. 4-Week Monthly Pack (Phase 5)
+1. THE Customize Card panel SHALL offer "Download 4-Week Pack (1 Month)" once a week is chosen: one 4-page PDF for Week 1 to Week 4 starting on the chosen Monday.
+2. Every page SHALL keep the patient name, labels, anchors, cues and High-Visibility mode, carry a "Week N of 4" heading with its dates, and SHALL keep the bubbles, corner markers and card-ID bits of the standard card.
+3. Every page SHALL pass `checkLayout` and `checkPrintedText`; WHEN the long heading would collide, THE pack SHALL use a shorter heading that fits.
+
+## R27. Regimen presets (Phase 5)
+1. THE Customize Card panel SHALL offer one-click presets "BP & Diabetes", "Post-Surgery Recovery" and "Simple Morning & Night" above the column inputs. A preset SHALL set labels, anchors and cues, keep patient, week and print mode, and leave every field editable.
+2. Presets SHALL keep the column roles (1 morning dose, 2 evening dose, 3 daily habit, 4 symptom), so adherence, alerts and patterns stay correct.
+3. Every preset SHALL pass validation and the printed-text check on A4 and Letter, standard and High-Visibility, with at least 1.5 mm between neighbouring words on a line.
+4. Habit alerts and dashboard tiles SHALL use the printed column labels (for example "Gentle Walk: done on only 3 of 7 days"); with the default label the wording is unchanged.
+
+## R28. 4-Week Sample History (Phase 5)
+1. WHEN history is empty, THE history section SHALL offer "Load 4-Week Sample History" for a clearly named demo patient. It SHALL NOT be shown when real history exists, so it never overwrites saved data.
+2. THE sample SHALL hold the 4 weeks before the current one with adherence 93%, 86%, 79%, 71%, a Metformin-miss-with-dizziness pattern, and one manually verified mark, and SHALL drive the trend, patterns, Markdown summary and Doctor Visit PDF.
+3. "Clear History" SHALL remove it completely.

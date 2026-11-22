@@ -41,6 +41,13 @@ npm run dev        # open the URL Vite prints
 To use a real card: **Print blank card (PDF)**, choose A4 or US Letter, fill it in with a dark
 pen, then **Scan with webcam** or **Upload a photo**.
 
+**Scan Any Card (Auto-Route)** at the top of the page takes one photo or a whole stack of them
+(file picker or drag-and-drop). Each card's printed ID picks its app. One photo opens straight in
+that app; a batch shows a summary like "4 cards decoded locally in 118 ms: 3 ready, 1 needs human
+review", lists every file with its app, gives each failed file its own error, and bulk-saves Elder
+Care cards to the history and Study Bridge sheets to the class sheet. Files with unclear marks get
+a **Review** button.
+
 ## Featured apps
 
 ### Elder Care Bridge ([`src/apps/elder-care/`](src/apps/elder-care/))
@@ -65,7 +72,10 @@ Caregiver workflow:
 
 - **Resolve unclear marks by hand:** click the amber circle on the photo (or use the list below it). The dashboard recalculates and shows **Manually verified (N)**. The decoder's output is never changed.
 - **Customize Card:** print the patient's name, the week's dates, and real medication names ("Metformin 500mg - Morning") on the card. Only text changes, so every version decodes the same way.
+- **Regimen presets:** BP & Diabetes, Post-Surgery Recovery, or Simple Morning & Night fill the columns, routine anchors and pill cues in one click. Everything stays editable.
+- **Download 4-Week Pack (1 Month):** one 4-page PDF, Week 1 to Week 4 from the chosen Monday, with the same names, cues and High-Visibility setting on every page.
 - **Save Week to History:** a multi-week adherence trend and a one-click **Doctor Visit Summary** in plain text.
+- **Load 4-Week Sample History:** with no saved weeks yet, load a demo patient (93% to 71% over 4 weeks, one hand-checked mark) to see the trend, patterns, summary and Doctor Visit PDF. **Clear History** removes it.
 - **Copy for Kiro Crew:** the alert JSON, ready to paste into the Crew App.
 
 ![The decoder's view of the tilted, low-light sample](docs/images/decoder-overlay.png)
@@ -262,7 +272,7 @@ docs/                  BUILD-YOUR-OWN-APP.md, screenshots
 | Command | What it does |
 |---|---|
 | `npm run dev` | Start the app |
-| `npm test` | 149 tests: property tests, end-to-end sample decodes, interpreters, overrides, history, CSV, layout validator, scaffolder, MCP tools, Crew App contract and bundle |
+| `npm test` | 215 tests: property tests, end-to-end sample decodes, interpreters, overrides, history, CSV, layout validator, scaffolder, MCP tools, auto-routing and batch scan, monthly pack, presets, Crew App contract and bundle |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run build` | Production build plus service worker and `manifest.webmanifest` (pdf-lib loads only when printing) |
 | `npm run gen:samples` | Regenerate every app's sample photos (deterministic, byte-identical) |

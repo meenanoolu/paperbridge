@@ -32,6 +32,11 @@ Rules for the arguments:
 | `interpret.ts` | a pure function `(scan: SuccessfulScan) => Report` | What the marks mean: answers, scores, alerts. No DOM, no clock, no randomness, so it is unit tested directly. |
 | `App.tsx` | `appMeta`, a default component | The page: `<ScanWorkbench>` with your layouts, samples, and a `renderResult` that shows the report. |
 
+`appMeta.layouts` (set by the scaffolder) lets **Scan Any Card** route photos of your card to
+your app. Add an optional `appMeta.batch` (`BatchAdapter` in `src/shell/batch.ts`) to let a
+batch scan bulk-save your results: it names the per-row field, validates it, and saves the rows.
+See `src/apps/study-bridge/batch.ts` for a short example.
+
 The scaffold also writes:
 
 - `samples/specs.ts`: recipes for the 1-click sample photos (`SAMPLE_SET`). `npm run gen:samples` draws pen marks on your real card, photographs it with the simulated camera, and saves a JPEG.
