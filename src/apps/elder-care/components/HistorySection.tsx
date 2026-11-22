@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { CopyButton } from "../../../shell/components/CopyButton";
 import { Icon } from "../../../shell/components/Icon";
-import { Button, Card, StatusBadge } from "../../../shell/components/ui";
-import { formatDoctorSummary, patientsIn, trend, weekLabel, weeksFor, type WeekEntry } from "../history";
+import { Button, Callout, Card, StatusBadge } from "../../../shell/components/ui";
+import type { CareCardSettings } from "../card-settings";
+import { formatDoctorSummary, historyPatterns, patientsIn, trend, weekLabel, weeksFor, type WeekEntry } from "../history";
 import { ADHERENCE_TARGET_PCT } from "../interpret";
 
 /** Decorative sparkline; the table below carries the same numbers for screen readers. */
@@ -44,12 +45,15 @@ function Delta({ delta }: { delta: number | null }) {
 /** Multi-Week Adherence Trend with patient filter, Doctor Visit Summary, and Clear History. */
 export function HistorySection({
   history,
+  card,
   currentPatient,
   onClear,
   now = () => new Date(),
 }: {
   history: WeekEntry[];
   currentPatient: string;
+  /** Current card settings: medication names, routine anchors and pill cues for the PDF. */
+  card: CareCardSettings;
   onClear: () => void;
   now?: () => Date;
 }) {
@@ -61,7 +65,29 @@ export function HistorySection({
   const selected = weeksFor(history, patient).length || !patients.length ? patient : patients[patients.length - 1];
   const weeks = useMemo(() => weeksFor(history, selected), [history, selected]);
   const points = useMemo(() => trend(weeks), [weeks]);
-  const summary = useMemo(() => formatDoctorSummary(weeks, { patientName: selected, generatedAt: now() }), [weeks, selected, now]);
+  const patterns = useMemo(() => historyPatterns(weeks), [weeks]);
+  const summary = useMemo(() => formatDoctorSummary(weeks, { patientName: selected, generatedAt: now(), patterns }), [weeks, selected, now, patterns]);
+  const [pdfState, setPdfState] = useState<{ busy: boolean; message: string; error?: boolean }>({ busy: false, message: "" });
+  const downloadPdf = async () => {
+    setPdfState({ busy: true, message: "Preparing PDF..." });
+    try {
+      // Loaded on demand (pdf-lib); precached by the service worker, so it works offline.
+      const { renderDoctorVisitPdf, doctorPdfFileName } = await import("../doctor-pdf");
+      const generatedAt = now();
+      const page = typeof navigator !== "undefined" && /^en-(US|CA)|es-MX|fr-CA/.test(navigator.language) ? "Letter" : "A4";
+      const bytes = await renderDoctorVisitPdf({ patientName: selected, weeks, patterns, card, generatedAt, page });
+      const name = doctorPdfFileName(selected, generatedAt);
+      const url = URL.createObjectURL(new Blob([new Uint8Array(bytes)], { type: "application/pdf" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = name;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 10_000);
+      setPdfState({ busy: false, message: `Downloaded ${name} (1 page, made on this device).` });
+    } catch {
+      setPdfState({ busy: false, message: "The PDF could not be created. Copy the text summary instead.", error: true });
+    }
+  };
 
   return (
     <section aria-labelledby="history-title" className="mt-10">
@@ -154,10 +180,35 @@ export function HistorySection({
             </div>
             <div className="border-t-2 border-slate-200 pt-4">
               <h4 className="text-xl font-extrabold">Doctor visit</h4>
+              {patterns.length > 0 && (
+                <div className="mb-4 space-y-3">
+                  <p className="text-lg font-bold">Patterns to discuss across these weeks (fixed rules, not AI):</p>
+                  <ul className="space-y-3">
+                    {patterns.map((p) => (
+                      <li key={p.title}>
+                        <Callout tone="info" title={p.title}>
+                          {p.detail}
+                        </Callout>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <p className="mb-3 text-lg text-slate-800">
-                Copies a plain-text summary of these {weeks.length} {weeks.length === 1 ? "week" : "weeks"} (it pastes cleanly into email, a patient portal, or notes).
+                Print a 1-page sheet to bring to the appointment, or copy a plain-text summary of these {weeks.length} {weeks.length === 1 ? "week" : "weeks"} for
+                email, a patient portal, or notes. Both are made on this device and work offline.
               </p>
-              <CopyButton text={summary} label="Copy Doctor Visit Summary" copiedMessage="Copied. Paste it into your message to the doctor." />
+              <div className="flex flex-wrap items-center gap-3">
+                <Button variant="primary" icon="printer" onClick={downloadPdf} disabled={pdfState.busy}>
+                  {pdfState.busy ? "Preparing PDF..." : "Download Doctor Visit PDF"}
+                </Button>
+                <span role="status" aria-live="polite" className={`text-lg font-bold ${pdfState.error ? "text-red-900" : "text-green-900"}`}>
+                  {pdfState.busy ? "" : pdfState.message}
+                </span>
+              </div>
+              <div className="mt-3">
+                <CopyButton text={summary} label="Copy Doctor Visit Summary" copiedMessage="Copied. Paste it into your message to the doctor." />
+              </div>
               <details className="mt-3">
                 <summary className="cursor-pointer text-lg font-bold underline underline-offset-4">Preview summary</summary>
                 <pre tabIndex={0} aria-label="Doctor visit summary text" className="mt-2 max-h-96 overflow-auto whitespace-pre-wrap rounded-lg border-2 border-slate-300 bg-slate-50 p-3 text-lg">

@@ -11,11 +11,12 @@ import { HistorySection } from "./components/HistorySection";
 import { addWeek, parseHistory, toWeekEntry, weekLabel, type WeekEntry } from "./history";
 import { interpretCareCard, SCAN_ALERT_EVENT, toScanAlert, type ScanAlert } from "./interpret";
 import { describeCareBubble, ELDER_LAYOUTS } from "./layout";
+import type { DoseLabels } from "./patterns";
 import { ELDER_SAMPLES } from "./samples";
 
 /** The alert for a reviewed scan: human overrides applied, with their count recorded. */
-export function alertFor(scan: ReviewedScan): ScanAlert {
-  return toScanAlert(interpretCareCard(scan.result), scan.result.cardId, scan.scannedAt, scan.manualOverrides);
+export function alertFor(scan: ReviewedScan, doseLabels?: DoseLabels): ScanAlert {
+  return toScanAlert(interpretCareCard(scan.result, { doseLabels }), scan.result.cardId, scan.scannedAt, scan.manualOverrides);
 }
 
 export const CARE_SETTINGS_KEY = "elder-care.card.v1";
@@ -52,6 +53,7 @@ export function ElderCareApp() {
   const [history, setHistory, clearHistory] = usePersistentState(HISTORY_KEY, parseHistory, NO_WEEKS);
   const saveWeek = useCallback((e: WeekEntry) => setHistory(addWeek(history, e).list), [history, setHistory]);
   const printLayouts = useMemo(() => customizedElderLayouts(card), [card]);
+  const doseLabels = useMemo<DoseLabels>(() => ({ Morning: columnLabel(card, "am"), Night: columnLabel(card, "pm") }), [card]);
   const labels = useMemo(
     () => ({ am: columnLabel(card, "am"), pm: columnLabel(card, "pm"), water: columnLabel(card, "water"), dizzy: columnLabel(card, "dizzy") }),
     [card],
@@ -60,8 +62,8 @@ export function ElderCareApp() {
   // Emit an aggregate alert after every scan and after every manual override (task 9.6).
   // The Kiro Crew App dedupes by card + scan time, so a corrected alert replaces the earlier one.
   const onScan = useCallback((scan: ReviewedScan) => {
-    window.dispatchEvent(new CustomEvent(SCAN_ALERT_EVENT, { detail: alertFor(scan) }));
-  }, []);
+    window.dispatchEvent(new CustomEvent(SCAN_ALERT_EVENT, { detail: alertFor(scan, doseLabels) }));
+  }, [doseLabels]);
 
   return (
     <>
@@ -82,17 +84,17 @@ export function ElderCareApp() {
         describeBubble={(b) => describeCareBubble(b, labels)}
         onScan={onScan}
         announce={(scan) => {
-          const r = interpretCareCard(scan.result);
+          const r = interpretCareCard(scan.result, { doseLabels });
           const pct = r.adherencePct === null ? "Adherence unknown" : `${r.adherencePct}% of doses taken`;
           return `${pct}. ${r.alerts.length === 0 ? "No alerts." : `${r.alerts.length} alert${r.alerts.length > 1 ? "s" : ""}, starting with: ${r.alerts[0].title}.`}`;
         }}
         renderResult={(scan) => {
-          const report = interpretCareCard(scan.result);
+          const report = interpretCareCard(scan.result, { doseLabels });
           return (
             <CareDashboard
               report={report}
               scannedAt={scan.scannedAt}
-              alert={alertFor(scan)}
+              alert={alertFor(scan, doseLabels)}
               card={card}
               actions={
                 <SaveWeek
@@ -106,7 +108,7 @@ export function ElderCareApp() {
           );
         }}
       />
-      <HistorySection history={history} currentPatient={card.patientName} onClear={clearHistory} />
+      <HistorySection history={history} currentPatient={card.patientName} card={card} onClear={clearHistory} />
     </>
   );
 }
