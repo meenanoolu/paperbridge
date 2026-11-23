@@ -130,3 +130,10 @@ Requirement references use the numbering in `requirements.md`.
   - [x] 20.4 `elder-care/voice.ts`, `study-bridge/voice.ts`, `cardLanguage` in `toScanAlert` _(R37)_
   - [x] 20.5 Crew App parser, badge, demo, prompt, agent and skill; bundle rebuilt _(R38)_
   - [x] 20.6 Browser checks and axe-core: 0 AA / 0 AAA violations on 4 states; 4 px focus rings on the new buttons _(R9.2)_
+
+- [x] 21. Phase 8: judge UX and visual README (branch `feat/judge-ux-and-visual-readme`)
+  - [x] 21.1 `judge-demo.ts`, `JudgeDemoStrip`, routed view option, batch request store; Elder Care "Doctor Visit PDF (this week)" _(R39)_
+  - [x] 21.2 `pipeline.ts` + `DecodePipeline`; `unwarp.ts` + `RawUnwarpView`; read-only homography exports _(R40)_
+  - [x] 21.3 `appMeta.accent` tokens; `SkeletonGuide` dialog with `dialogKey` _(R41)_
+  - [x] 21.4 README hero, image grid, Built with Kiro table, Featured applications; new screenshots _(R42)_
+  - [x] 21.5 Tests (scenarios incl. the 2-app batch, pipeline, unwarp, accents contrast, dialog keys), browser checks, axe-core 0 AA / 0 AAA on 4 states _(R9.2)_

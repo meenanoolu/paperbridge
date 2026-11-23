@@ -230,3 +230,19 @@ PaperBridge turns a printed bubble card into structured data using deterministic
 ## R38. Bilingual check-ins in Kiro Crew (Phase 7)
 1. THE Crew parser SHALL accept an optional well-formed BCP 47 `cardLanguage` and drop anything else; alerts without it SHALL parse unchanged. THE page SHALL show a "Card: <language>" badge, and the demo alert SHALL carry `te-IN`.
 2. WHEN an alert has `patterns` and/or `cardLanguage`, THE check-in prompt, the `care-auditor` agent and the skill SHALL ask for two sections: "Clinical Note (English)" and "Gentle Check-In Opener" in the card language (Telugu, Hindi or Spanish; otherwise English).
+
+## R39. Instant Demo (Phase 8)
+1. THE top of Scan & Verify SHALL show "Try an Instant Demo" with up to 3 one-click scenarios built from `appMeta.demo` and `appMeta.samples`: **Missed-Dose + Faint Mark** (opens the sample in its app with the Optical X-Ray on), **Mixed Batch (2 Apps at Once)** (sends one sample from each of 2 apps through Scan Any Card), and **Clean Week (100% Adherence)**.
+2. Scenarios whose samples are missing SHALL be hidden; the batch needs samples from 2 different apps. A polite status line SHALL report each result, and it SHALL survive the app switch.
+3. Elder Care SHALL offer **Doctor Visit PDF (this week)** on the dashboard, for the scanned week without saving it.
+
+## R40. Decode pipeline and Raw vs. Unwarped (Phase 8)
+1. Once a scan starts, ScanWorkbench SHALL show 3 steps (1. Photo Input, 2. Optical Unwarp with the measured decode time, 3. Verified Output), each with a worded state (not started, in progress, done, failed, needs review) and `aria-current="step"` on the current one.
+2. A **Raw vs. Unwarped** toggle (`aria-pressed`) SHALL show the input photo next to the card redrawn flat with the homography from the 4 detected corner markers. Display only: the decoder never uses this image, and no decoder file changes.
+
+## R41. App accents and the architecture dialog (Phase 8)
+1. `appMeta.accent` SHALL colour the selected tab, the tab underline, the app badge and the primary-button edge. Elder Care SHALL use clinical teal (#115e59) and Study Bridge academic indigo (#3730a3); white text on each SHALL be at least 7:1.
+2. THE header SHALL have **How the Skeleton Works**, opening a modal dialog (`role="dialog"`, `aria-modal`, labelled) showing the core, shell, apps, App #3 via `create-app`, and the Kiro Crew handoff. Escape SHALL close it, Tab and Shift+Tab SHALL stay inside it, and focus SHALL return to the button.
+
+## R42. Visual README (Phase 8)
+1. THE README SHALL open with the tagline, live demo, Crew App repo, blog and X links, and a 3-image grid; a "Built with Kiro" table linking specs, steering, hooks, MCP, the scaffolder and the Crew App; and Featured applications giving both apps equal billing with a 1-line outcome and a screenshot each.

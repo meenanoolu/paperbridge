@@ -1,8 +1,10 @@
 # PaperBridge
 
-**Print a card, fill it in with a pen, take one photo: structured data, read on your device with no AI guessing at the marks.**
-One reusable optical skeleton powers two apps (Elder Care Bridge and Study Bridge), a Kiro Crew App, and a scaffolder for the next one.
-Built for **Kiroween 2026: Skeleton Crew**.
+**Resurrecting reliable paper forms as an offline-first optical UI skeleton - zero AI guessing.**
+
+Print a card, fill it in with a pen, take one photo. One shared optical engine reads it on your device with corner
+markers and a perspective unwarp, sends anything unclear to a person, and powers two very different apps plus a
+Kiro Crew App. Built for **Kiroween 2026: Skeleton Crew**.
 
 <!-- Demo video row, hidden until the video is uploaded. Paste it back into the table below the Live demo row:
 | **Demo video** | [Watch on YouTube](https://www.youtube.com/watch?v=VIDEO_ID) |
@@ -10,26 +12,63 @@ Built for **Kiroween 2026: Skeleton Crew**.
 | | |
 |---|---|
 | **Live demo** | [paperbridge-acvw.onrender.com](https://paperbridge-acvw.onrender.com/) (works offline after the first visit) |
+| **Kiro Crew App repo** | [meenanoolu/paperbridge-care-monitor](https://github.com/meenanoolu/paperbridge-care-monitor) (also in [`crew-app/`](crew-app/)) |
 | **Blog post** | [Building PaperBridge: An Offline-First Optical UI Skeleton for Elder Care with Kiro](https://dev.to/meena_n/building-paperbridge-an-offline-first-optical-ui-skeleton-for-elder-care-with-kiro-1h76) (DEV) |
 | **Social post** | [PaperBridge on X](https://x.com/MNoolu34434/status/2124436517087248756) |
-| **Kiro Crew App repo** | [meenanoolu/paperbridge-care-monitor](https://github.com/meenanoolu/paperbridge-care-monitor) (also in [`crew-app/`](crew-app/)) |
-| **Skeleton** | [`src/core/`](src/core/): card generator (SVG/PDF), optical decoder, webcam capture, Layout Validator. [`src/shell/`](src/shell/): shared scan UI, auto-routing, storage |
-| **App 1** | [`src/apps/elder-care/`](src/apps/elder-care/): Elder Care Bridge, a weekly medication and symptom card with a caregiver dashboard |
-| **App 2** | [`src/apps/study-bridge/`](src/apps/study-bridge/): Study Bridge, an offline 10-question quiz sheet with auto-grading and a class gradebook |
-| **Dev kit** | [`npm run create-app`](docs/BUILD-YOUR-OWN-APP.md) scaffolder and the [Layout Validator MCP server](mcp/) |
+
+<table>
+  <tr>
+    <td width="33%"><img src="docs/images/instant-demo.png" alt="Try an Instant Demo strip: Missed-Dose + Faint Mark, Mixed Batch (2 Apps at Once), Clean Week (100% Adherence), under the 3 workspace tabs"></td>
+    <td width="33%"><img src="docs/images/optical-xray.png" alt="Optical X-Ray: green lock-on boxes on the 4 corners, ink-density scores on every bubble, the faint mark amber at 0.29"></td>
+    <td width="33%"><img src="docs/images/raw-vs-unwarped.png" alt="Raw vs. Unwarped: the tilted photo next to the same card flattened by the 4 corner markers"></td>
+  </tr>
+  <tr>
+    <td><b>1-click Instant Demo</b>: a faint mark, a 2-app batch, a clean week</td>
+    <td><b>Optical X-Ray</b>: exactly what the decoder measured</td>
+    <td><b>Raw vs. Unwarped</b>: the perspective correction, visible</td>
+  </tr>
+</table>
 
 ### Try it in 60 seconds (judge path, no printer needed)
 
-Every app opens on 3 tabs: **Scan & Verify**, **Print Cards**, **History & Export**.
-
-1. Open the [live demo](https://paperbridge-acvw.onrender.com/). On **Scan & Verify**, click **Missed-Dose Alert** in the yellow sample panel: the photo is decoded from pixels in your browser, and the dashboard shows 71% adherence, a pattern ("3 of 4 missed doses were Night Meds") and one unclear mark. Click the amber circle to check that mark by hand.
-2. Under the pattern, click **Print Adapted Next-Week Card**: next Monday's card, with the Night Meds header boxed and a bold focus note in the footer. Paper to screen to smarter paper.
-3. Open **History & Export**, click **Load 4-Week Sample History**, then **Download Doctor Visit PDF**. On **Print Cards**, try **Translate card** (తెలుగు, हिन्दी, Español) and **Icon-Anchored Print Mode**.
-4. Back on **Scan & Verify**, click **Show Optical X-Ray** to see what the decoder measured (corner lock-on boxes and every bubble's ink score), then open **Test Decoder Resilience** and drag the sliders: tilt and shadow never change the answer, and very faint marks turn "unclear" instead of being guessed. Then switch to **Study Bridge** and click **Sam: Needs Review**.
+1. Open the [live demo](https://paperbridge-acvw.onrender.com/). In **Try an Instant Demo**, click **Missed-Dose + Faint Mark**: the photo is decoded in your browser and opens with the **Optical X-Ray** on, showing the 4 corner locks, every bubble's ink score and the amber mark sent for a human check. The 3-step pipeline shows the decode time.
+2. Click **Mixed Batch (2 Apps at Once)**: an Elder Care card and a Study Bridge quiz sheet go through **Scan Any Card** together, and each is routed to its own app by its printed card ID.
+3. Click **Clean Week (100% Adherence)**, then **Doctor Visit PDF (this week)**, and **Raw vs. Unwarped** to see the card flattened. Under a pattern, **Print Adapted Next-Week Card** prints smarter paper for next week.
+4. Click **How the Skeleton Works** in the header, then switch to **Study Bridge** (indigo) and try its samples. **Print Cards** has Translate card (తెలుగు, हिन्दी, Español) and Icon-Anchored mode.
 
 > **Not medical advice.** Elder Care Bridge helps people track doses and symptoms on paper and talk to their care team. It does not diagnose or recommend treatment.
 
-![Elder Care Bridge on the Scan & Verify tab: tabs at the top, Scan Any Card, and the sample card panel](docs/images/workspace-tabs.png)
+## Built with Kiro
+
+| Kiro feature | Where | What it does here |
+|---|---|---|
+| **Spec-driven development** | [`.kiro/specs/paperbridge/`](.kiro/specs/paperbridge/) | EARS [requirements](.kiro/specs/paperbridge/requirements.md) R1-R42, [design](.kiro/specs/paperbridge/design.md) decisions with measured numbers, and [tasks](.kiro/specs/paperbridge/tasks.md) 1-21, one task group per commit |
+| **Steering** | [`.kiro/steering/`](.kiro/steering/) | Always-on product rules, a `src/core/**` rule for the deterministic decoder, a `src/apps/**` rule for accessible thin apps |
+| **Agent hooks** | [`.kiro/hooks/`](.kiro/hooks/) | 5 hooks of 3 kinds: tests, sample regeneration and typecheck on save; a `PreToolUse` guard on the protected decoder; a `Stop` check for core boundaries and WCAG |
+| **MCP server** | [`mcp/`](mcp/) | Layout Validator: `validate_card_layout` and `list_registered_apps`, so Kiro checks a card before anyone prints it |
+| **Scaffolder** | [`scripts/create-app.mjs`](scripts/create-app.mjs) | `npm run create-app` writes App #3 that already routes, batch-saves, reads aloud and passes its own tests |
+| **Kiro Crew App** | [`crew-app/`](crew-app/) | Caregiver inbox, sidebar badge, Cmd+K command, and a `care-auditor` agent that writes bilingual check-ins |
+
+## Featured applications
+
+Two different domains on the same [`src/core/`](src/core/) + [`src/shell/`](src/shell/) skeleton, each about a layout, an interpreter and a page.
+
+<table>
+  <tr>
+    <th width="50%"><a href="src/apps/elder-care/">Elder Care Bridge</a> (clinical teal)</th>
+    <th width="50%"><a href="src/apps/study-bridge/">Study Bridge</a> (academic indigo)</th>
+  </tr>
+  <tr>
+    <td>A large-print weekly medication and symptom card. <b>Outcome: one photo gives a caregiver adherence %, missed doses, symptom-to-miss patterns and a 1-page Doctor Visit PDF, with no smartphone for the patient.</b></td>
+    <td>A screen-free 10-question answer sheet. <b>Outcome: one photo gives a score, weak topics with 1/3/7-day review dates, a class weak-topic breakdown and a CSV gradebook.</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/images/elder-dashboard.png" alt="Caregiver Adherence Dashboard: 71% adherence, 10 of 14 doses, dizzy Thu and Fri, and the pattern 3 of 4 missed doses were Night Meds"></td>
+    <td><img src="docs/images/study-results.png" alt="Study Bridge results: 60%, three weak topics, review plan"></td>
+  </tr>
+</table>
+
+![How the Skeleton Works dialog: thin apps on a shared shell on the optical core, App #3 via npm run create-app, and the Kiro Crew handoff](docs/images/skeleton-dialog.png)
 
 ### How it differs from classroom OMR tools
 Bubble-sheet graders such as ZipGrade and OMRChecker are built to grade answer sheets. PaperBridge is
@@ -90,11 +129,15 @@ These live in `src/shell/` and work for Elder Care Bridge, Study Bridge and any 
 - **Optical X-Ray** (Scan & Verify and the Stress-Test Lab): green lock-on boxes on the 4 corner markers, and a ring on every bubble coded by colour and dash (filled, unclear, blank) with the ink density the decoder measured, e.g. `0.79`, `0.29`, `0.02`. It only displays the existing decode result: no decoder code changed. A readings list gives the same data to keyboard and screen-reader users. **0 app code.**
 - **Audio cues:** a short chime, synthesised offline with the Web Audio API, when the webcam locks onto all 4 corners. A toggle turns it off. **0 app code.**
 - **Read Aloud** and **Copy Quick Update:** an app returns `spokenSummary` and/or `shareText` for a scan, and the shell adds the buttons, the offline `speechSynthesis` voice choice and the copy confirmation. Elder Care reads the week in the card's language (English, Telugu, Hindi or Spanish) and copies a 4-line family update; Study Bridge reads the score and copies a 3-line update with the review dates.
+- **Try an Instant Demo:** 3 one-click scenarios built from what apps declare in `appMeta.demo`: a faint mark with the X-Ray on, a mixed 2-app batch through Scan Any Card, and a clean week. **1 line per app.**
+- **3-step decode pipeline:** Photo Input, Optical Unwarp (with the real decode time), Verified Output, with "needs review" until every unclear mark is checked. **0 app code.**
+- **Raw vs. Unwarped:** the photo next to the card redrawn flat from the same 4 corner correspondences the decoder uses (display only). **0 app code.**
+- **Accents:** `appMeta.accent` colours the tabs, app badge and primary buttons (Elder Care teal, Study Bridge indigo; white text on both is AAA).
 - **Saving without storage code:** a generic saved-cards list in `localStorage` with a ready Scan Any Card batch adapter. Scaffolded apps use it by default.
 
 ![Optical X-Ray on the Missed-Dose sample: green boxes on the 4 corners, 22 filled at 0.78-0.81, the faint Wednesday water mark amber at 0.29, 40 blank at 0.00-0.03](docs/images/optical-xray.png)
 
-## Featured apps
+## App details
 
 ### Elder Care Bridge ([`src/apps/elder-care/`](src/apps/elder-care/))
 
@@ -107,7 +150,6 @@ At the end of the week a caregiver scans it and gets:
 - symptom flags, low-energy days, and water days
 - a **needs a human check** list: unclear marks are never counted as taken or missed
 
-![Caregiver Adherence Dashboard: 71% adherence, 10 of 14 doses, dizzy Thu and Fri, and the pattern "3 of 4 missed doses were Night Meds"](docs/images/elder-dashboard.png)
 ![Alerts for the caregiver](docs/images/elder-alerts.png)
 
 Sample cards: **Normal Week** (100%), **Missed-Dose Alert** (71%, Thursday fully missed,
@@ -147,7 +189,6 @@ Teacher workflow:
 - **Class sheet:** enter a student's name or ID after each scan. The **Class Weak-Topic Breakdown** shows the share of students below 70% per topic.
 - **Export CSV Gradebook:** Student, Score, %, Double-Marked, Blank, Unclear, Weak Topics. Opens cleanly in Excel and Sheets, and names starting with `=` can't run as formulas.
 
-![Study Bridge results: 60%, three weak topics, review plan](docs/images/study-results.png)
 
 ### Kiro Crew App (`crew-app/`)
 
@@ -335,7 +376,7 @@ docs/                  BUILD-YOUR-OWN-APP.md, screenshots
 | Command | What it does |
 |---|---|
 | `npm run dev` | Start the app |
-| `npm test` | 314 tests: property tests, end-to-end sample decodes, interpreters, overrides, history, CSV, layout validator, scaffolder, MCP tools, auto-routing and batch scan, 50-photo paper-size matrix, monthly pack, presets, adaptive cards, language packs and icons, stress lab, tabs, hooks, Optical X-Ray, audio and speech controls, generic batch save, Crew App contract, cardLanguage and bundle |
+| `npm test` | 328 tests: property tests, end-to-end sample decodes, interpreters, overrides, history, CSV, layout validator, scaffolder, MCP tools, auto-routing and batch scan, 50-photo paper-size matrix, monthly pack, presets, adaptive cards, language packs and icons, stress lab, tabs, hooks, Optical X-Ray, audio and speech controls, generic batch save, Instant Demo scenarios, decode pipeline, Raw vs. Unwarped, accents and the architecture dialog, Crew App contract, cardLanguage and bundle |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run build` | Production build plus service worker and `manifest.webmanifest` (pdf-lib loads only when printing) |
 | `npm run gen:samples` | Regenerate every app's sample photos (deterministic, byte-identical) |
