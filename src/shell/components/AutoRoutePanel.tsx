@@ -2,7 +2,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import { rasterFromFile } from "../../core";
 import { routableApps, type RegisteredApp } from "../app-registry";
 import { batchSummary, processBatch, saveableFor, saveBatchGroup, type BatchItem, type BatchRun } from "../batch";
-import { offerRoutedScan } from "../routed-scan";
+import { offerRoutedScan, takeAutoRouteBatch, useAutoRouteBatchRequest } from "../routed-scan";
 import { sessionRef, useSessionState } from "../session-state";
 import { showWorkspaceTab } from "../workspace-tabs";
 import { Icon } from "./Icon";
@@ -96,6 +96,14 @@ export function AutoRoutePanel({ onRoute }: { onRoute: (app: RegisteredApp) => v
     },
     [apps, open],
   );
+
+  // A batch requested elsewhere (the Instant Demo's Mixed Batch).
+  const requested = useAutoRouteBatchRequest();
+  useEffect(() => {
+    if (!requested) return;
+    const list = takeAutoRouteBatch();
+    if (list) void handle(list);
+  }, [requested, handle]);
 
   // Drop anywhere on the page.
   useEffect(() => {

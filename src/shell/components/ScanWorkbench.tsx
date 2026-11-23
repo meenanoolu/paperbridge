@@ -2,7 +2,11 @@ import { useContext, useEffect, useMemo, useRef, useState, type ReactNode } from
 import type { CardLayout } from "../../core";
 import { applyManualOverrides, countActiveOverrides, NO_OVERRIDES, setOverride, unclearBubbles, type ManualOverrides } from "../overrides";
 import { RouteContext } from "../route-context";
-import { takeRoutedScan, useRoutedScan } from "../routed-scan";
+import { takeRoutedScan, takeRoutedView, useRoutedScan } from "../routed-scan";
+import { pipelineSteps } from "../pipeline";
+import { DecodePipeline } from "./DecodePipeline";
+import { JudgeDemoStrip } from "./JudgeDemoStrip";
+import { RawUnwarpView } from "./RawUnwarpView";
 import { showWorkspaceTab, useWorkspaceTab, type WorkspaceTab } from "../workspace-tabs";
 import { AutoRoutePanel } from "./AutoRoutePanel";
 import { DECODE_ERROR_TEXT, useScanner, type CompletedScan, type ReviewedScan } from "../scan";
@@ -80,6 +84,7 @@ export function ScanWorkbench({
 }: WorkbenchProps) {
   const [audioCues, setAudioCues] = usePersistentState(AUDIO_CUES_KEY, parseAudioCues, true);
   const [xray, setXray] = useState(false);
+  const [unwarp, setUnwarp] = useState(false);
   const tab = useWorkspaceTab();
   const onRoute = useContext(RouteContext);
   const { state, scanUrl, scanFile, scanFrame, loadScan } = useScanner(layouts);
@@ -89,6 +94,9 @@ export function ScanWorkbench({
     if (!scan) return;
     setCamera(false);
     setActiveSample(null);
+    const view = takeRoutedView();
+    setXray(!!view.xray);
+    setUnwarp(!!view.unwarp);
     loadScan(scan);
   }, [routed, layouts, loadScan]);
   const [activeSample, setActiveSample] = useState<string | null>(null);
@@ -143,7 +151,7 @@ export function ScanWorkbench({
 
   const header = (
     <header className="flex items-start gap-4">
-      <span className="on-dark grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-slate-950 text-yellow-300">
+      <span className="on-dark grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-[var(--accent,#020617)] text-white">
         <Icon name={icon} className="h-8 w-8" />
       </span>
       <div>
@@ -155,6 +163,7 @@ export function ScanWorkbench({
 
   const scanPanel = (
     <>
+      <JudgeDemoStrip />
       {onRoute && <AutoRoutePanel onRoute={onRoute} />}
       <SamplePanel
         samples={samples}
@@ -229,6 +238,7 @@ export function ScanWorkbench({
         {liveMessage}
       </p>
       <div ref={results} aria-busy={busy} className="scroll-mt-4 space-y-6">
+        {state.status !== "idle" && <DecodePipeline steps={pipelineSteps(state, Math.max(0, unclear.length - (reviewed?.manualOverrides ?? 0)))} />}
         {state.status === "idle" && (
           <ol className="grid gap-3 sm:grid-cols-4">
             {steps.map(([head, body], i) => (
@@ -262,13 +272,20 @@ export function ScanWorkbench({
             <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
               <Card title="What the decoder saw">
                 {state.scan.result.ok && (
-                  <div className="mb-3">
+                  <div className="mb-3 flex flex-wrap gap-3">
                     <Button icon="xray" onClick={() => setXray((x) => !x)}>
                       {xray ? "Hide Optical X-Ray" : "Show Optical X-Ray"}
                     </Button>
+                    <Button icon="camera" aria-pressed={unwarp} onClick={() => setUnwarp((u) => !u)}>
+                      Raw vs. Unwarped
+                    </Button>
                   </div>
                 )}
-                <ScanPreview scan={state.scan} overrides={overrides} onCycle={editOverride} describe={describeBubble} xray={xray} />
+                {unwarp && state.scan.result.ok ? (
+                  <RawUnwarpView scan={state.scan} />
+                ) : (
+                  <ScanPreview scan={state.scan} overrides={overrides} onCycle={editOverride} describe={describeBubble} xray={xray} />
+                )}
                 <ReviewPanel
                   unclear={unclear}
                   overrides={overrides}

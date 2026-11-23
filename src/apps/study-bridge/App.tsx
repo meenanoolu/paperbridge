@@ -71,5 +71,16 @@ export function StudyBridgeApp() {
   );
 }
 
-export const appMeta: AppMeta = { id: "study-bridge", label: "Study Bridge", icon: "book", order: 2, layouts: STUDY_LAYOUTS, batch: STUDY_BATCH };
+export const appMeta: AppMeta = {
+  id: "study-bridge",
+  label: "Study Bridge",
+  icon: "book",
+  order: 2,
+  layouts: STUDY_LAYOUTS,
+  batch: STUDY_BATCH,
+  // Crisp academic indigo: white text on it is 8.6:1.
+  accent: { name: "academic-indigo", strong: "#3730a3", soft: "#eef2ff" },
+  samples: STUDY_SAMPLES,
+  demo: { batch: "sam-review" },
+};
 export default StudyBridgeApp;

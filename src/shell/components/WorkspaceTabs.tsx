@@ -29,7 +29,7 @@ export function WorkspaceTabs({
   const index = WORKSPACE_TABS.findIndex((t) => t.id === active);
   return (
     <>
-      <div role="tablist" aria-label="Workspace" className="flex flex-wrap gap-2 border-b-4 border-slate-950 pb-2">
+      <div role="tablist" aria-label="Workspace" className="flex flex-wrap gap-2 border-b-4 border-[var(--accent,#020617)] pb-2">
         {WORKSPACE_TABS.map((t, i) => {
           const selected = t.id === active;
           return (
@@ -53,7 +53,7 @@ export function WorkspaceTabs({
                 refs.current[next]?.focus();
               }}
               className={`inline-flex min-h-14 items-center gap-2 rounded-xl border-2 px-5 py-3 text-lg font-extrabold ${
-                selected ? "border-slate-950 bg-slate-950 text-white" : "border-slate-950 bg-white text-slate-950 hover:bg-slate-100"
+                selected ? "border-[var(--accent,#020617)] bg-[var(--accent,#020617)] text-white" : "border-slate-950 bg-white text-slate-950 hover:bg-slate-100"
               }`}
             >
               <Icon name={TAB_ICONS[t.id]} />
