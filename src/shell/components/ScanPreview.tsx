@@ -1,6 +1,9 @@
 import { nextOverride, readingKey, type ManualOverrides, type OverrideState } from "../overrides";
 import type { CompletedScan } from "../scan";
+import { useMemo, useState } from "react";
+import { xrayModel } from "../xray";
 import { Icon } from "./Icon";
+import { XRayDetails, XRayOverlay } from "./XRayOverlay";
 import type { DescribeBubble } from "./ReviewPanel";
 
 const STATE_STYLE = {
@@ -26,21 +29,27 @@ export function ScanPreview({
   overrides = {},
   onCycle,
   describe,
+  xray = false,
 }: {
   scan: CompletedScan;
   overrides?: ManualOverrides;
   /** Set the override for one bubble. Omit to show a read-only preview. */
   onCycle?: (key: string, value: OverrideState | undefined) => void;
   describe?: DescribeBubble;
+  /** Show the Optical X-Ray (lock-on boxes, density rings and scores) instead of the plain overlay. */
+  xray?: boolean;
 }) {
   const { result, width, height } = scan;
+  const model = useMemo(() => (xray ? xrayModel(result, scan.layout) : null), [xray, result, scan.layout]);
+  const [focusKey, setFocusKey] = useState<string | null>(null);
   const r = Math.max(width, height) / 90;
   const unclear = result.ok ? result.bubbles.filter((b) => b.state === "ambiguous") : [];
   return (
     <figure>
       <div className="relative overflow-hidden rounded-xl border-2 border-slate-400 bg-slate-800">
         <img src={scan.imageUrl} alt={`Scanned image: ${scan.label}`} className="block h-auto w-full" />
-        {result.ok && (
+        {model && <XRayOverlay model={model} width={width} height={height} focusKey={focusKey} />}
+        {result.ok && !model && (
           <svg viewBox={`0 0 ${width} ${height}`} className="absolute inset-0 h-full w-full" aria-hidden="true">
             <polygon
               points={result.fiducials.map((p) => p.join(",")).join(" ")}
@@ -98,7 +107,14 @@ export function ScanPreview({
             );
           })}
       </div>
-      <figcaption className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-lg">
+      {model && (
+        <XRayDetails
+          model={model}
+          onFocusKey={setFocusKey}
+          describe={describe && result.ok ? (key) => describe(result.bubbles.find((b) => readingKey(b) === key)!) : undefined}
+        />
+      )}
+      <figcaption hidden={!!model} className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-lg">
         <span className="inline-flex items-center gap-2">
           <span className="inline-block h-4 w-4 rounded-full border-4 border-blue-600" aria-hidden /> Corner marker found
         </span>

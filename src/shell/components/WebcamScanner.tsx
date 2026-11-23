@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CameraError, startWebcamScan, type CardLayout, type RasterImage, type ScanResult, type WebcamScan } from "../../core";
+import { createLockEdge } from "../audio-cues";
 import { guideFor, guideGeometry } from "../webcam-guide";
 import { Callout, Button } from "./ui";
 
@@ -23,11 +24,17 @@ export function WebcamScanner({
   layout,
   onCapture,
   onClose,
+  onLock,
 }: {
   layout: CardLayout;
   onCapture: (frame: RasterImage) => void;
   onClose: () => void;
+  /** Called once each time the camera locks onto all 4 corner markers (e.g. to play a chime). */
+  onLock?: () => void;
 }) {
+  const lockEdge = useRef(createLockEdge());
+  const onLockRef = useRef(onLock);
+  onLockRef.current = onLock;
   const video = useRef<HTMLVideoElement>(null);
   const scan = useRef<WebcamScan | null>(null);
   const [started, setStarted] = useState(false);
@@ -42,6 +49,7 @@ export function WebcamScanner({
       layout,
       onFrame: (result, state, frame) => {
         setLive({ result, streak: state.streak, frame });
+        if (lockEdge.current(guideFor(result, state.streak).locked)) onLockRef.current?.();
         if (state.lastOk) setHasFrame(true);
       },
       onStable: (_result, frame) => {

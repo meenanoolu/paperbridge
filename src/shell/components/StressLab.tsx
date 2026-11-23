@@ -1,8 +1,10 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { CardLayout } from "../../core";
 import { runStressTest, TILT_LIMIT_DEG, type StressRun, type StressSettings } from "../stress-lab";
+import { xrayModel } from "../xray";
 import { Icon } from "./Icon";
-import { StatusBadge } from "./ui";
+import { Button, StatusBadge } from "./ui";
+import { XRayDetails, XRayOverlay } from "./XRayOverlay";
 
 const DEBOUNCE_MS = 250;
 const START: StressSettings = { tiltDeg: 0, dim: 0, faint: 0 };
@@ -68,6 +70,9 @@ export function StressLab({ layout, filled, title }: { layout: CardLayout; fille
   const [settings, setSettings] = useState<StressSettings>(START);
   const [run, setRun] = useState<StressRun | null>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
+  const [xray, setXray] = useState(false);
+  const [focusKey, setFocusKey] = useState<string | null>(null);
+  const model = useMemo(() => (xray && run ? xrayModel(run.result, layout) : null), [xray, run, layout]);
 
   useEffect(() => {
     if (!open) return;
@@ -154,8 +159,17 @@ export function StressLab({ layout, filled, title }: { layout: CardLayout; fille
             </div>
           </div>
           <figure>
-            <canvas ref={canvas} className="w-full rounded-lg border-2 border-slate-400 bg-white" aria-label="The distorted card the decoder just read" role="img" />
+            <div className="mb-3">
+              <Button icon="xray" onClick={() => setXray((x) => !x)}>
+                {xray ? "Hide Optical X-Ray" : "Show Optical X-Ray"}
+              </Button>
+            </div>
+            <div className="relative overflow-hidden rounded-lg border-2 border-slate-400 bg-white">
+              <canvas ref={canvas} className="block w-full" aria-label="The distorted card the decoder just read" role="img" />
+              {model && run && <XRayOverlay model={model} width={run.raster.width} height={run.raster.height} focusKey={focusKey} />}
+            </div>
             <figcaption className="mt-2 text-lg text-slate-800">The distorted sample card, as the decoder saw it.</figcaption>
+            {model && <XRayDetails model={model} onFocusKey={setFocusKey} />}
           </figure>
         </div>
       )}

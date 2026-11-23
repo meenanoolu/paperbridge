@@ -178,10 +178,30 @@ function appTsx({ slug, name }) {
   const comp = componentName(slug);
   return `import type { AppMeta } from "../../shell/app-registry";
 import { ScanWorkbench } from "../../shell/components/ScanWorkbench";
+import { SavedScansSection, SaveScanForm } from "../../shell/components/SavedScans";
 import { Callout, Card, StatusBadge, type Tone } from "../../shell/components/ui";
+import { localBatchAdapter, savedAsScan, type LocalBatchOptions } from "../../shell/local-batch";
 import { interpret, type ItemStatus, type Report } from "./interpret";
-import { CHOICE_LABELS, describeBubble, LAYOUTS } from "./layout";
+import { CHOICE_LABELS, describeBubble, LAYOUT, LAYOUTS } from "./layout";
 import { SAMPLES } from "./samples";
+
+/**
+ * Saved cards live in this browser (localStorage), in the shell's generic list: single saves,
+ * Scan Any Card batch saves and the History & Export tab all use it. No storage code here.
+ */
+export const SAVED: LocalBatchOptions = { storageKey: ${q(`${slug}.saved`)}, noun: ["card", "cards"], place: "Saved Cards" };
+
+/** Starter "Read Aloud" text. Edit to say what matters on your card. */
+export function spokenSummary(report: Report): { text: string; lang: string } {
+  const review = report.needsReview.length ? \` Please check \${report.needsReview.join(", ")} on the paper card.\` : "";
+  return { text: \`\${report.answered} of \${report.total} rows answered.\${review}\`, lang: "en-US" };
+}
+
+/** Starter "Copy Quick Update" text for a message. */
+export function shareText(report: Report): string {
+  const counts = Object.entries(report.counts).map(([c, n]) => \`\${CHOICE_LABELS[c as keyof typeof CHOICE_LABELS]}: \${n}\`).join(", ");
+  return [${q(name)} + " update", \`\${report.answered} of \${report.total} rows answered (\${counts}).\`, report.needsReview.length ? \`To check: \${report.needsReview.join(", ")}.\` : "Nothing to check."].join("\\n");
+}
 
 const STATUS: Record<ItemStatus, { tone: Tone; text: string }> = {
   answered: { tone: "good", text: "Answered" },
@@ -249,14 +269,23 @@ export function ${comp}() {
         const r = interpret(scan.result);
         return \`\${r.answered} of \${r.total} rows answered. \${r.needsReview.length ? \`Check: \${r.needsReview.join(", ")}.\` : ""}\`;
       }}
-      renderResult={(scan) => <Results report={interpret(scan.result)} />}
+      renderResult={(scan) => (
+        <>
+          <Results report={interpret(scan.result)} />
+          <SaveScanForm key={scan.scannedAt.toISOString()} options={SAVED} scan={scan.result} scannedAt={scan.scannedAt} />
+        </>
+      )}
+      spokenSummary={(scan) => spokenSummary(interpret(scan.result))}
+      shareText={(scan) => shareText(interpret(scan.result))}
+      historyTab={<SavedScansSection options={SAVED} summarize={(e) => { const r = interpret(savedAsScan(e, LAYOUT)); return \`\${r.answered} of \${r.total} answered\`; }} />}
     />
   );
 }
 
 /** Registers this app in the PaperBridge app switcher (src/shell/app-registry.ts). */
-// \`layouts\` lets "Scan Any Card (Auto-Route)" send photos of this card here by its card ID.
-export const appMeta: AppMeta = { id: ${q(slug)}, label: ${q(name)}, icon: "sparkle", order: 100, layouts: LAYOUTS };
+// \`layouts\` lets "Scan Any Card (Auto-Route)" send photos of this card here by its card ID;
+// \`batch\` lets it bulk-save a stack of them into Saved Cards.
+export const appMeta: AppMeta = { id: ${q(slug)}, label: ${q(name)}, icon: "sparkle", order: 100, layouts: LAYOUTS, batch: localBatchAdapter(SAVED) };
 export default ${comp};
 `;
 }
