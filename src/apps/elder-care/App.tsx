@@ -17,13 +17,14 @@ import { sampleHistory } from "./sample-history";
 import { nextCardMonday } from "./adaptive";
 import { AdaptedCardButton } from "./components/AdaptedCardButton";
 import { ELDER_SAMPLE_SPECS } from "./samples/specs";
+import { alertCardLanguage, elderShareText, elderSpokenSummary } from "./voice";
 
 /** The Missed-Dose sample's pen marks (dark ones), for the Test Decoder Resilience drawer. */
 const STRESS_MARKS = { filled: ELDER_SAMPLE_SPECS[1].marks.filter((m) => m.style !== "faint").map((m) => m.key) };
 
 /** The alert for a reviewed scan: human overrides applied, with their count recorded. */
-export function alertFor(scan: ReviewedScan, doseLabels?: DoseLabels, habitLabel?: string): ScanAlert {
-  return toScanAlert(interpretCareCard(scan.result, { doseLabels, habitLabel }), scan.result.cardId, scan.scannedAt, scan.manualOverrides);
+export function alertFor(scan: ReviewedScan, doseLabels?: DoseLabels, habitLabel?: string, cardLanguage?: string): ScanAlert {
+  return toScanAlert(interpretCareCard(scan.result, { doseLabels, habitLabel }), scan.result.cardId, scan.scannedAt, scan.manualOverrides, cardLanguage);
 }
 
 import { CARE_SETTINGS_KEY, HISTORY_KEY } from "./storage-keys";
@@ -70,9 +71,10 @@ export function ElderCareApp() {
 
   // Emit an aggregate alert after every scan and after every manual override (task 9.6).
   // The Kiro Crew App dedupes by card + scan time, so a corrected alert replaces the earlier one.
+  const cardLanguage = alertCardLanguage(card);
   const onScan = useCallback((scan: ReviewedScan) => {
-    window.dispatchEvent(new CustomEvent(SCAN_ALERT_EVENT, { detail: alertFor(scan, doseLabels, habitLabel) }));
-  }, [doseLabels, habitLabel]);
+    window.dispatchEvent(new CustomEvent(SCAN_ALERT_EVENT, { detail: alertFor(scan, doseLabels, habitLabel, cardLanguage) }));
+  }, [doseLabels, habitLabel, cardLanguage]);
 
   return (
     <>
@@ -87,6 +89,8 @@ export function ElderCareApp() {
           <HistorySection history={history} currentPatient={card.patientName} card={card} onClear={clearHistory} onLoadSample={() => setHistory(sampleHistory(new Date()))} />
         }
         stressTest={STRESS_MARKS}
+        spokenSummary={(scan) => elderSpokenSummary(interpretCareCard(scan.result, { doseLabels, habitLabel }), card, scan.manualOverrides)}
+        shareText={(scan) => elderShareText(interpretCareCard(scan.result, { doseLabels, habitLabel }), card, scan.manualOverrides)}
         samples={ELDER_SAMPLES}
         steps={[
           ["Print", "One page, bold large print, A4 or US Letter."],
@@ -107,7 +111,7 @@ export function ElderCareApp() {
             <CareDashboard
               report={report}
               scannedAt={scan.scannedAt}
-              alert={alertFor(scan, doseLabels, habitLabel)}
+              alert={alertFor(scan, doseLabels, habitLabel, cardLanguage)}
               card={card}
               adapt={
                 <AdaptedCardButton
