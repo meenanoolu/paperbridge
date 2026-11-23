@@ -6,7 +6,8 @@ import {
   PAGE_SIZE_MM,
   type BubbleCenter,
 } from "./layout";
-import { HELVETICA_BOLD_WIDTHS, HELVETICA_WIDTHS } from "./render/helvetica-metrics";
+import { CARD_ICONS } from "./render/icons";
+import { textBoxOf } from "./render/measure";
 import { BUBBLE_STROKE_MM, cardPrimitives } from "./render/primitives";
 import type { BubbleGroup, CardLayout, PageSize } from "./types";
 
@@ -81,7 +82,12 @@ export function parseCardLayout(raw: unknown): { layout: CardLayout; errors: [] 
       if (!isPair(g.originMm)) bad(`${p}.originMm`, "expected [x, y] in mm");
       if (!isPair(g.pitchMm) || g.pitchMm.some((n) => n < 0)) bad(`${p}.pitchMm`, "expected [dx, dy] >= 0 in mm");
       if (!isNum(g.radiusMm) || g.radiusMm <= 0) bad(`${p}.radiusMm`, "expected a positive number");
-      for (const k of ["rowLabels", "colLabels"] as const) if (g[k] !== undefined && !isStrArr(g[k])) bad(`${p}.${k}`, "expected an array of strings");
+      for (const k of ["rowLabels", "colLabels", "colNotes"] as const) if (g[k] !== undefined && !isStrArr(g[k])) bad(`${p}.${k}`, "expected an array of strings");
+      if (g.colIcons !== undefined && !(isStrArr(g.colIcons) && g.colIcons.every((n) => n === "" || (CARD_ICONS as readonly string[]).includes(n))))
+        bad(`${p}.colIcons`, `expected an array of "" or ${CARD_ICONS.map((n) => `"${n}"`).join(", ")}`);
+      if (g.colHighlights !== undefined && !(Array.isArray(g.colHighlights) && g.colHighlights.every((j) => Number.isInteger(j) && j >= 0)))
+        bad(`${p}.colHighlights`, "expected an array of column indexes");
+      if (g.colHighlightStyle !== undefined && g.colHighlightStyle !== "frame" && g.colHighlightStyle !== "underline") bad(`${p}.colHighlightStyle`, 'expected "frame" or "underline"');
     });
   return errors.length ? { layout: null, errors } : { layout: raw as unknown as CardLayout, errors: [] };
 }
@@ -184,26 +190,7 @@ export function validateLayoutJson(raw: unknown, opts: { checkText?: boolean } =
 /** Clearance kept around printed text, in mm. */
 export const TEXT_CLEARANCE_MM = 0.4;
 
-/**
- * Multiplier on measured widths. 1: the PDF draws with exactly these metrics, and Arial (the
- * SVG font) shares Helvetica's advance widths. TEXT_CLEARANCE_MM provides the margin.
- */
-export const TEXT_WIDTH_SAFETY = 1;
-
-/**
- * Printed width of `text` in mm at `sizeMm`, from the Helvetica / Helvetica-Bold metrics the PDF
- * embeds, plus a small safety margin. Characters without a Latin-1 glyph count as 1 em.
- */
-export function estimateTextWidthMm(text: string, sizeMm: number, bold = false): number {
-  const table = bold ? HELVETICA_BOLD_WIDTHS : HELVETICA_WIDTHS;
-  let units = 0;
-  for (const ch of text) {
-    const code = ch.codePointAt(0)!;
-    const w = code >= 32 && code <= 255 ? table[code - 32] : 0;
-    units += w || 1000;
-  }
-  return (units / 1000) * sizeMm * TEXT_WIDTH_SAFETY;
-}
+export { estimateTextWidthMm, TEXT_WIDTH_SAFETY } from "./render/measure";
 
 export interface TextBox {
   text: string;
@@ -215,16 +202,39 @@ export interface TextBox {
 
 /** Estimated box of every printed string (cap height above the baseline, descender below). */
 export function textBoxes(layout: CardLayout): TextBox[] {
-  return cardPrimitives(layout).flatMap((p) => {
-    if (p.kind !== "text" || !p.text.trim()) return [];
-    const w = estimateTextWidthMm(p.text, p.sizeMm, p.bold);
-    const x0 = p.anchor === "middle" ? p.x - w / 2 : p.anchor === "end" ? p.x - w : p.x;
-    return [{ text: p.text, x0, y0: p.y - 0.75 * p.sizeMm, x1: x0 + w, y1: p.y + 0.22 * p.sizeMm }];
+  return cardPrimitives(layout).flatMap((p) => (p.kind !== "text" || !p.text.trim() ? [] : [{ text: p.text, ...textBoxOf(p) }]));
+}
+
+/** A printed mark that must stay clear of everything else: text, an icon, or a frame (a ring with an open inside). */
+export interface PrintedBox extends TextBox {
+  /** For frames: the open inside, where the framed label sits. */
+  inner?: { x0: number; y0: number; x1: number; y1: number };
+}
+
+/** Every printed text box plus icon boxes and highlight frames, for the collision check. */
+export function printedBoxes(layout: CardLayout): PrintedBox[] {
+  return cardPrimitives(layout).flatMap((p): PrintedBox[] => {
+    if (p.kind === "text") return p.text.trim() ? [{ text: p.text, ...textBoxOf(p) }] : [];
+    if (p.kind === "icon") return [{ text: `[${p.name} icon]`, x0: p.x, y0: p.y, x1: p.x + p.sizeMm, y1: p.y + p.sizeMm }];
+    if (p.kind === "rule") return [{ text: "[underline]", x0: p.x, y0: p.y, x1: p.x + p.w, y1: p.y + p.h }];
+    if (p.kind === "frame") {
+      const h = p.strokeMm / 2;
+      return [{ text: "[highlight frame]", x0: p.x - h, y0: p.y - h, x1: p.x + p.w + h, y1: p.y + p.h + h, inner: { x0: p.x + h, y0: p.y + h, x1: p.x + p.w - h, y1: p.y + p.h - h } }];
+    }
+    return [];
   });
 }
 
-const overlaps = (a: { x0: number; y0: number; x1: number; y1: number }, b: { x0: number; y0: number; x1: number; y1: number }, pad = 0) =>
-  a.x0 < b.x1 + pad && b.x0 < a.x1 + pad && a.y0 < b.y1 + pad && b.y0 < a.y1 + pad;
+type Rect = { x0: number; y0: number; x1: number; y1: number };
+const rectOverlaps = (a: Rect, b: Rect, pad = 0) => a.x0 < b.x1 + pad && b.x0 < a.x1 + pad && a.y0 < b.y1 + pad && b.y0 < a.y1 + pad;
+const inside = (b: Rect, area: Rect, pad: number) => b.x0 >= area.x0 + pad && b.x1 <= area.x1 - pad && b.y0 >= area.y0 + pad && b.y1 <= area.y1 - pad;
+/** A frame only collides with what touches its ring: a label well inside it is what it frames. */
+const overlaps = (a: PrintedBox | Rect, b: PrintedBox | Rect, pad = 0) => {
+  if (!rectOverlaps(a, b, pad)) return false;
+  if ("inner" in a && a.inner && inside(b, a.inner, pad)) return false;
+  if ("inner" in b && b.inner && inside(a, b.inner, pad)) return false;
+  return true;
+};
 
 /**
  * Printed text must stay on the page, off every bubble, corner marker, and the card-ID strip,
@@ -234,7 +244,7 @@ export function checkPrintedText(layout: CardLayout): LayoutDiagnostic[] {
   const errors: LayoutDiagnostic[] = [];
   const page = PAGE_SIZE_MM[layout.page];
   const { sizeMm, insetMm } = layout.fiducial;
-  const boxes = textBoxes(layout);
+  const boxes = printedBoxes(layout);
   const solids: { what: string; x0: number; y0: number; x1: number; y1: number }[] = [];
   const half = sizeMm / 2;
   fiducialCenters(layout).forEach(([x, y], i) =>
