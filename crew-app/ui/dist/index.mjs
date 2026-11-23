@@ -3,17 +3,29 @@ import { useCallback as s, useEffect as c, useMemo as l, useRef as u, useState a
 import { useAppApi as f, useAppEvents as p, useAppInfo as m, useChatLauncher as h, useNavBadge as g, useNotify as _ } from "@kirocrew/app-sdk";
 import { Fragment as v, jsx as y, jsxs as b } from "react/jsx-runtime";
 // src/alerts.ts
-var x = "paperbridge:scan-alert", S = (e) => typeof e == "object" && !!e && !Array.isArray(e), C = (e) => Array.isArray(e) && e.every((e) => typeof e == "string");
-function w(e) {
+var x = {
+	en: "English",
+	te: "Telugu",
+	hi: "Hindi",
+	es: "Spanish"
+};
+function S(e) {
+	return x[(e ?? "en").split("-")[0].toLowerCase()] ?? "English";
+}
+function C(e) {
+	return typeof e == "string" && /^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8}){0,3}$/.test(e) ? { cardLanguage: e } : {};
+}
+var w = "paperbridge:scan-alert", T = (e) => typeof e == "object" && !!e && !Array.isArray(e), E = (e) => Array.isArray(e) && e.every((e) => typeof e == "string");
+function D(e) {
 	if (typeof e == "string") try {
-		return w(JSON.parse(e));
+		return D(JSON.parse(e));
 	} catch {
 		return null;
 	}
-	if (!S(e) || e.type !== "paperbridge:scan-alert" || e.app !== "elder-care" || typeof e.cardId != "string" || typeof e.scannedAt != "string" || Number.isNaN(Date.parse(e.scannedAt)) || e.severity !== "high" && e.severity !== "medium" && e.severity !== "none" || !(e.adherencePct === null || typeof e.adherencePct == "number" && e.adherencePct >= 0 && e.adherencePct <= 100) || !C(e.symptomDays) || !C(e.needsReview) || !Array.isArray(e.missed) || !Array.isArray(e.alerts)) return null;
-	let t = e.missed.filter((e) => S(e) && typeof e.day == "string" && (e.slot === "Morning" || e.slot === "Night")), n = e.alerts.filter((e) => S(e) && (e.level === "high" || e.level === "medium" || e.level === "info") && typeof e.title == "string" && typeof e.detail == "string");
+	if (!T(e) || e.type !== "paperbridge:scan-alert" || e.app !== "elder-care" || typeof e.cardId != "string" || typeof e.scannedAt != "string" || Number.isNaN(Date.parse(e.scannedAt)) || e.severity !== "high" && e.severity !== "medium" && e.severity !== "none" || !(e.adherencePct === null || typeof e.adherencePct == "number" && e.adherencePct >= 0 && e.adherencePct <= 100) || !E(e.symptomDays) || !E(e.needsReview) || !Array.isArray(e.missed) || !Array.isArray(e.alerts)) return null;
+	let t = e.missed.filter((e) => T(e) && typeof e.day == "string" && (e.slot === "Morning" || e.slot === "Night")), n = e.alerts.filter((e) => T(e) && (e.level === "high" || e.level === "medium" || e.level === "info") && typeof e.title == "string" && typeof e.detail == "string");
 	return {
-		type: x,
+		type: w,
 		app: "elder-care",
 		cardId: e.cardId.slice(0, 120),
 		scannedAt: e.scannedAt,
@@ -31,42 +43,43 @@ function w(e) {
 			detail: e.detail.slice(0, 500)
 		})),
 		...Number.isInteger(e.manualOverrides) && e.manualOverrides > 0 && e.manualOverrides <= 1e3 ? { manualOverrides: e.manualOverrides } : {},
-		...T(e.patterns)
+		...O(e.patterns),
+		...C(e.cardLanguage)
 	};
 }
-function T(e) {
+function O(e) {
 	if (!Array.isArray(e)) return {};
-	let t = e.filter((e) => S(e) && (e.kind === "symptom-miss" || e.kind === "slot-barrier") && typeof e.title == "string" && typeof e.detail == "string").slice(0, 10).map((e) => ({
+	let t = e.filter((e) => T(e) && (e.kind === "symptom-miss" || e.kind === "slot-barrier") && typeof e.title == "string" && typeof e.detail == "string").slice(0, 10).map((e) => ({
 		kind: e.kind,
 		title: e.title.slice(0, 200),
 		detail: e.detail.slice(0, 500)
 	}));
 	return t.length ? { patterns: t } : {};
 }
-function E(e) {
+function k(e) {
 	if (!e.includes("paperbridge:scan-alert")) return null;
 	for (let t = e.indexOf("{"); t !== -1; t = e.indexOf("{", t + 1)) {
 		let n = 0;
 		for (let r = t; r < e.length; r++) if (e[r] === "{") n++;
 		else if (e[r] === "}" && --n === 0) {
-			let n = w(e.slice(t, r + 1));
+			let n = D(e.slice(t, r + 1));
 			if (n) return n;
 			break;
 		}
 	}
 	return null;
 }
-function D(e) {
-	let t = w(e);
+function A(e) {
+	let t = D(e);
 	if (t) return t;
-	if (!S(e)) return null;
+	if (!T(e)) return null;
 	for (let t of [
 		"alert",
 		"data",
 		"payload",
 		"detail"
 	]) {
-		let n = w(e[t]);
+		let n = D(e[t]);
 		if (n) return n;
 	}
 	for (let t of [
@@ -77,17 +90,17 @@ function D(e) {
 	]) {
 		let n = e[t];
 		if (typeof n == "string") {
-			let e = E(n);
+			let e = k(n);
 			if (e) return e;
 		}
 	}
 	return null;
 }
-function O(e) {
+function j(e) {
 	return `${e.cardId}@${e.scannedAt}`;
 }
-function k(e, t, n, r) {
-	let i = O(t), a = e.find((e) => e.id === i);
+function M(e, t, n, r) {
+	let i = j(t), a = e.find((e) => e.id === i);
 	return [{
 		...t,
 		id: i,
@@ -96,20 +109,20 @@ function k(e, t, n, r) {
 		reviewed: a?.reviewed ?? !1
 	}, ...e.filter((e) => e.id !== i)].sort((e, t) => Date.parse(t.scannedAt) - Date.parse(e.scannedAt)).slice(0, 50);
 }
-function A(e) {
+function N(e) {
 	return e.filter((e) => !e.reviewed && e.severity !== "none").length;
 }
-function j(e) {
+function P(e) {
 	return `kirocrew.app.${e}.alerts.v1`;
 }
-function M(e, t) {
+function F(e, t) {
 	try {
 		let n = e?.getItem(t);
 		if (!n) return [];
 		let r = JSON.parse(n);
 		return Array.isArray(r) ? r.flatMap((e) => {
-			let t = w(e);
-			if (!t || !S(e)) return [];
+			let t = D(e);
+			if (!t || !T(e)) return [];
 			let n = [
 				"browser-event",
 				"notification",
@@ -118,7 +131,7 @@ function M(e, t) {
 			].find((t) => t === e.source) ?? "pasted", r = typeof e.receivedAt == "string" ? e.receivedAt : t.scannedAt;
 			return [{
 				...t,
-				id: O(t),
+				id: j(t),
 				source: n,
 				receivedAt: r,
 				reviewed: e.reviewed === !0
@@ -128,14 +141,14 @@ function M(e, t) {
 		return [];
 	}
 }
-function N(e, t, n) {
+function I(e, t, n) {
 	try {
 		e?.setItem(t, JSON.stringify(n.slice(0, 50)));
 	} catch {}
 }
-function P(e) {
+function L(e) {
 	return {
-		type: x,
+		type: w,
 		app: "elder-care",
 		cardId: "elder-care-weekly",
 		scannedAt: e.toISOString(),
@@ -161,6 +174,7 @@ function P(e) {
 		],
 		symptomDays: ["Thu", "Fri"],
 		needsReview: ["Wednesday water"],
+		cardLanguage: "te-IN",
 		patterns: [{
 			kind: "slot-barrier",
 			title: "3 of 4 missed doses were Night Meds",
@@ -200,12 +214,13 @@ function P(e) {
 		]
 	};
 }
-function F(e) {
-	let { type: t, app: n, cardId: r, scannedAt: i, severity: a, adherencePct: o, missed: s, symptomDays: c, needsReview: l, alerts: u, manualOverrides: d, patterns: f } = e;
+function R(e) {
+	let { type: t, app: n, cardId: r, scannedAt: i, severity: a, adherencePct: o, missed: s, symptomDays: c, needsReview: l, alerts: u, manualOverrides: d, patterns: f, cardLanguage: p } = e, m = !!f?.length || !!p;
 	return [
 		"Load the adherence-analysis skill and draft a caregiver check-in for this PaperBridge Weekly Care Card.",
 		"Start with what went well, list what to ask about, and say whether to contact the clinician.",
 		...f?.length ? [`PaperBridge found ${f.length === 1 ? "a pattern" : `${f.length} patterns`} with fixed rules (see "patterns"). Reference each one in the check-in as a gentle question, not a conclusion.`] : [],
+		...m ? [`Write two clearly separated sections: "Clinical Note (English)" (concise and factual, ready for a doctor or pharmacist) and "Gentle Check-In Opener (${S(p)})" (a warm, non-judgmental conversation starter in the patient's card language).`] : [],
 		"",
 		"```json",
 		JSON.stringify({
@@ -220,41 +235,42 @@ function F(e) {
 			needsReview: l,
 			alerts: u,
 			...d ? { manualOverrides: d } : {},
-			...f?.length ? { patterns: f } : {}
+			...f?.length ? { patterns: f } : {},
+			...p ? { cardLanguage: p } : {}
 		}, null, 2),
 		"```"
 	].join("\n");
 }
 // src/sdk.ts
-var I = "care-auditor";
-function L() {
-	let e = m(), t = f(), n = _(), r = g(), i = j(e.name), [a, o] = d(() => M(globalThis.localStorage, i)), [h, v] = d({ online: null }), y = u(n);
+var z = "care-auditor";
+function B() {
+	let e = m(), t = f(), n = _(), r = g(), i = P(e.name), [a, o] = d(() => F(globalThis.localStorage, i)), [h, v] = d({ online: null }), y = u(n);
 	y.current = n;
 	let b = s((e, t, n = !0) => {
-		o((r) => (!r.some((t) => t.cardId === e.cardId && t.scannedAt === e.scannedAt) && n && e.severity === "high" && y.current(`PaperBridge: ${e.alerts[0]?.title ?? "new care card alert"}`, { type: "error" }), k(r, e, t, /* @__PURE__ */ new Date())));
+		o((r) => (!r.some((t) => t.cardId === e.cardId && t.scannedAt === e.scannedAt) && n && e.severity === "high" && y.current(`PaperBridge: ${e.alerts[0]?.title ?? "new care card alert"}`, { type: "error" }), M(r, e, t, /* @__PURE__ */ new Date())));
 	}, []);
 	c(() => {
-		N(globalThis.localStorage, i, a), r(A(a));
+		I(globalThis.localStorage, i, a), r(N(a));
 	}, [
 		a,
 		i,
 		r
 	]), p("notification", (e) => {
-		let t = D(e);
+		let t = A(e);
 		t && b(t, "notification");
 	}), p("task_complete", (e) => {
 		JSON.stringify(e ?? "").includes("care-auditor") && y.current("care-auditor finished a check-in draft", { type: "success" });
 	}), c(() => {
 		let e = (e) => {
-			let t = D(e.detail);
+			let t = A(e.detail);
 			t && b(t, "browser-event");
 		};
-		return window.addEventListener(x, e), () => window.removeEventListener(x, e);
+		return window.addEventListener(w, e), () => window.removeEventListener(w, e);
 	}, [b]), c(() => {
 		let e = !1;
 		return t.get("/api/notifications").then((t) => {
 			if (!e) for (let e of t?.notifications ?? []) {
-				let t = D(e);
+				let t = A(e);
 				t && b(t, "notification", !1);
 			}
 		}).catch(() => void 0), t.get("/api/status").then((t) => !e && v({
@@ -264,38 +280,38 @@ function L() {
 			e = !0;
 		};
 	}, [t, b]);
-	let S = s((e, t = !0) => {
+	let x = s((e, t = !0) => {
 		o((n) => n.map((n) => n.id === e ? {
 			...n,
 			reviewed: t
 		} : n));
-	}, []), C = s(() => o([]), []);
+	}, []), S = s(() => o([]), []);
 	return l(() => ({
 		alerts: a,
 		add: b,
-		markReviewed: S,
-		clear: C,
+		markReviewed: x,
+		clear: S,
 		status: h,
 		notify: n
 	}), [
 		a,
 		b,
+		x,
 		S,
-		C,
 		h,
 		n
 	]);
 }
-function R() {
+function V() {
 	let { openChat: e } = h();
 	return s((t) => e({
-		agent: I,
-		message: F(t),
+		agent: z,
+		message: R(t),
 		autoSend: !1
 	}), [e]);
 }
 // src/App.tsx
-var z = {
+var H = {
 	Mon: "Monday",
 	Tue: "Tuesday",
 	Wed: "Wednesday",
@@ -303,7 +319,7 @@ var z = {
 	Fri: "Friday",
 	Sat: "Saturday",
 	Sun: "Sunday"
-}, B = (e) => z[e] ?? e, V = {
+}, U = (e) => H[e] ?? e, W = {
 	high: {
 		variant: "err",
 		label: "Needs attention"
@@ -316,17 +332,17 @@ var z = {
 		variant: "ok",
 		label: "All good"
 	}
-}, H = {
+}, G = {
 	high: "err",
 	medium: "warn",
 	info: "muted"
-}, U = {
+}, K = {
 	"browser-event": "PaperBridge scan",
 	notification: "Crew notification",
 	demo: "Demo alert",
 	pasted: "Pasted JSON"
 };
-function W(e) {
+function q(e) {
 	return new Date(e).toLocaleString(void 0, {
 		weekday: "short",
 		month: "short",
@@ -335,12 +351,12 @@ function W(e) {
 		minute: "2-digit"
 	});
 }
-function G({ alert: i, onReview: a, onDraft: o }) {
-	let s = V[i.severity];
+function J({ alert: i, onReview: a, onDraft: o }) {
+	let s = W[i.severity];
 	return /* @__PURE__ */ b(n, { children: [
 		/* @__PURE__ */ b("div", {
 			className: "flex flex-wrap items-center justify-between gap-2",
-			children: [/* @__PURE__ */ b(r, { children: ["Weekly Care Card, scanned ", W(i.scannedAt)] }), /* @__PURE__ */ b("div", {
+			children: [/* @__PURE__ */ b(r, { children: ["Weekly Care Card, scanned ", q(i.scannedAt)] }), /* @__PURE__ */ b("div", {
 				className: "flex items-center gap-2",
 				children: [
 					/* @__PURE__ */ y(e, {
@@ -356,6 +372,11 @@ function G({ alert: i, onReview: a, onDraft: o }) {
 							")"
 						]
 					}) : null,
+					i.cardLanguage && /* @__PURE__ */ b(e, {
+						variant: "muted",
+						title: `The patient's card is printed in ${S(i.cardLanguage)} (${i.cardLanguage})`,
+						children: ["Card: ", S(i.cardLanguage)]
+					}),
 					i.reviewed && /* @__PURE__ */ y(e, {
 						variant: "muted",
 						children: "Reviewed"
@@ -367,8 +388,8 @@ function G({ alert: i, onReview: a, onDraft: o }) {
 			className: "text-sm",
 			children: [
 				/* @__PURE__ */ y("strong", { children: i.adherencePct === null ? "Adherence unknown" : `${i.adherencePct}% of doses taken` }),
-				i.missed.length > 0 && /* @__PURE__ */ b(v, { children: [" · Missed: ", i.missed.map((e) => `${B(e.day)} ${e.slot.toLowerCase()}`).join(", ")] }),
-				i.symptomDays.length > 0 && /* @__PURE__ */ b(v, { children: [" · Dizzy or pain: ", i.symptomDays.map(B).join(", ")] })
+				i.missed.length > 0 && /* @__PURE__ */ b(v, { children: [" · Missed: ", i.missed.map((e) => `${U(e.day)} ${e.slot.toLowerCase()}`).join(", ")] }),
+				i.symptomDays.length > 0 && /* @__PURE__ */ b(v, { children: [" · Dizzy or pain: ", i.symptomDays.map(U).join(", ")] })
 			]
 		}),
 		i.alerts.length > 0 && /* @__PURE__ */ y("ul", {
@@ -377,7 +398,7 @@ function G({ alert: i, onReview: a, onDraft: o }) {
 			children: i.alerts.map((t) => /* @__PURE__ */ b("li", {
 				className: "flex items-start gap-2 text-sm",
 				children: [/* @__PURE__ */ y(e, {
-					variant: H[t.level],
+					variant: G[t.level],
 					children: t.level
 				}), /* @__PURE__ */ b("span", { children: [
 					/* @__PURE__ */ b("strong", { children: [t.title, "."] }),
@@ -436,13 +457,13 @@ function G({ alert: i, onReview: a, onDraft: o }) {
 				}),
 				/* @__PURE__ */ b("span", {
 					className: "text-muted text-[13px]",
-					children: ["Source: ", U[i.source]]
+					children: ["Source: ", K[i.source]]
 				})
 			]
 		})
 	] });
 }
-function K({ onAdd: e }) {
+function Y({ onAdd: e }) {
 	let [i, a] = d(""), [o, s] = d("");
 	return /* @__PURE__ */ b(n, { children: [
 		/* @__PURE__ */ y(r, { children: "Paste a PaperBridge alert" }),
@@ -485,8 +506,8 @@ function K({ onAdd: e }) {
 		})
 	] });
 }
-function q() {
-	let { alerts: e, add: r, markReviewed: s, clear: c, status: l } = L(), u = R(), [f, p] = d(!1), m = e[0], h = A(e);
+function X() {
+	let { alerts: e, add: r, markReviewed: s, clear: c, status: l } = B(), u = V(), [f, p] = d(!1), m = e[0], h = N(e);
 	return /* @__PURE__ */ b(v, { children: [/* @__PURE__ */ y(a, {
 		title: "PaperBridge Care",
 		subtitle: "Alerts from paper Weekly Care Cards, decoded without AI. Draft the caregiver check-in in one click.",
@@ -495,7 +516,7 @@ function q() {
 			children: [
 				/* @__PURE__ */ y(t, {
 					primary: !0,
-					onClick: () => r(P(/* @__PURE__ */ new Date()), "demo"),
+					onClick: () => r(L(/* @__PURE__ */ new Date()), "demo"),
 					children: "Load demo alert"
 				}),
 				/* @__PURE__ */ y(t, {
@@ -542,8 +563,8 @@ function q() {
 			/* @__PURE__ */ b("div", {
 				className: "flex flex-col gap-4",
 				"aria-live": "polite",
-				children: [f && /* @__PURE__ */ y(K, { onAdd: (e) => {
-					let t = w(e.trim());
+				children: [f && /* @__PURE__ */ y(Y, { onAdd: (e) => {
+					let t = D(e.trim());
 					return t && r(t, "pasted"), t !== null;
 				} }), e.length === 0 ? /* @__PURE__ */ y(n, { children: /* @__PURE__ */ y(i, {
 					icon: /* @__PURE__ */ y("span", {
@@ -554,10 +575,10 @@ function q() {
 					subtitle: "Scan a PaperBridge Weekly Care Card, or load the demo alert to see how it works.",
 					action: /* @__PURE__ */ y(t, {
 						primary: !0,
-						onClick: () => r(P(/* @__PURE__ */ new Date()), "demo"),
+						onClick: () => r(L(/* @__PURE__ */ new Date()), "demo"),
 						children: "Load demo alert"
 					})
-				}) }) : e.map((e) => /* @__PURE__ */ y(G, {
+				}) }) : e.map((e) => /* @__PURE__ */ y(J, {
 					alert: e,
 					onReview: (t) => s(e.id, t),
 					onDraft: () => u(e)
@@ -570,4 +591,4 @@ function q() {
 		]
 	})] });
 }
-export { q as default };
+export { X as default };

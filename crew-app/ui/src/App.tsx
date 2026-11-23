@@ -1,6 +1,6 @@
 import { Badge, Btn, Card, CardTitle, EmptyState, PageHeader, StatCard } from "@kirocrew/app-sdk/ui";
 import { useState } from "react";
-import { demoAlert, openCount, parseScanAlert, type StoredAlert } from "./alerts";
+import { demoAlert, languageName, openCount, parseScanAlert, type StoredAlert } from "./alerts";
 import { useCareAlerts, useDraftCheckIn } from "./sdk";
 
 const DAY: Record<string, string> = { Mon: "Monday", Tue: "Tuesday", Wed: "Wednesday", Thu: "Thursday", Fri: "Friday", Sat: "Saturday", Sun: "Sunday" };
@@ -40,6 +40,11 @@ function AlertCard({ alert, onReview, onDraft }: { alert: StoredAlert; onReview:
               Manually verified ({alert.manualOverrides})
             </Badge>
           ) : null}
+          {alert.cardLanguage && (
+            <Badge variant="muted" title={`The patient's card is printed in ${languageName(alert.cardLanguage)} (${alert.cardLanguage})`}>
+              Card: {languageName(alert.cardLanguage)}
+            </Badge>
+          )}
           {alert.reviewed && <Badge variant="muted">Reviewed</Badge>}
         </div>
       </div>
