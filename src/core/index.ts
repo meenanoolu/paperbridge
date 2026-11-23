@@ -44,6 +44,8 @@ export { CARD_ICONS, ICON_SHAPES } from "./render/icons";
 export { isWinAnsiText } from "./render/measure";
 export type { TextImageRenderer, TextImageRequest } from "./render/pdf";
 export { decode } from "./decode/decode";
+/** Read-only geometry helpers (for views such as the shell's Raw vs. Unwarped). */
+export { applyHomography, solveHomography, type Homography } from "./decode/homography";
 export { renderCardRaster, type SynthOptions } from "./testing/synth";
 export { createStabilityTracker, resultSignature, STABLE_FRAMES, type StabilityState } from "./capture/stability";
 export { rasterFromFile, rasterFromUrl, rasterFromVideo, rasterToDataUrl } from "./capture/image-source";

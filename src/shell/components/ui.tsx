@@ -14,7 +14,7 @@ export function Button({
     "inline-flex min-h-14 items-center justify-center gap-3 rounded-xl px-5 py-3 text-lg font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-60";
   const styles =
     variant === "primary"
-      ? "bg-slate-950 text-white hover:bg-slate-800"
+      ? "bg-slate-950 text-white shadow-[inset_0_-5px_0_0_var(--accent,#020617)] hover:bg-slate-800"
       : "border-2 border-slate-950 bg-white text-slate-950 hover:bg-slate-100";
   return (
     <button type="button" className={`${base} ${styles} ${className}`} {...rest}>

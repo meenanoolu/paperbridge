@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import { appFromHash, APPS, type RegisteredApp } from "./app-registry";
+import { appFromHash, APPS, DEFAULT_ACCENT, type RegisteredApp } from "./app-registry";
+import { SkeletonGuide } from "./components/SkeletonGuide";
+import type { CSSProperties } from "react";
 import { Icon } from "./components/Icon";
 import { OfflineBadge } from "./components/OfflineBadge";
 import { RouteContext } from "./route-context";
@@ -47,6 +49,7 @@ export function App() {
             PaperBridge
           </a>
           <OfflineBadge />
+          <SkeletonGuide />
           <nav aria-label="Choose an app">
             <ul className="flex flex-wrap gap-2">
               {APPS.map((a) => (
@@ -67,7 +70,13 @@ export function App() {
           </nav>
         </div>
       </header>
-      <main id="main" tabIndex={-1} className="mx-auto max-w-6xl px-4 py-6 focus:outline-none sm:px-6 sm:py-8">
+      <main
+        id="main"
+        tabIndex={-1}
+        data-accent={(app.accent ?? DEFAULT_ACCENT).name}
+        style={{ "--accent": (app.accent ?? DEFAULT_ACCENT).strong, "--accent-soft": (app.accent ?? DEFAULT_ACCENT).soft } as CSSProperties}
+        className="mx-auto max-w-6xl px-4 py-6 focus:outline-none sm:px-6 sm:py-8"
+      >
         <RouteContext.Provider value={onRoute}>
           <app.Component key={app.id} />
         </RouteContext.Provider>

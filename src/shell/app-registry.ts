@@ -2,6 +2,21 @@ import type { ComponentType } from "react";
 import type { CardLayout } from "../core";
 import type { BatchAdapter } from "./batch";
 import type { IconName } from "./components/Icon";
+import type { SampleCard } from "./components/SamplePanel";
+
+/**
+ * An app's accent colour, used for tab underlines, the selected tab, primary-button borders and
+ * the app badge. `strong` carries white text (needs 7:1 for AAA); `soft` is a light tint behind
+ * dark text.
+ */
+export interface AccentTheme {
+  name: string;
+  strong: string;
+  soft: string;
+}
+
+/** The shell's neutral accent for apps that do not set one. */
+export const DEFAULT_ACCENT: AccentTheme = { name: "slate", strong: "#020617", soft: "#f1f5f9" };
 
 /**
  * Apps register themselves: any `src/apps/<slug>/App.tsx` that exports `appMeta` and a
@@ -20,6 +35,12 @@ export interface AppMeta {
   batch?: BatchAdapter;
   /** One short line shown in the page footer while this app is open, e.g. a disclaimer. */
   footerNote?: string;
+  /** Accent colour for this app's workspace. */
+  accent?: AccentTheme;
+  /** Sample cards, so the shell's Instant Demo can load them. */
+  samples?: SampleCard[];
+  /** Sample ids for the Instant Demo: a card with a faint mark, a clean card, and one for the mixed batch. */
+  demo?: { faint?: string; clean?: string; batch?: string };
 }
 
 export interface RegisteredApp extends AppMeta {
