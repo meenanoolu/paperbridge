@@ -206,3 +206,27 @@ PaperBridge turns a printed bubble card into structured data using deterministic
 ## R33. Varied Kiro hooks (Phase 6)
 1. A `PreToolUse` hook SHALL ask the person before any write to `src/core/decode/`, `src/core/layout.ts` or `src/core/capture/`, and remind the agent to run the 50-photo A4/Letter regression matrix and the property tests first.
 2. A `Stop` hook SHALL keep the agent working if `src/core` imports `src/apps` or `src/shell`, and, when UI files changed, ask it once to confirm the WCAG 2.2 AA / AAA audit.
+
+## R34. Optical X-Ray (Phase 7)
+1. ScanWorkbench and the Stress-Test Lab SHALL offer a "Show Optical X-Ray" toggle, off by default, for any app.
+2. WHEN on, an SVG overlay aligned with the scanned image SHALL show green lock-on boxes on the 4 detected corner markers and a ring on every bubble coded by colour and dash (green filled, amber dashed unclear, slate dotted blank), with its ink-density score to two decimals: always shown for filled and unclear, on hover or focus for blank. A caption SHALL state the counts and score ranges, and a keyboard-reachable list SHALL give every reading.
+3. THE X-Ray SHALL use only the existing decode result (corner centres, bubble centres, `fill`, `state`). No decoder file, threshold or classification SHALL change.
+
+## R35. Audio cues, Read Aloud and Copy Quick Update (Phase 7)
+1. ScanWorkbench SHALL offer an "Audio cues" toggle (on by default, stored in localStorage) that plays a short dual-tone chime synthesised with the Web Audio API once each time the webcam locks onto all 4 corner markers, and does nothing when AudioContext is unavailable.
+2. Apps MAY pass `spokenSummary(scan) => { text, lang? }`; THE shell SHALL then show "Read Aloud" / "Stop Reading" using the browser's offline speechSynthesis, choosing a system voice that matches `lang` (offline voices first) and hiding the button where speech is unsupported.
+3. Apps MAY pass `shareText(scan) => string`; THE shell SHALL then show "Copy Quick Update" with a polite live-region confirmation and a select-to-copy fallback.
+4. No audio or speech files or libraries SHALL be bundled.
+
+## R36. Zero-boilerplate saving (Phase 7)
+1. `src/shell/local-batch.ts` SHALL provide a generic saved-cards list in localStorage (marks, not reports; one entry per name) with a ready Scan Any Card `BatchAdapter`, a single-save form and a History & Export section.
+2. `npm run create-app` SHALL wire the generic batch adapter, the saved-cards tab and starter `spokenSummary` and `shareText`. A generated app SHALL pass typecheck, its tests, auto-routing and batch save with no edits.
+
+## R37. App wiring (Phase 7)
+1. Elder Care SHALL speak adherence, missed doses, symptom days, the first pattern's focus and the hand-check count in the card's language (`en-US`, `te-IN`, `hi-IN`, `es-ES`), and SHALL offer a 4-line English family update (name, adherence, flag, "Manually verified (N)" or "Every mark on the card was clear").
+2. Elder Care alerts SHALL include optional `cardLanguage` (BCP 47) for translated cards only; English alerts SHALL be unchanged.
+3. Study Bridge SHALL speak the score and topics due, and offer a 3-line update with the score, topics and review dates.
+
+## R38. Bilingual check-ins in Kiro Crew (Phase 7)
+1. THE Crew parser SHALL accept an optional well-formed BCP 47 `cardLanguage` and drop anything else; alerts without it SHALL parse unchanged. THE page SHALL show a "Card: <language>" badge, and the demo alert SHALL carry `te-IN`.
+2. WHEN an alert has `patterns` and/or `cardLanguage`, THE check-in prompt, the `care-auditor` agent and the skill SHALL ask for two sections: "Clinical Note (English)" and "Gentle Check-In Opener" in the card language (Telugu, Hindi or Spanish; otherwise English).

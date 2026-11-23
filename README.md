@@ -25,7 +25,7 @@ Every app opens on 3 tabs: **Scan & Verify**, **Print Cards**, **History & Expor
 1. Open the [live demo](https://paperbridge-acvw.onrender.com/). On **Scan & Verify**, click **Missed-Dose Alert** in the yellow sample panel: the photo is decoded from pixels in your browser, and the dashboard shows 71% adherence, a pattern ("3 of 4 missed doses were Night Meds") and one unclear mark. Click the amber circle to check that mark by hand.
 2. Under the pattern, click **Print Adapted Next-Week Card**: next Monday's card, with the Night Meds header boxed and a bold focus note in the footer. Paper to screen to smarter paper.
 3. Open **History & Export**, click **Load 4-Week Sample History**, then **Download Doctor Visit PDF**. On **Print Cards**, try **Translate card** (తెలుగు, हिन्दी, Español) and **Icon-Anchored Print Mode**.
-4. Back on **Scan & Verify**, open **Test Decoder Resilience** and drag the sliders: tilt and shadow never change the answer, and very faint marks turn "unclear" instead of being guessed. Then switch to **Study Bridge** and click **Sam: Needs Review**.
+4. Back on **Scan & Verify**, click **Show Optical X-Ray** to see what the decoder measured (corner lock-on boxes and every bubble's ink score), then open **Test Decoder Resilience** and drag the sliders: tilt and shadow never change the answer, and very faint marks turn "unclear" instead of being guessed. Then switch to **Study Bridge** and click **Sam: Needs Review**.
 
 > **Not medical advice.** Elder Care Bridge helps people track doses and symptoms on paper and talk to their care team. It does not diagnose or recommend treatment.
 
@@ -82,6 +82,17 @@ The Telugu sample was printed from Chromium with Noto Sans Telugu loaded, standi
 A collapsed drawer on Scan & Verify. Three sliders (tilt -8 to +8 degrees, dim lighting and shadow, pen faintness) distort a sample card with known marks, and the real decoder reads it in your browser, showing the decode time and how many bubbles were correct, sent for a human check, or wrong. Across the whole range nothing is read wrong: faint marks turn unclear.
 
 ![Test Decoder Resilience at +8 degrees, full shadow and 85% faintness: 40 correct, 10 unclear, 0 wrong, decoded in 21 ms](docs/images/stress-lab.png)
+
+## Built once in the skeleton, inherited by every app
+
+These live in `src/shell/` and work for Elder Care Bridge, Study Bridge and any app from `npm run create-app`, with little or no app code:
+
+- **Optical X-Ray** (Scan & Verify and the Stress-Test Lab): green lock-on boxes on the 4 corner markers, and a ring on every bubble coded by colour and dash (filled, unclear, blank) with the ink density the decoder measured, e.g. `0.79`, `0.29`, `0.02`. It only displays the existing decode result: no decoder code changed. A readings list gives the same data to keyboard and screen-reader users. **0 app code.**
+- **Audio cues:** a short chime, synthesised offline with the Web Audio API, when the webcam locks onto all 4 corners. A toggle turns it off. **0 app code.**
+- **Read Aloud** and **Copy Quick Update:** an app returns `spokenSummary` and/or `shareText` for a scan, and the shell adds the buttons, the offline `speechSynthesis` voice choice and the copy confirmation. Elder Care reads the week in the card's language (English, Telugu, Hindi or Spanish) and copies a 4-line family update; Study Bridge reads the score and copies a 3-line update with the review dates.
+- **Saving without storage code:** a generic saved-cards list in `localStorage` with a ready Scan Any Card batch adapter. Scaffolded apps use it by default.
+
+![Optical X-Ray on the Missed-Dose sample: green boxes on the 4 corners, 22 filled at 0.78-0.81, the faint Wednesday water mark amber at 0.29, 40 blank at 0.00-0.03](docs/images/optical-xray.png)
 
 ## Featured apps
 
@@ -150,8 +161,11 @@ Alerts arrive by copy and paste: click **Copy for Kiro Crew** in Elder Care Brid
 - **Sidebar badge:** `useNavBadge()` counts the alerts that still need review.
 - **Draft Caregiver Check-In:** opens a draft chat with the `care-auditor` agent, which uses
   the `adherence-analysis` skill and turns each pattern into a gentle question.
+- **Bilingual check-ins:** translated cards send `cardLanguage` (e.g. `te-IN`). The page shows a
+  **Card: Telugu** badge, and `care-auditor` writes a **Clinical Note (English)** for the doctor or
+  pharmacist and a **Gentle Check-In Opener** in the patient's language (Telugu, Hindi or Spanish).
 - **Cmd+K command:** **Audit latest PaperBridge care card** opens the same agent.
-- **Demo alert:** **Load demo alert** lets you try it without a scan.
+- **Demo alert:** **Load demo alert** lets you try it without a scan (its card is in Telugu, so the check-in is bilingual).
 
 See [`crew-app/README.md`](crew-app/README.md) for install steps and permissions.
 
@@ -177,7 +191,7 @@ This writes [`src/apps/clinic-intake/`](docs/BUILD-YOUR-OWN-APP.md) with the 3-f
 - `interpret.ts`: a pure function from marks to a report.
 - `App.tsx`: the page on `ScanWorkbench`.
 
-It also writes a sample-photo recipe and a test suite: geometry invariants, a unique card-ID check, and a `fast-check` decode property. Then it renders the sample photo. The new app joins the top switcher on its own, with no other files to edit.
+It also writes a sample-photo recipe and a test suite: geometry invariants, a unique card-ID check, and a `fast-check` decode property. Then it renders the sample photo. The new app joins the top switcher on its own, with no other files to edit, and already has Scan Any Card auto-routing and batch save, a Saved Cards tab, Read Aloud, Copy Quick Update, Audio cues and the Optical X-Ray (a test scaffolds one in a temp folder and checks typecheck, its tests, routing and batch save).
 
 The [developer guide](docs/BUILD-YOUR-OWN-APP.md) explains the contract and the rules, and has a ready-to-paste Kiro prompt.
 
@@ -303,7 +317,7 @@ regenerates the sample photos, and saving any app file typechecks it.
 
 ```
 src/core/              optical skeleton: layout, validate (geometry + printed text), render (SVG/PDF, multi-page, vector icons, highlights), decode, capture, testing/synth
-src/shell/             shared UI: ScanWorkbench with 3 tabs, app registry, Scan Any Card routing + batch, stress lab, any-script text images, overrides, storage, offline badge
+src/shell/             shared UI: ScanWorkbench with 3 tabs, Optical X-Ray, audio cues, Read Aloud / Copy Quick Update, generic saved cards, app registry, Scan Any Card routing + batch, stress lab, any-script text images, overrides, storage, offline badge
 src/apps/elder-care/   layout, interpret, card settings (anchors, cues, High-Visibility, icons), i18n packs, adaptive card, presets, monthly pack,
                        patterns, history, sample history, Doctor Visit PDF, batch adapter, CareDashboard
 src/apps/study-bridge/ layout, answer key, grade, class sheet + CSV, due review sheet, batch adapter, StudyResults
@@ -321,7 +335,7 @@ docs/                  BUILD-YOUR-OWN-APP.md, screenshots
 | Command | What it does |
 |---|---|
 | `npm run dev` | Start the app |
-| `npm test` | 272 tests: property tests, end-to-end sample decodes, interpreters, overrides, history, CSV, layout validator, scaffolder, MCP tools, auto-routing and batch scan, 50-photo paper-size matrix, monthly pack, presets, adaptive cards, language packs and icons, stress lab, tabs, hooks, Crew App contract and bundle |
+| `npm test` | 314 tests: property tests, end-to-end sample decodes, interpreters, overrides, history, CSV, layout validator, scaffolder, MCP tools, auto-routing and batch scan, 50-photo paper-size matrix, monthly pack, presets, adaptive cards, language packs and icons, stress lab, tabs, hooks, Optical X-Ray, audio and speech controls, generic batch save, Crew App contract, cardLanguage and bundle |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run build` | Production build plus service worker and `manifest.webmanifest` (pdf-lib loads only when printing) |
 | `npm run gen:samples` | Regenerate every app's sample photos (deterministic, byte-identical) |

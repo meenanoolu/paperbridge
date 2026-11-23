@@ -122,3 +122,11 @@ Requirement references use the numbering in `requirements.md`.
   - [x] 19.5 Test Decoder Resilience drawer and `stress-lab.ts` with tilt/dim/faint sweeps _(R32)_
   - [x] 19.6 Hooks: `protect-core-pre-tool.json`, `verify-boundaries-on-stop.json`, `scripts/hooks/`, 50-photo `paper-matrix.test.ts` _(R33)_
   - [x] 19.7 Browser checks: tabs keyboard model, routed Review, Telugu PDF, adapted card, due review card, lab; axe-core 0 AA and 0 AAA violations on 5 states _(R9.2)_
+
+- [x] 20. Phase 7: skeleton X-Ray, audio and bilingual Crew (branch `feat/skeleton-xray-audio-and-bilingual-crew`)
+  - [x] 20.1 `xray.ts` + `XRayOverlay` in ScanPreview and the Stress-Test Lab; tests on the Missed-Dose sample (unclear amber), Study and the lab _(R34)_
+  - [x] 20.2 `audio-cues.ts` (chime, lock edge, voice choice, speak/stop) + Audio cues toggle + `ResultVoice` (Read Aloud, Copy Quick Update) _(R35)_
+  - [x] 20.3 `local-batch.ts` + `SavedScans` components; scaffolder wiring; temp-dir test runs tsc, the generated tests, auto-route and batch save _(R36)_
+  - [x] 20.4 `elder-care/voice.ts`, `study-bridge/voice.ts`, `cardLanguage` in `toScanAlert` _(R37)_
+  - [x] 20.5 Crew App parser, badge, demo, prompt, agent and skill; bundle rebuilt _(R38)_
+  - [x] 20.6 Browser checks and axe-core: 0 AA / 0 AAA violations on 4 states; 4 px focus rings on the new buttons _(R9.2)_

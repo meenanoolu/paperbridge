@@ -44,9 +44,9 @@ Or use **App Store → Install from local path** and pick the folder.
 ## Try it in 10 seconds
 
 1. Open **PaperBridge Care** in the Crew sidebar.
-2. Click **Load demo alert**. It is the PaperBridge "Missed-Dose Alert" sample card: 71% adherence, Thursday fully missed, dizzy 2 days, one unclear mark.
+2. Click **Load demo alert**. It is the PaperBridge "Missed-Dose Alert" sample card: 71% adherence, Thursday fully missed, dizzy 2 days, one unclear mark, and a card printed in Telugu (`cardLanguage: "te-IN"`, shown as a **Card: Telugu** badge).
 3. The sidebar badge shows 1 open alert.
-4. Click **Draft Caregiver Check-In**. A chat with `care-auditor` opens with the alert as a draft. You review it and press Send.
+4. Click **Draft Caregiver Check-In**. A chat with `care-auditor` opens with the alert as a draft. You review it and press Send. Because the alert has patterns and a card language, the agent answers with a **Clinical Note (English)** and a **Gentle Check-In Opener** in Telugu.
 5. Or press **Cmd+K** and run **Audit latest PaperBridge care card**.
 
 ## How alerts get here
@@ -71,7 +71,7 @@ Every alert is validated (`parseScanAlert`) before it is stored. Alerts are dedu
 card ID and scan time, kept newest first (50 max), and saved in `localStorage` under
 `kirocrew.app.paperbridge-care-monitor.alerts.v1`. Alerts contain aggregate data only:
 adherence, missed slots, symptom days, unclear-mark labels, a count of marks checked by hand,
-and any patterns PaperBridge's fixed rules found. There are no card images and no names.
+any patterns PaperBridge's fixed rules found, and the card's language (`cardLanguage`, a BCP 47 tag such as `te-IN`) for translated cards. There are no card images and no names.
 
 ## Permissions
 
