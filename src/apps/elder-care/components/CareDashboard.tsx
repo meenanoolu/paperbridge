@@ -99,6 +99,7 @@ export function CareDashboard({
   alert,
   card = DEFAULT_CARE_SETTINGS,
   actions,
+  adapt,
 }: {
   report: CareReport;
   scannedAt: Date;
@@ -107,6 +108,8 @@ export function CareDashboard({
   card?: CareCardSettings;
   /** Extra controls under the summary, e.g. Save Week to History. */
   actions?: ReactNode;
+  /** Shown under the patterns, e.g. "Print Adapted Next-Week Card". */
+  adapt?: ReactNode;
 }) {
   const dates = weekDates(card.weekStart);
   const good = report.adherencePct !== null && report.adherencePct >= ADHERENCE_TARGET_PCT;
@@ -186,6 +189,7 @@ export function CareDashboard({
               </li>
             ))}
           </ul>
+          {adapt && <div className="mt-4">{adapt}</div>}
         </Card>
       )}
 

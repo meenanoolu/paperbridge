@@ -1,4 +1,5 @@
 import { COL_LABEL_SIZE_MM, COL_NOTE_SIZE_MM, estimateTextWidthMm as coreTextWidth, type CardLayout, type PrintStyle } from "../../core";
+import { isCardLanguage, languagePack, numericRange, translateAnchor, translateLabel, type CardLanguage } from "./i18n";
 import { CARE_COLS, DAYS, ELDER_LAYOUTS } from "./layout";
 
 /**
@@ -21,6 +22,14 @@ export interface CareCardSettings {
   cues?: Partial<Record<CareCol, string>>;
   /** Bolder, larger labels and stronger row shading for low vision and tremor. Print-only. */
   highVisibility?: boolean;
+  /**
+   * Language of the printed card (default English). Translates the card's default wording; the
+   * dashboard and Doctor Visit PDF stay in English. Any non-English choice also allows labels in
+   * any script, printed as images by the browser.
+   */
+  language?: CardLanguage;
+  /** Icon-Anchored print mode: sun, moon, water drop and warning icons above the columns. Print-only. */
+  icons?: boolean;
 }
 
 export const MAX_NOTE = 24;
@@ -86,6 +95,18 @@ export function unprintableChars(s: string): string[] {
   return [...new Set([...printableText(s)].filter((c) => !/[\x20-\x7e\xa0-\xff]/.test(c)))];
 }
 
+/**
+ * With a non-English card language, text in any script prints (as an image the browser draws
+ * with system fonts). Only symbols that would not print as plain black text are refused, such
+ * as emoji and private-use characters.
+ */
+export function unprintableAnyScript(s: string): string[] {
+  return [...new Set([...printableText(s)].filter((c) => !/[\p{L}\p{M}\p{N}\p{P}\p{Zs}\p{Sm}\p{Sc}\u200c\u200d\xa0-\xff]/u.test(c)))];
+}
+
+/** Whether the settings print through the any-script path (a non-English card language). */
+export const allowsAnyScript = (s: CareCardSettings) => !!s.language && s.language !== "en";
+
 // Approximate Helvetica advance widths (em). Generous, so the estimate errs on the wide side.
 const NARROW = new Set([..."iljI.,;:'!|`()[]{} "]);
 const WIDE = new Set([..."mwMW@%"]);
@@ -114,16 +135,28 @@ export function fitNameToHeader(name: string): string {
   return `${n}...`;
 }
 
+const latin = (w: string) => /^[\x20-\x7e\xa0-\xff]*$/.test(w);
+const segmenter = typeof Intl !== "undefined" && "Segmenter" in Intl ? new Intl.Segmenter(undefined, { granularity: "grapheme" }) : null;
+/** User-perceived characters: a Telugu or Hindi syllable with its vowel signs is one unit and is never split. */
+function graphemes(w: string): string[] {
+  return latin(w) || !segmenter ? [...w] : [...segmenter.segment(w)].map((g) => g.segment);
+}
+
 /** Word-wrap a label to the column. Long words are split. Returns null if it needs too many lines. */
 export function wrapLabel(text: string, perLine = LABEL_CHARS_PER_LINE, maxLines = LABEL_MAX_LINES): string[] | null {
   const words = printableText(text)
     .split(" ")
     .filter(Boolean)
-    .flatMap((w) => (w.length <= perLine ? [w] : (w.match(new RegExp(`.{1,${perLine}}`, "g")) ?? [])));
+    .flatMap((w) => {
+      if (latin(w)) return w.length <= perLine ? [w] : (w.match(new RegExp(`.{1,${perLine}}`, "g")) ?? []);
+      const g = graphemes(w);
+      return g.length <= perLine ? [w] : Array.from({ length: Math.ceil(g.length / perLine) }, (_, i) => g.slice(i * perLine, (i + 1) * perLine).join(""));
+    });
+  const len = (t: string) => (latin(t) ? t.length : graphemes(t).length);
   const lines: string[] = [];
   for (const w of words) {
     const last = lines[lines.length - 1];
-    if (last !== undefined && last.length + 1 + w.length <= perLine) lines[lines.length - 1] = `${last} ${w}`;
+    if (last !== undefined && len(last) + 1 + len(w) <= perLine) lines[lines.length - 1] = `${last} ${w}`;
     else lines.push(w);
   }
   if (lines.length === 0) return null;
@@ -140,7 +173,7 @@ export function wrapToWidth(text: string, sizeMm: number, widthMm: number, maxLi
       continue;
     }
     let part = "";
-    for (const c of w) {
+    for (const c of graphemes(w)) {
       if (part && !fits(part + c)) {
         words.push(part);
         part = "";
@@ -233,6 +266,7 @@ export interface SettingsProblem {
 
 export function validateSettings(s: CareCardSettings): SettingsProblem[] {
   const problems: SettingsProblem[] = [];
+  const unprintableChars = allowsAnyScript(s) ? unprintableAnyScript : unprintableLatin;
   if (s.patientName.length > MAX_NAME) problems.push({ field: "patientName", message: `Use at most ${MAX_NAME} characters.` });
   else if (!nameFitsHeader(s.patientName)) problems.push({ field: "patientName", message: "Too long to fit the card header. Try initials for the surname." });
   const badName = unprintableChars(s.patientName);
@@ -266,6 +300,8 @@ export function validateSettings(s: CareCardSettings): SettingsProblem[] {
   return problems;
 }
 
+const unprintableLatin = unprintableChars;
+
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 
 /** Validate stored settings. Invalid fields fall back to defaults; never throws. */
@@ -291,6 +327,8 @@ export function parseCareSettings(raw: unknown): CareCardSettings | null {
     if (Object.keys(notes).length) out[key] = notes;
   }
   if (raw.highVisibility === true) out.highVisibility = true;
+  if (isCardLanguage(raw.language) && raw.language !== "en") out.language = raw.language;
+  if (raw.icons === true) out.icons = true;
   return out;
 }
 
@@ -302,6 +340,8 @@ export function normalizeSettings(s: CareCardSettings): CareCardSettings {
     if (Object.keys(notes).length) out[key] = notes;
   }
   if (s.highVisibility) out.highVisibility = true;
+  if (s.language && s.language !== "en") out.language = s.language;
+  if (s.icons) out.icons = true;
   return out;
 }
 
@@ -310,6 +350,8 @@ export function isDefaultSettings(s: CareCardSettings): boolean {
     !s.patientName.trim() &&
     !s.weekStart &&
     !s.highVisibility &&
+    !s.icons &&
+    (!s.language || s.language === "en") &&
     CARE_COLS.every((c) => printableText(s.labels[c]) === DEFAULT_LABELS[c] && !anchorOf(s, c) && !cueOf(s, c))
   );
 }
@@ -323,43 +365,55 @@ export function columnLabel(s: CareCardSettings, col: CareCol): string {
  * The printable layout for these settings. Copies every coordinate from `base` and changes
  * only text, so `bubbleCenters`, `fiducialCenters` and `idBits` are identical to the base.
  */
+/** Icon per checklist column: sun, moon, a drop for water (a check mark for other habits), warning. */
+export function columnIcons(s: CareCardSettings): ("sun" | "moon" | "drop" | "check" | "alert")[] {
+  const water = /water|cup|glass|hydrat|agua|nee|pani|पानी|నీ/i.test(columnLabel(s, "water"));
+  return ["sun", "moon", water ? "drop" : "check", "alert"];
+}
+
 export function customizeCareLayout(base: CardLayout, s: CareCardSettings): CardLayout {
+  const pack = languagePack(s.language);
   const name = s.patientName.trim() ? fitNameToHeader(s.patientName) : "";
   const dates = weekDates(s.weekStart);
-  const week = dates.length ? `Week of ${weekRange(dates[0], dates[6])}` : "";
-  const notes = CARE_COLS.map((col) =>
-    [anchorOf(s, col), cueOf(s, col)]
-      .filter(Boolean)
-      .flatMap((t) => wrapNote(s, t) ?? [])
-      .join("\n"),
-  );
+  const week = dates.length ? (pack ? `${pack.weekOf} ${numericRange(dates[0], dates[6])}` : `Week of ${weekRange(dates[0], dates[6])}`) : "";
+  // Preset anchors print translated when the translation fits; anything else prints as typed.
+  const note = (t: string) => (pack && t ? wrapNote(s, translateAnchor(pack, t)) : null) ?? wrapNote(s, t) ?? [];
+  const notes = CARE_COLS.map((col) => [...(anchorOf(s, col) ? note(anchorOf(s, col)) : []), ...(cueOf(s, col) ? wrapNote(s, cueOf(s, col)) ?? [] : [])].join("\n"));
+  const days = pack?.days ?? DAY_SHORT;
   const groups = base.groups.map((g) => {
+    if (g.key === "energy" && pack) return { ...g, title: pack.energyTitle };
     if (g.key !== "care") return g;
     return {
       ...g,
       // The week replaces "Daily checklist": that heading sits in open space mid-card.
-      title: week || g.title,
+      title: week || (pack ? pack.dailyChecklist : g.title),
       colLabels: g.cols.map((col, j) => {
-        const lines = wrapColumnLabel(s, columnLabel(s, col as CareCol));
+        const label = columnLabel(s, col as CareCol);
+        const lines = (pack && wrapColumnLabel(s, translateLabel(pack, label))) || wrapColumnLabel(s, label);
         return lines ? lines.join("\n") : g.colLabels?.[j] ?? col;
       }),
       colNotes: notes.some(Boolean) ? notes : g.colNotes,
-      rowLabels: dates.length ? g.rows.map((_, i) => `${DAY_SHORT[i]} ${Number(dates[i].slice(8))}`) : g.rowLabels,
+      rowLabels: dates.length ? g.rows.map((_, i) => `${days[i]} ${Number(dates[i].slice(8))}`) : pack ? [...days] : g.rowLabels,
       // Dated row labels are wider; widen the shading so they sit inside it. Shading only.
       bands: dates.length && g.bands ? { ...g.bands, fromXMm: g.bands.fromXMm - 4 } : g.bands,
+      ...(s.icons ? { colIcons: columnIcons(s) } : {}),
     };
   });
+  const style = { ...(s.highVisibility ? HIGH_VISIBILITY_STYLE : {}), ...(s.icons ? { showIcons: true } : {}) };
+  const pen = pack?.penInstruction ?? "Fill each circle fully with a dark pen.";
+  const footerLines = pack ? [...pack.footer] : base.footer?.lines ?? [];
   return {
     ...base,
+    ...(pack ? { title: pack.title } : {}),
     // The header holds only the name: it must stay clear of the card-ID strip on the right.
-    subtitle: name ? headerLine(name) : base.subtitle,
-    ...(s.highVisibility ? { printStyle: { ...base.printStyle, ...HIGH_VISIBILITY_STYLE } } : {}),
+    subtitle: name ? (pack ? `${pack.patient} ${name}` : headerLine(name)) : pack ? pen : base.subtitle,
+    ...(Object.keys(style).length ? { printStyle: { ...base.printStyle, ...style } } : {}),
     groups,
     // The footer never grows: on Letter paper extra lines would reach the bottom corner markers.
     // With a name in the header, the pen instruction takes the place of the last footer line.
     footer: base.footer && {
       ...base.footer,
-      lines: name ? ["Fill each circle fully with a dark pen.", ...base.footer.lines.slice(0, -1)] : base.footer.lines,
+      lines: name ? [pen, ...footerLines.slice(0, -1)] : footerLines,
     },
   };
 }
