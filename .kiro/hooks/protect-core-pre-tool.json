@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Guard the protected optical core",
+      "trigger": "PreToolUse",
+      "description": "Before any write tool or shell write touches src/core/decode/, src/core/layout.ts or src/core/capture/, ask the person first and remind the agent of the invariant: run the 50-photo A4/Letter regression matrix (paper-matrix.test.ts) and the property tests before any threshold or geometry change. Other edits pass through untouched.",
+      "matcher": "write|replace|append|edit|create|bash|shell",
+      "action": {
+        "type": "command",
+        "command": "node scripts/hooks/protect-core.mjs",
+        "timeout": 10
+      }
+    }
+  ]
+}

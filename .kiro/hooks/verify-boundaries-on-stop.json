@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Verify core boundaries and accessibility before finishing",
+      "trigger": "Stop",
+      "description": "When the agent ends its turn: keeps it working if any src/core file imports src/apps or src/shell (the core must stay app-agnostic, tests included), and, if React components or CSS changed, asks it once to confirm the axe-core WCAG 2.2 AA audit, Elder Care AAA contrast, keyboard access and 4 px focus rings.",
+      "action": {
+        "type": "command",
+        "command": "node scripts/hooks/verify-boundaries.mjs",
+        "timeout": 30
+      }
+    }
+  ]
+}
