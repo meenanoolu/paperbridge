@@ -20,14 +20,16 @@ Built for **Kiroween 2026: Skeleton Crew**.
 
 ### Try it in 60 seconds (judge path, no printer needed)
 
-1. Open the [live demo](https://paperbridge-acvw.onrender.com/). In the yellow **Try Sample Scanned Cards** panel, click **Missed-Dose Alert**: the photo is decoded from pixels in your browser, and the caregiver dashboard shows 71% adherence, patterns, and one unclear mark.
-2. Click the amber circle on the decoder's view to check that mark by hand. The dashboard recalculates and shows **Manually verified (1)**.
-3. Scroll to **Multi-Week Adherence Trend**, click **Load 4-Week Sample History**, then **Download Doctor Visit PDF**: a one-page sheet made on your device.
-4. Switch to **Study Bridge** in the top bar and click **Sam: Needs Review**: the same core grades a quiz sheet.
+Every app opens on 3 tabs: **Scan & Verify**, **Print Cards**, **History & Export**.
+
+1. Open the [live demo](https://paperbridge-acvw.onrender.com/). On **Scan & Verify**, click **Missed-Dose Alert** in the yellow sample panel: the photo is decoded from pixels in your browser, and the dashboard shows 71% adherence, a pattern ("3 of 4 missed doses were Night Meds") and one unclear mark. Click the amber circle to check that mark by hand.
+2. Under the pattern, click **Print Adapted Next-Week Card**: next Monday's card, with the Night Meds header boxed and a bold focus note in the footer. Paper to screen to smarter paper.
+3. Open **History & Export**, click **Load 4-Week Sample History**, then **Download Doctor Visit PDF**. On **Print Cards**, try **Translate card** (తెలుగు, हिन्दी, Español) and **Icon-Anchored Print Mode**.
+4. Back on **Scan & Verify**, open **Test Decoder Resilience** and drag the sliders: tilt and shadow never change the answer, and very faint marks turn "unclear" instead of being guessed. Then switch to **Study Bridge** and click **Sam: Needs Review**.
 
 > **Not medical advice.** Elder Care Bridge helps people track doses and symptoms on paper and talk to their care team. It does not diagnose or recommend treatment.
 
-![Elder Care Bridge home page with the sample card panel](docs/images/elder-home.png)
+![Elder Care Bridge on the Scan & Verify tab: tabs at the top, Scan Any Card, and the sample card panel](docs/images/workspace-tabs.png)
 
 ### How it differs from classroom OMR tools
 Bubble-sheet graders such as ZipGrade and OMRChecker are built to grade answer sheets. PaperBridge is
@@ -46,10 +48,10 @@ npm run dev        # open the URL Vite prints
 
 Then follow the [60-second judge path](#try-it-in-60-seconds-judge-path-no-printer-needed).
 
-To use a real card: **Print blank card (PDF)**, choose A4 or US Letter, fill it in with a dark
-pen, then **Scan with webcam** or **Upload a photo**.
+To use a real card: on **Print Cards**, choose A4 or US Letter and **Download 1-Week Card (PDF)**,
+fill it in with a dark pen, then on **Scan & Verify** use **Scan with webcam** or **Upload a photo**.
 
-**Scan Any Card (Auto-Route)** at the top of the page takes one photo or a whole stack of them
+**Scan Any Card (Auto-Route)** at the top of Scan & Verify takes one photo or a whole stack of them
 (file picker or drag-and-drop). Each card's printed ID picks its app. One photo opens straight in
 that app; a batch shows a summary like "4 cards decoded locally in 118 ms: 3 ready, 1 needs human
 review", lists every file with its app, gives each failed file its own error, and bulk-saves Elder
@@ -57,6 +59,29 @@ Care cards to the history and Study Bridge sheets to the class sheet. Files with
 a **Review** button.
 
 ![Scan Any Card batch: 4 cards decoded locally, 3 ready, 1 needs human review, 2 photos not read with a reason each](docs/images/batch-summary.png)
+
+## Paper that adapts: the closed loop
+
+PaperBridge is not only a scanner. What it reads shapes the next sheet of paper, still decoded the same way:
+
+- **Print Adapted Next-Week Card (Elder Care):** when the fixed pattern rules find something, next Monday's card prints with a bold focus note in the footer ("Focus this week: Night Meds. Take it at the same time each day." or, for a symptom pattern, "Ask the doctor if dizziness or pain continues.") and the dose column boxed, or double-underlined when a box would touch the next label.
+- **Print Due Review Card (Study Bridge):** after a sheet with weak topics, the review sheet's header names the topics and its footer lists the 1, 3 and 7-day review dates.
+- **Translate card:** built-in offline packs for English, Telugu (తెలుగు), Hindi (हिन्दी) and Spanish translate the printed title, instructions, day names, default columns and routine anchors. With any non-English choice, caregivers can type labels in any script. Text outside Latin-1 is drawn by the browser with its own fonts and embedded as a PNG inside the exact box the layout check measured, so no fonts are bundled and English PDFs stay byte-identical. The dashboard and Doctor Visit PDF stay in English.
+- **Icon-Anchored Print Mode:** a sun, moon, water drop and warning sign above the columns, drawn as vector paths in the core, for readers who rely on pictures more than words.
+
+Every adapted, translated or icon card keeps every circle, corner marker and card-ID bit of the standard card, passes the Layout Validator on A4 and Letter, and decodes bubble for bubble the same (tested).
+
+| Adapted next-week card | Telugu card with icons |
+|---|---|
+| ![Adapted Weekly Care Card for the week of 30 Nov: Night Meds header boxed, icons above the columns, bold footer "Focus this week: Night Meds. Take it at the same time each day."](docs/images/adapted-card.png) | ![Weekly Care Card printed in Telugu with sun, moon, drop and warning icons, Telugu day names and footer](docs/images/telugu-card.png) |
+
+The Telugu sample was printed from Chromium with Noto Sans Telugu loaded, standing in for the system fonts of a phone or PC.
+
+### Test Decoder Resilience
+
+A collapsed drawer on Scan & Verify. Three sliders (tilt -8 to +8 degrees, dim lighting and shadow, pen faintness) distort a sample card with known marks, and the real decoder reads it in your browser, showing the decode time and how many bubbles were correct, sent for a human check, or wrong. Across the whole range nothing is read wrong: faint marks turn unclear.
+
+![Test Decoder Resilience at +8 degrees, full shadow and 85% faintness: 40 correct, 10 unclear, 0 wrong, decoded in 21 ms](docs/images/stress-lab.png)
 
 ## Featured apps
 
@@ -186,12 +211,14 @@ card's top edge (no orientation notch needed), and the Crew `ui.entry` path is r
 | [`optical-geometry.md`](.kiro/steering/optical-geometry.md) | `src/core/**` | Pure, deterministic decoder; one shared layout object; the 5 decoding invariants |
 | [`apps-ui.md`](.kiro/steering/apps-ui.md) | `src/apps/**` | Import only the public core API; shared scan workbench; 18px text, AAA contrast for Elder Care, never colour alone |
 
-### Three agent hooks and an MCP server
+### Five agent hooks of three kinds, and an MCP server
 | Hook | Trigger | Runs |
 |---|---|---|
 | [`core-tests-on-save`](.kiro/hooks/core-tests-on-save.json) | save `src/core/**/*.ts` | `npm test`: property tests prove the decoding invariants still hold |
 | [`regen-samples-on-layout`](.kiro/hooks/regen-samples-on-layout.json) | save `src/apps/**/layout.ts` | `npm run gen:samples`: sample photos always match the printed card; fails if one stops decoding |
 | [`typecheck-on-app-save`](.kiro/hooks/typecheck-on-app-save.json) | save `src/apps/**/*.ts(x)` | `npm run typecheck` |
+| [`protect-core-pre-tool`](.kiro/hooks/protect-core-pre-tool.json) | `PreToolUse` on write and shell tools | [`protect-core.mjs`](scripts/hooks/protect-core.mjs): asks the person before any write to `src/core/decode/`, `layout.ts` or `capture/`, and tells the agent to run the 50-photo A4/Letter matrix ([`paper-matrix.test.ts`](src/shell/__tests__/paper-matrix.test.ts)) and the property tests first |
+| [`verify-boundaries-on-stop`](.kiro/hooks/verify-boundaries-on-stop.json) | `Stop` (agent ends its turn) | [`verify-boundaries.mjs`](scripts/hooks/verify-boundaries.mjs): keeps the agent working if `src/core` imports `src/apps` or `src/shell`; if UI files changed, asks once for the axe-core WCAG 2.2 AA / AAA check |
 
 The [Layout Validator MCP server](#layout-validator-mcp-server) gives Kiro a tool to check card geometry while it edits a `layout.ts`.
 
@@ -275,13 +302,13 @@ regenerates the sample photos, and saving any app file typechecks it.
 ## Project layout
 
 ```
-src/core/              optical skeleton: layout, validate (geometry + printed text), render (SVG/PDF, multi-page), decode, capture, testing/synth
-src/shell/             shared UI: ScanWorkbench, app registry, Scan Any Card routing + batch, overrides, storage, offline badge
-src/apps/elder-care/   layout, interpret, card settings (anchors, cues, High-Visibility), presets, monthly pack,
+src/core/              optical skeleton: layout, validate (geometry + printed text), render (SVG/PDF, multi-page, vector icons, highlights), decode, capture, testing/synth
+src/shell/             shared UI: ScanWorkbench with 3 tabs, app registry, Scan Any Card routing + batch, stress lab, any-script text images, overrides, storage, offline badge
+src/apps/elder-care/   layout, interpret, card settings (anchors, cues, High-Visibility, icons), i18n packs, adaptive card, presets, monthly pack,
                        patterns, history, sample history, Doctor Visit PDF, batch adapter, CareDashboard
-src/apps/study-bridge/ layout, answer key, grade, class sheet + CSV, batch adapter, StudyResults
+src/apps/study-bridge/ layout, answer key, grade, class sheet + CSV, due review sheet, batch adapter, StudyResults
 src/__tests__/         integration tests: shipped app layouts against the core Layout Validator
-scripts/               gen-samples.ts, create-app.mjs, gen-icons.ts
+scripts/               gen-samples.ts, create-app.mjs, gen-icons.ts, hooks/ (Kiro hook scripts)
 mcp/                   Layout Validator MCP server (validate_card_layout, list_registered_apps)
 crew-app/              Kiro Crew App: app.json, agent, skill, ui (committed dist/index.mjs); mirrored at meenanoolu/paperbridge-care-monitor
 public/                PWA icons
@@ -294,7 +321,7 @@ docs/                  BUILD-YOUR-OWN-APP.md, screenshots
 | Command | What it does |
 |---|---|
 | `npm run dev` | Start the app |
-| `npm test` | 217 tests: property tests, end-to-end sample decodes, interpreters, overrides, history, CSV, layout validator, scaffolder, MCP tools, auto-routing and batch scan, monthly pack, presets, Crew App contract and bundle |
+| `npm test` | 272 tests: property tests, end-to-end sample decodes, interpreters, overrides, history, CSV, layout validator, scaffolder, MCP tools, auto-routing and batch scan, 50-photo paper-size matrix, monthly pack, presets, adaptive cards, language packs and icons, stress lab, tabs, hooks, Crew App contract and bundle |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run build` | Production build plus service worker and `manifest.webmanifest` (pdf-lib loads only when printing) |
 | `npm run gen:samples` | Regenerate every app's sample photos (deterministic, byte-identical) |
