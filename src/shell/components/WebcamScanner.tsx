@@ -119,6 +119,23 @@ export function WebcamScanner({
                 strokeDasharray={guide.locked ? undefined : `${geo.stroke * 2.2} ${geo.stroke * 1.4}`}
                 className={`motion-safe:transition-[stroke] motion-safe:duration-200 ${guide.locked ? "" : "motion-safe:animate-pulse"}`}
               />
+              {/* 4-corner alignment guide: line each printed corner square up with a target. */}
+              {geo.targets.map((t, i) => (
+                <rect
+                  key={`t${i}`}
+                  data-target={i}
+                  x={t.x}
+                  y={t.y}
+                  width={t.size}
+                  height={t.size}
+                  rx={t.size * 0.12}
+                  fill="none"
+                  stroke={guide.locked ? GREEN : "#ffffff"}
+                  strokeOpacity={guide.locked ? 0.9 : 0.55}
+                  strokeWidth={geo.stroke * 0.5}
+                  strokeDasharray={guide.locked ? undefined : `${geo.stroke} ${geo.stroke}`}
+                />
+              ))}
               {corners.map(([x, y], i) => (
                 <circle key={i} cx={x} cy={y} r={geo.stroke * 2} fill="none" stroke={GREEN} strokeWidth={geo.stroke * 0.7} />
               ))}

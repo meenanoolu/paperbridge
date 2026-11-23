@@ -1,4 +1,4 @@
-import { pageSizeMm, type CardLayout, type ScanResult } from "../core";
+import { fiducialCenters, pageSizeMm, type CardLayout, type ScanResult } from "../core";
 
 /**
  * Live alignment guide for the webcam. Pure: maps the latest decode to what the overlay
@@ -41,6 +41,8 @@ export interface GuideGeometry {
   stroke: number;
   /** SVG path drawing the 4 corner brackets. */
   path: string;
+  /** Where each printed corner marker should sit (TL, TR, BR, BL), as squares in frame pixels. */
+  targets: { x: number; y: number; size: number }[];
 }
 
 /** Card-shaped target centred in the frame, about 88% of the frame height. */
@@ -66,5 +68,8 @@ export function guideGeometry(frameW: number, frameH: number, layout: CardLayout
   const path = corners
     .map(([cx, cy, dx, dy]) => `M${r(cx + dx * arm)},${r(cy)} L${r(cx)},${r(cy)} L${r(cx)},${r(cy + dy * arm)}`)
     .join(" ");
-  return { x, y, w, h, arm, stroke, path };
+  const k = w / cw;
+  const size = layout.fiducial.sizeMm * k;
+  const targets = fiducialCenters(layout).map(([fx, fy]) => ({ x: r(x + fx * k - size / 2), y: r(y + fy * k - size / 2), size: r(size) }));
+  return { x, y, w, h, arm, stroke, path, targets };
 }
