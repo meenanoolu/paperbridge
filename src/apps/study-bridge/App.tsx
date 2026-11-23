@@ -12,6 +12,7 @@ import { describeAnswerBubble, STUDY_LAYOUTS } from "./layout";
 import { STUDY_SAMPLES } from "./samples";
 import { STUDY_SAMPLE_SPECS } from "./samples/specs";
 import { DueReviewButton } from "./components/DueReviewButton";
+import { studyShareText, studySpokenSummary } from "./voice";
 
 /** A sample sheet's marks, for the Test Decoder Resilience drawer. */
 const STRESS_MARKS = { filled: STUDY_SAMPLE_SPECS[0].marks.filter((m) => m.style !== "faint").map((m) => m.key) };
@@ -51,6 +52,8 @@ export function StudyBridgeApp() {
         }}
         tabLabels={{ history: "Class Sheet & Export" }}
         stressTest={STRESS_MARKS}
+        spokenSummary={(scan) => studySpokenSummary(gradeSheet(scan.result, answerKey, scan.scannedAt))}
+        shareText={(scan) => studyShareText(gradeSheet(scan.result, answerKey, scan.scannedAt))}
         historyTab={<ClassSection roster={roster} answerKey={answerKey} onRemove={(id) => setRoster(removeStudent(roster, id))} onClear={clearRoster} />}
         renderResult={(scan) => (
           <>

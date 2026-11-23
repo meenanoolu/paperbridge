@@ -169,12 +169,14 @@ export interface ScanAlert {
   manualOverrides?: number;
   /** Present when deterministic patterns were found (symptom-to-miss, time-of-day barrier). */
   patterns?: { kind: PatternKind; title: string; detail: string }[];
+  /** BCP 47 language of the printed card (e.g. "te-IN"), present only for translated cards. */
+  cardLanguage?: string;
 }
 
 export const SCAN_ALERT_EVENT = "paperbridge:scan-alert";
 
 /** `manualOverrides`: how many unclear marks a person resolved before this report. */
-export function toScanAlert(report: CareReport, cardId: string, scannedAt: Date, manualOverrides = 0): ScanAlert {
+export function toScanAlert(report: CareReport, cardId: string, scannedAt: Date, manualOverrides = 0, cardLanguage?: string): ScanAlert {
   const severity = report.alerts.some((a) => a.level === "high") ? "high" : report.alerts.some((a) => a.level === "medium") ? "medium" : "none";
   return {
     type: SCAN_ALERT_EVENT,
@@ -189,5 +191,6 @@ export function toScanAlert(report: CareReport, cardId: string, scannedAt: Date,
     alerts: report.alerts,
     ...(manualOverrides > 0 ? { manualOverrides } : {}),
     ...(report.patterns.length > 0 ? { patterns: toAlertPatterns(report.patterns) } : {}),
+    ...(cardLanguage ? { cardLanguage } : {}),
   };
 }

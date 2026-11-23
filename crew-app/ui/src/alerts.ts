@@ -29,6 +29,21 @@ export interface ScanAlert {
   manualOverrides?: number;
   /** Deterministic patterns PaperBridge found (symptom-to-miss, time-of-day barrier). Absent when none. */
   patterns?: CarePatternItem[];
+  /** BCP 47 language of the patient's printed card (e.g. "te-IN"). Absent means English. */
+  cardLanguage?: string;
+}
+
+/** Languages care-auditor writes the check-in opener in. Others fall back to English. */
+export const CHECK_IN_LANGUAGES: Record<string, string> = { en: "English", te: "Telugu", hi: "Hindi", es: "Spanish" };
+
+/** "te-IN" -> "Telugu"; unknown or absent -> "English". */
+export function languageName(tag: string | undefined): string {
+  return CHECK_IN_LANGUAGES[(tag ?? "en").split("-")[0].toLowerCase()] ?? "English";
+}
+
+/** A well-formed BCP 47 tag (letters, digits and dashes), or nothing. Never free text. */
+function cardLanguageOf(v: unknown): { cardLanguage?: string } {
+  return typeof v === "string" && /^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8}){0,3}$/.test(v) ? { cardLanguage: v } : {};
 }
 
 export interface CarePatternItem {
@@ -88,6 +103,7 @@ export function parseScanAlert(v: unknown): ScanAlert | null {
       ? { manualOverrides: v.manualOverrides as number }
       : {}),
     ...patternsOf(v.patterns),
+    ...cardLanguageOf(v.cardLanguage),
   };
 }
 
@@ -209,6 +225,8 @@ export function demoAlert(now: Date): ScanAlert {
     ],
     symptomDays: ["Thu", "Fri"],
     needsReview: ["Wednesday water"],
+    // The demo patient's card is printed in Telugu: care-auditor writes a bilingual check-in.
+    cardLanguage: "te-IN",
     patterns: [
       {
         kind: "slot-barrier",
@@ -229,17 +247,23 @@ export function demoAlert(now: Date): ScanAlert {
 
 /** The message seeded into the care-auditor chat. Contains the aggregate alert only. */
 export function checkInPrompt(a: ScanAlert): string {
-  const { type, app, cardId, scannedAt, severity, adherencePct, missed, symptomDays, needsReview, alerts, manualOverrides, patterns } = a;
+  const { type, app, cardId, scannedAt, severity, adherencePct, missed, symptomDays, needsReview, alerts, manualOverrides, patterns, cardLanguage } = a;
+  const bilingual = !!patterns?.length || !!cardLanguage;
   return [
     "Load the adherence-analysis skill and draft a caregiver check-in for this PaperBridge Weekly Care Card.",
     "Start with what went well, list what to ask about, and say whether to contact the clinician.",
     ...(patterns?.length
       ? [`PaperBridge found ${patterns.length === 1 ? "a pattern" : `${patterns.length} patterns`} with fixed rules (see "patterns"). Reference each one in the check-in as a gentle question, not a conclusion.`]
       : []),
+    ...(bilingual
+      ? [
+          `Write two clearly separated sections: "Clinical Note (English)" (concise and factual, ready for a doctor or pharmacist) and "Gentle Check-In Opener (${languageName(cardLanguage)})" (a warm, non-judgmental conversation starter in the patient's card language).`,
+        ]
+      : []),
     "",
     "```json",
     JSON.stringify(
-      { type, app, cardId, scannedAt, severity, adherencePct, missed, symptomDays, needsReview, alerts, ...(manualOverrides ? { manualOverrides } : {}), ...(patterns?.length ? { patterns } : {}) },
+      { type, app, cardId, scannedAt, severity, adherencePct, missed, symptomDays, needsReview, alerts, ...(manualOverrides ? { manualOverrides } : {}), ...(patterns?.length ? { patterns } : {}), ...(cardLanguage ? { cardLanguage } : {}) },
       null,
       2,
     ),

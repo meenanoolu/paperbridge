@@ -13,6 +13,9 @@ import { defaultDescribe, ReviewPanel, type DescribeBubble } from "./ReviewPanel
 import { SamplePanel, type SampleCard } from "./SamplePanel";
 import { ScanPreview } from "./ScanPreview";
 import { StressLab } from "./StressLab";
+import { ResultVoice } from "./ResultVoice";
+import { AUDIO_CUES_KEY, parseAudioCues, playLockOnChime, type SpokenSummary } from "../audio-cues";
+import { usePersistentState } from "../usePersistentState";
 import { WorkspaceTabs } from "./WorkspaceTabs";
 import { WebcamScanner } from "./WebcamScanner";
 import { Button, Callout, Card, StatusBadge } from "./ui";
@@ -43,6 +46,10 @@ export interface WorkbenchProps {
   tabLabels?: Partial<Record<WorkspaceTab, string>>;
   /** Known marks of a sample card, for the "Test Decoder Resilience" drawer. */
   stressTest?: { filled: string[] };
+  /** Optional one-paragraph summary for the shell's "Read Aloud" button (offline speechSynthesis). */
+  spokenSummary?: (scan: ReviewedScan) => SpokenSummary | null | undefined;
+  /** Optional short plain-text update for the shell's "Copy Quick Update" button (SMS, WhatsApp). */
+  shareText?: (scan: ReviewedScan) => string | null | undefined;
   /** Plain-language name of a bubble for the review list and screen readers, e.g. "Wednesday water". */
   describeBubble?: DescribeBubble;
 }
@@ -68,7 +75,11 @@ export function ScanWorkbench({
   historyTab,
   tabLabels,
   stressTest,
+  spokenSummary,
+  shareText,
 }: WorkbenchProps) {
+  const [audioCues, setAudioCues] = usePersistentState(AUDIO_CUES_KEY, parseAudioCues, true);
+  const [xray, setXray] = useState(false);
   const tab = useWorkspaceTab();
   const onRoute = useContext(RouteContext);
   const { state, scanUrl, scanFile, scanFrame, loadScan } = useScanner(layouts);
@@ -173,6 +184,9 @@ export function ScanWorkbench({
           <Button icon="upload" onClick={() => fileInput.current?.click()} disabled={busy}>
             Upload a photo
           </Button>
+          <Button icon={audioCues ? "speaker" : "mute"} aria-pressed={audioCues} onClick={() => setAudioCues(!audioCues)} title="A short chime when the webcam locks onto all 4 corners">
+            Audio cues
+          </Button>
           <input
             ref={fileInput}
             type="file"
@@ -201,6 +215,7 @@ export function ScanWorkbench({
             <WebcamScanner
               layout={layouts[0]}
               onClose={() => setCamera(false)}
+              onLock={() => playLockOnChime(audioCues)}
               onCapture={(frame) => {
                 setCamera(false);
                 scanFrame(frame);
@@ -243,9 +258,17 @@ export function ScanWorkbench({
               </p>
             )}
             {reviewed && renderResult(reviewed)}
+            {reviewed && <ResultVoice spoken={spokenSummary?.(reviewed)} share={shareText?.(reviewed)} />}
             <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
               <Card title="What the decoder saw">
-                <ScanPreview scan={state.scan} overrides={overrides} onCycle={editOverride} describe={describeBubble} />
+                {state.scan.result.ok && (
+                  <div className="mb-3">
+                    <Button icon="xray" onClick={() => setXray((x) => !x)}>
+                      {xray ? "Hide Optical X-Ray" : "Show Optical X-Ray"}
+                    </Button>
+                  </div>
+                )}
+                <ScanPreview scan={state.scan} overrides={overrides} onCycle={editOverride} describe={describeBubble} xray={xray} />
                 <ReviewPanel
                   unclear={unclear}
                   overrides={overrides}

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { copyText } from "../clipboard";
 import { Button } from "./ui";
 
@@ -6,6 +6,7 @@ const CONFIRM_MS = 4000;
 
 /** Copies `text`, confirms politely, and shows the text to copy by hand if the clipboard is blocked. */
 export function CopyButton({ text, label, copiedMessage }: { text: string; label: string; copiedMessage: string }) {
+  const uid = useId();
   const [state, setState] = useState<"idle" | "copied" | "failed">("idle");
   const timer = useRef<number | undefined>(undefined);
   useEffect(() => () => window.clearTimeout(timer.current), []);
@@ -33,11 +34,11 @@ export function CopyButton({ text, label, copiedMessage }: { text: string; label
       </div>
       {state === "failed" && (
         <div className="mt-3">
-          <label htmlFor="copy-fallback" className="block text-lg font-bold text-red-900">
+          <label htmlFor={`${uid}-fallback`} className="block text-lg font-bold text-red-900">
             Your browser blocked copying. Select this text and copy it:
           </label>
           <textarea
-            id="copy-fallback"
+            id={`${uid}-fallback`}
             readOnly
             value={text}
             rows={6}

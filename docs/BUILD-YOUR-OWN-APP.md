@@ -39,6 +39,13 @@ to rename a tab, and `stressTest={{ filled: [...] }}` (a sample's marked bubble 
 Test Decoder Resilience drawer. Print any layout variant with `PrintLayoutButton` from
 `src/shell/components/PrintCard.tsx`; text in any script prints.
 
+Two optional result slots add shell buttons: `spokenSummary={(scan) => ({ text, lang })}` adds
+**Read Aloud** (offline `speechSynthesis`, voice matched to `lang`), and
+`shareText={(scan) => "..."}` adds **Copy Quick Update**. The **Optical X-Ray** toggle and the
+**Audio cues** webcam chime need no code. To save cards without writing storage code, use
+`src/shell/local-batch.ts`: `appMeta.batch = localBatchAdapter(SAVED)`, `<SaveScanForm>` under a
+result and `<SavedScansSection>` as the `historyTab`. The scaffolder writes all of this for you.
+
 `appMeta.layouts` (set by the scaffolder) lets **Scan Any Card** route photos of your card to
 your app. Add an optional `appMeta.batch` (`BatchAdapter` in `src/shell/batch.ts`) to let a
 batch scan bulk-save your results: it names the per-row field, validates it, and saves the rows.

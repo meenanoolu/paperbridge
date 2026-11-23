@@ -48,6 +48,17 @@ export interface LanguagePack {
   anchors: Record<string, string>;
   /** Adaptive next-week card: the focus note printed in the footer. */
   focus: FocusPhrases;
+  /** Read Aloud sentences (the caregiver can play the week back to the patient). */
+  spoken: SpokenPhrases;
+}
+
+export interface SpokenPhrases {
+  adherence: (pct: number) => string;
+  unknown: string;
+  missed: (n: number) => string;
+  noneMissed: string;
+  symptoms: (n: number) => string;
+  verified: (n: number) => string;
 }
 
 export interface FocusPhrases {
@@ -62,6 +73,15 @@ export interface FocusPhrases {
   stop?: string;
 }
 
+export const ENGLISH_SPOKEN: SpokenPhrases = {
+  adherence: (p) => `${p} percent of doses were taken this week.`,
+  unknown: "Doses could not be counted this week.",
+  missed: (n) => `${n} ${n === 1 ? "dose was" : "doses were"} missed.`,
+  noneMissed: "No doses were missed.",
+  symptoms: (n) => `Dizziness or pain was marked on ${n} ${n === 1 ? "day" : "days"}.`,
+  verified: (n) => `${n} ${n === 1 ? "mark was" : "marks were"} checked by hand.`,
+};
+
 export const ENGLISH_FOCUS: FocusPhrases = {
   lead: "Focus this week:",
   short: "Focus:",
@@ -72,6 +92,7 @@ export const ENGLISH_FOCUS: FocusPhrases = {
 
 const PACKS: Partial<Record<CardLanguage, LanguagePack>> = {
   te: {
+    spoken: { adherence: (p) => `ఈ వారం ${p} శాతం మందులు వేసుకున్నారు.`, unknown: "ఈ వారం మందులను లెక్కించలేకపోయాము.", missed: (n) => `${n} మోతాదులు తప్పిపోయాయి.`, noneMissed: "ఏ మోతాదూ తప్పిపోలేదు.", symptoms: (n) => `${n} రోజులు తల తిరగడం లేదా నొప్పి గుర్తించారు.`, verified: (n) => `${n} గుర్తులను చేతితో తనిఖీ చేశారు.` },
     focus: { lead: "ఈ వారం శ్రద్ధ:", short: "శ్రద్ధ:", askDizzy: "తల తిరగడం కొనసాగితే డాక్టర్‌ను అడగండి.", askTired: "అలసట కొనసాగితే డాక్టర్‌ను అడగండి.", sameTime: "రోజూ ఒకే సమయానికి వేసుకోండి." },
     title: "సంరక్షణ కార్డు",
     penInstruction: "ప్రతి వృత్తాన్ని ముదురు పెన్‌తో నింపండి.",
@@ -104,6 +125,7 @@ const PACKS: Partial<Record<CardLanguage, LanguagePack>> = {
     },
   },
   hi: {
+    spoken: { adherence: (p) => `इस सप्ताह ${p} प्रतिशत दवाएँ ली गईं।`, unknown: "इस सप्ताह दवाओं की गिनती नहीं हो सकी।", missed: (n) => `${n} खुराकें छूटीं।`, noneMissed: "कोई खुराक नहीं छूटी।", symptoms: (n) => `${n} दिन चक्कर या दर्द दर्ज हुआ।`, verified: (n) => `${n} निशान हाथ से जाँचे गए।` },
     focus: { lead: "इस सप्ताह ध्यान:", short: "ध्यान:", askDizzy: "चक्कर जारी रहें तो डॉक्टर से पूछें।", askTired: "थकान जारी रहे तो डॉक्टर से पूछें।", sameTime: "रोज़ एक ही समय पर लें।", stop: "।" },
     title: "देखभाल कार्ड",
     penInstruction: "हर गोला गहरे पेन से पूरा भरें।",
@@ -136,6 +158,7 @@ const PACKS: Partial<Record<CardLanguage, LanguagePack>> = {
     },
   },
   es: {
+    spoken: { adherence: (p) => `Esta semana se tomó el ${p} por ciento de las dosis.`, unknown: "Esta semana no se pudieron contar las dosis.", missed: (n) => `Se olvidaron ${n} dosis.`, noneMissed: "No se olvidó ninguna dosis.", symptoms: (n) => `Se marcó mareo o dolor ${n} ${n === 1 ? "día" : "días"}.`, verified: (n) => `Se revisaron ${n} ${n === 1 ? "marca" : "marcas"} a mano.` },
     focus: { lead: "Esta semana:", short: "Atención:", askDizzy: "Consulte al médico si sigue el mareo.", askTired: "Consulte al médico si sigue el cansancio.", sameTime: "Tómela a la misma hora cada día." },
     title: "Tarjeta Semanal",
     penInstruction: "Rellene cada círculo con bolígrafo oscuro.",
@@ -192,6 +215,9 @@ export function numericRange(fromIso: string, toIso: string): string {
     ? `${d(fromIso)} - ${d(toIso)}/${toIso.slice(0, 4)}`
     : `${d(fromIso)}/${fromIso.slice(0, 4)} - ${d(toIso)}/${toIso.slice(0, 4)}`;
 }
+
+/** BCP 47 tag for speech and for the Kiro Crew alert's `cardLanguage`. Undefined for "other". */
+export const CARD_LANGUAGE_TAGS: Record<CardLanguage, string | undefined> = { en: "en-US", te: "te-IN", hi: "hi-IN", es: "es-ES", other: undefined };
 
 export function isCardLanguage(v: unknown): v is CardLanguage {
   return CARD_LANGUAGES.some((l) => l.id === v);
