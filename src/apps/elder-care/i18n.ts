@@ -8,25 +8,12 @@
  * Translations are plain, short phrases chosen to fit the 26 mm columns. They should be reviewed
  * by a native speaker before clinical use.
  */
-export type CardLanguage = "en" | "te" | "hi" | "es" | "other";
+import { isPrintLanguage, PRINT_LANGUAGE_TAGS, PRINT_LANGUAGES, type PrintLanguage, type PrintLanguageOption } from "../../core";
 
-export interface LanguageOption {
-  id: CardLanguage;
-  /** Name in its own script, shown first on the button. */
-  native: string;
-  /** English name, for screen readers and the caregiver. */
-  english: string;
-  /** BCP 47 tag for `lang` attributes. */
-  tag: string;
-}
-
-export const CARD_LANGUAGES: LanguageOption[] = [
-  { id: "en", native: "English", english: "English", tag: "en" },
-  { id: "te", native: "తెలుగు", english: "Telugu", tag: "te" },
-  { id: "hi", native: "हिन्दी", english: "Hindi", tag: "hi" },
-  { id: "es", native: "Español", english: "Spanish", tag: "es" },
-  { id: "other", native: "Other script", english: "Any other language (type your own labels)", tag: "und" },
-];
+/** The shared card languages (src/core/print-options.ts); this file adds Elder Care's wording. */
+export type CardLanguage = PrintLanguage;
+export type LanguageOption = PrintLanguageOption;
+export const CARD_LANGUAGES: LanguageOption[] = PRINT_LANGUAGES;
 
 export interface LanguagePack {
   title: string;
@@ -217,8 +204,6 @@ export function numericRange(fromIso: string, toIso: string): string {
 }
 
 /** BCP 47 tag for speech and for the Kiro Crew alert's `cardLanguage`. Undefined for "other". */
-export const CARD_LANGUAGE_TAGS: Record<CardLanguage, string | undefined> = { en: "en-US", te: "te-IN", hi: "hi-IN", es: "es-ES", other: undefined };
+export const CARD_LANGUAGE_TAGS: Record<CardLanguage, string | undefined> = PRINT_LANGUAGE_TAGS;
 
-export function isCardLanguage(v: unknown): v is CardLanguage {
-  return CARD_LANGUAGES.some((l) => l.id === v);
-}
+export const isCardLanguage = isPrintLanguage;

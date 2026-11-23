@@ -1,4 +1,4 @@
-import { checkPrintedText, type CardLayout, type PageSize } from "../../core";
+import { buildPack, withGroupTitle, type CardLayout, type PageSize } from "../../core";
 import { customizeCareLayout, formatDay, mondayOf, weekDates, weekRange, type CareCardSettings } from "./card-settings";
 import { languagePack, numericRange, type LanguagePack } from "./i18n";
 import { ELDER_LAYOUTS } from "./layout";
@@ -35,12 +35,12 @@ export function packMondays(start: string, weeks = PACK_WEEKS): string[] {
 /** Layouts for the pack. Empty if the settings have no week start date. */
 export function monthlyPackLayouts(s: CareCardSettings, page: PageSize, weeks = PACK_WEEKS): CardLayout[] {
   const base = ELDER_LAYOUTS.find((l) => l.page === page) ?? ELDER_LAYOUTS[0];
-  return packMondays(s.weekStart, weeks).map((monday, i) => {
-    const layout = customizeCareLayout(base, { ...s, weekStart: monday });
-    const dates = weekDates(monday);
-    const candidates = packTitleCandidates(i + 1, weeks, dates[0], dates[6], languagePack(s.language));
-    const withTitle = (title: string): CardLayout => ({ ...layout, groups: layout.groups.map((g) => (g.key === "care" ? { ...g, title } : g)) });
-    return candidates.map(withTitle).find((l) => checkPrintedText(l).length === 0) ?? layout;
+  const mondays = packMondays(s.weekStart, weeks);
+  // The shared pack builder (src/core/pack.ts) keeps the first heading that prints without collisions.
+  return buildPack(mondays.length, (i) => {
+    const layout = customizeCareLayout(base, { ...s, weekStart: mondays[i] });
+    const dates = weekDates(mondays[i]);
+    return [...packTitleCandidates(i + 1, weeks, dates[0], dates[6], languagePack(s.language)).map((t) => withGroupTitle(layout, t)), layout];
   });
 }
 

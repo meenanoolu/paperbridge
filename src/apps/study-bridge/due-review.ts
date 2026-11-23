@@ -1,4 +1,5 @@
 import { checkPrintedText, type CardLayout } from "../../core";
+import type { AdaptiveCardSpec } from "../../shell/components/AdaptiveCard";
 import type { GradeReport } from "./grade";
 import { STUDY_LAYOUTS } from "./layout";
 
@@ -65,4 +66,18 @@ export function dueReviewSheet(report: Pick<GradeReport, "weakTopics" | "schedul
 
 export function dueReviewFileName(dates: string[], page: string): string {
   return `review-sheet-${dates[0] ?? "due"}-${page}.pdf`;
+}
+
+/** The shell's adaptive-card spec ("Print Due Review Card"), or null when no topic is due. */
+export function dueReviewSpec(report: Pick<GradeReport, "weakTopics" | "schedule">): AdaptiveCardSpec | null {
+  const sheet = dueReviewSheet(report);
+  if (!sheet) return null;
+  return {
+    heading: "Next: a review sheet",
+    label: "Print Due Review Card",
+    icon: "calendar",
+    layouts: sheet.layouts,
+    fileName: (page) => dueReviewFileName(sheet.dates, page),
+    description: `Header: review ${sheet.topics.join(", ")}. Footer: due ${sheet.dates.map(shortDate).join(", ")} (1, 3 and 7 days). Same circles, so it grades like any sheet.`,
+  };
 }

@@ -1,5 +1,6 @@
 import { checkPrintedText, type CardLayout } from "../../core";
-import { columnLabel, customizeCareLayout, mondayOf, type CareCardSettings, type CareCol } from "./card-settings";
+import type { AdaptiveCardSpec } from "../../shell/components/AdaptiveCard";
+import { columnLabel, customizeCareLayout, formatDay, mondayOf, type CareCardSettings, type CareCol } from "./card-settings";
 import { ENGLISH_FOCUS, languagePack, translateLabel } from "./i18n";
 import { CARE_COLS, ELDER_LAYOUTS } from "./layout";
 import type { CarePattern } from "./patterns";
@@ -83,4 +84,21 @@ export function adaptedNextWeekCard(s: CareCardSettings, patterns: CarePattern[]
 export function adaptedFileName(s: CareCardSettings, weekStart: string, page: string): string {
   const who = s.patientName.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   return `care-card-adapted-${who ? `${who}-` : ""}${weekStart}-${page}.pdf`;
+}
+
+/** The shell's adaptive-card spec for this pattern (dashboard and history), or null when nothing was found. */
+export function adaptedCardSpec(s: CareCardSettings, patterns: CarePattern[], weekStart: string): AdaptiveCardSpec | null {
+  const a = adaptedNextWeekCard(s, patterns, weekStart);
+  if (!a) return null;
+  const first = a.layouts[0];
+  return {
+    heading: "Adapt next week's card",
+    label: "Print Adapted Next-Week Card",
+    icon: "sparkle",
+    layouts: a.layouts.map((l) => l.layout),
+    fileName: (page) => adaptedFileName(s, a.weekStart, page),
+    description: `Week of ${formatDay(a.weekStart)}, based on "${a.pattern.title}". The footer will read "${first.note}"${
+      first.highlight ? `, and that column's header is ${first.highlight === "frame" ? "boxed" : "double-underlined"}` : ""
+    }. Circles stay in place, so it scans like any card.`,
+  };
 }
