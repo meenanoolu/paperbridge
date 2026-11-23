@@ -38,7 +38,7 @@ afterAll(() => rmSync(tmp, { recursive: true, force: true }));
 
 describe("create-app scaffolder", () => {
   it("writes the 3-file contract, sample recipe, and tests", () => {
-    expect(result.files).toEqual(["layout.ts", "interpret.ts", "App.tsx", "samples/specs.ts", "samples/index.ts", "__tests__/layout.test.ts"]);
+    expect(result.files).toEqual(["layout.ts", "interpret.ts", "App.tsx", "print.ts", "samples/specs.ts", "samples/index.ts", "__tests__/layout.test.ts"]);
     for (const f of result.files) expect(existsSync(join(dir, f)), f).toBe(true);
   });
 
@@ -122,6 +122,21 @@ describe("create-app scaffolder", () => {
     const report = { items: [], answered: 5, total: 6, counts: { yes: 3, no: 2 }, needsReview: ["Item 4"] };
     expect(mod.spokenSummary(report)).toEqual({ text: "5 of 6 rows answered. Please check Item 4 on the paper card.", lang: "en-US" });
     expect(mod.shareText(report)).toBe("Clinic Intake update\n5 of 6 rows answered (Yes: 3, No: 2).\nTo check: Item 4.");
+  });
+
+  it("inherits multilingual print, any-script text, High-Visibility, icons and a 4-sheet pack", async () => {
+    const { PRINT } = (await import(join(dir, "print.ts"))) as { PRINT: import("../../src/shell/print-slot").PrintSlot };
+    const { checkPrintedText, hasColumnIcons, isWinAnsiText } = await import("../../src/core");
+    expect(PRINT.languages).toEqual(["en", "te", "hi", "es"]);
+    for (const language of ["te", "hi", "es"] as const)
+      for (const highVisibility of [false, true])
+        for (const l of PRINT.layouts({ language, highVisibility, icons: true })) {
+          expect(checkPrintedText(l)).toEqual([]);
+          if (language !== "es") expect(isWinAnsiText(l.groups[0].title!)).toBe(false);
+        }
+    expect(hasColumnIcons(PRINT.layouts({ icons: true }))).toBe(true);
+    expect(PRINT.pack!.layouts({ language: "te" }, "Letter").map((l) => l.groups[0].title)).toEqual(["జాబితా 1/4", "జాబితా 2/4", "జాబితా 3/4", "జాబితా 4/4"]);
+    expect(readFileSync(join(dir, "App.tsx"), "utf8")).toContain("print={PRINT}");
   });
 
   it("refuses to overwrite an existing app", () => {
