@@ -10,6 +10,11 @@ import { StudyResults } from "./components/StudyResults";
 import { gradeSheet, readMarks } from "./grade";
 import { describeAnswerBubble, STUDY_LAYOUTS } from "./layout";
 import { STUDY_SAMPLES } from "./samples";
+import { STUDY_SAMPLE_SPECS } from "./samples/specs";
+import { DueReviewButton } from "./components/DueReviewButton";
+
+/** A sample sheet's marks, for the Test Decoder Resilience drawer. */
+const STRESS_MARKS = { filled: STUDY_SAMPLE_SPECS[0].marks.filter((m) => m.style !== "faint").map((m) => m.key) };
 
 import { ANSWER_KEY_STORAGE, CLASS_STORAGE } from "./storage-keys";
 import { STUDY_BATCH } from "./batch";
@@ -44,9 +49,13 @@ export function StudyBridgeApp() {
           const g = gradeSheet(scan.result, answerKey, scan.scannedAt);
           return `Score ${g.scorePct}%, ${g.correct} of ${g.total} correct. ${g.weakTopics.length ? `Weak topics: ${g.weakTopics.join(", ")}.` : "No weak topics."}`;
         }}
+        tabLabels={{ history: "Class Sheet & Export" }}
+        stressTest={STRESS_MARKS}
+        historyTab={<ClassSection roster={roster} answerKey={answerKey} onRemove={(id) => setRoster(removeStudent(roster, id))} onClear={clearRoster} />}
         renderResult={(scan) => (
           <>
             <StudyResults report={gradeSheet(scan.result, answerKey, scan.scannedAt)} quiz={answerKey} />
+            <DueReviewButton report={gradeSheet(scan.result, answerKey, scan.scannedAt)} />
             <AddToClass
               key={scan.scannedAt.toISOString()}
               roster={roster}
@@ -55,7 +64,6 @@ export function StudyBridgeApp() {
           </>
         )}
       />
-      <ClassSection roster={roster} answerKey={answerKey} onRemove={(id) => setRoster(removeStudent(roster, id))} onClear={clearRoster} />
     </>
   );
 }
