@@ -16,6 +16,7 @@ import { ELDER_SAMPLES } from "./samples";
 import { sampleHistory } from "./sample-history";
 import { nextCardMonday } from "./adaptive";
 import { AdaptedCardButton } from "./components/AdaptedCardButton";
+import { ThisWeekDoctorPdf } from "./components/ThisWeekDoctorPdf";
 import { ELDER_SAMPLE_SPECS } from "./samples/specs";
 import { alertCardLanguage, elderShareText, elderSpokenSummary } from "./voice";
 
@@ -121,12 +122,15 @@ export function ElderCareApp() {
                 />
               }
               actions={
-                <SaveWeek
-                  key={scan.scannedAt.toISOString()}
-                  history={history}
-                  onSave={saveWeek}
-                  entry={toWeekEntry(report, { scannedAt: scan.scannedAt, savedAt: new Date(), card, manualOverrides: scan.manualOverrides })}
-                />
+                <div className="space-y-3">
+                  <SaveWeek
+                    key={scan.scannedAt.toISOString()}
+                    history={history}
+                    onSave={saveWeek}
+                    entry={toWeekEntry(report, { scannedAt: scan.scannedAt, savedAt: new Date(), card, manualOverrides: scan.manualOverrides })}
+                  />
+                  <ThisWeekDoctorPdf card={card} entry={toWeekEntry(report, { scannedAt: scan.scannedAt, savedAt: scan.scannedAt, card, manualOverrides: scan.manualOverrides })} />
+                </div>
               }
             />
           );
@@ -143,6 +147,10 @@ export const appMeta: AppMeta = {
   order: 1,
   layouts: ELDER_LAYOUTS,
   batch: ELDER_BATCH,
+  // Calm clinical teal: white text on it is 7.6:1 (AAA).
+  accent: { name: "clinical-teal", strong: "#115e59", soft: "#f0fdfa" },
+  samples: ELDER_SAMPLES,
+  demo: { faint: "missed-dose", clean: "normal-week", batch: "missed-dose" },
   footerNote: "For tracking only; not medical advice. Talk to a doctor or pharmacist before changing any medication.",
 };
 export default ElderCareApp;
