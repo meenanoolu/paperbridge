@@ -3,6 +3,8 @@ import { rasterFromFile } from "../../core";
 import { routableApps, type RegisteredApp } from "../app-registry";
 import { batchSummary, processBatch, saveableFor, saveBatchGroup, type BatchItem, type BatchRun } from "../batch";
 import { offerRoutedScan } from "../routed-scan";
+import { sessionRef, useSessionState } from "../session-state";
+import { showWorkspaceTab } from "../workspace-tabs";
 import { Icon } from "./Icon";
 import { Button, Callout, StatusBadge } from "./ui";
 
@@ -17,15 +19,16 @@ export function AutoRoutePanel({ onRoute }: { onRoute: (app: RegisteredApp) => v
   const uid = useId();
   const apps = useMemo(() => routableApps(), []);
   const input = useRef<HTMLInputElement>(null);
-  const files = useRef<File[]>([]);
-  const lastUrl = useRef<string | null>(null);
+  // The panel sits in every app's Scan & Verify tab: batch state outlives switching apps.
+  const files = sessionRef<File[]>("autoroute.files", []);
+  const lastUrl = sessionRef<string | null>("autoroute.url", null);
   const [dragging, setDragging] = useState(false);
   const [progress, setProgress] = useState<string>("");
-  const [run, setRun] = useState<BatchRun | null>(null);
-  const [scannedAt, setScannedAt] = useState(() => new Date());
-  const [values, setValues] = useState<Record<number, string>>({});
-  const [problems, setProblems] = useState<Record<number, string>>({});
-  const [status, setStatus] = useState<{ text: string; tone: "good" | "bad" | "info" } | null>(null);
+  const [run, setRun] = useSessionState<BatchRun | null>("autoroute.run", null);
+  const [scannedAt, setScannedAt] = useSessionState("autoroute.at", () => new Date());
+  const [values, setValues] = useSessionState<Record<number, string>>("autoroute.values", {});
+  const [problems, setProblems] = useSessionState<Record<number, string>>("autoroute.problems", {});
+  const [status, setStatus] = useSessionState<{ text: string; tone: "good" | "bad" | "info" } | null>("autoroute.status", null);
 
   const open = useCallback(
     (item: BatchItem) => {
@@ -53,6 +56,8 @@ export function AutoRoutePanel({ onRoute }: { onRoute: (app: RegisteredApp) => v
   const handle = useCallback(
     async (list: File[]) => {
       if (list.length === 0) return;
+      // Photos dropped on any tab: the results show on Scan & Verify.
+      showWorkspaceTab("scan");
       files.current = list;
       setRun(null);
       setStatus(null);
@@ -149,7 +154,7 @@ export function AutoRoutePanel({ onRoute }: { onRoute: (app: RegisteredApp) => v
   };
 
   return (
-    <section aria-labelledby={`${uid}-title`} className="border-b-2 border-slate-300 bg-sky-50">
+    <section aria-labelledby={`${uid}-title`} className="rounded-2xl border-2 border-slate-300 bg-sky-50">
       {dragging && (
         <div className="pointer-events-none fixed inset-0 z-40 grid place-items-center bg-slate-950/70 p-6" aria-hidden="true">
           <p className="rounded-3xl border-4 border-dashed border-yellow-300 bg-slate-950 px-8 py-6 text-3xl font-black text-white">
@@ -157,7 +162,7 @@ export function AutoRoutePanel({ onRoute }: { onRoute: (app: RegisteredApp) => v
           </p>
         </div>
       )}
-      <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6">
+      <div className="px-4 py-4 sm:px-5">
         <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
           <h2 id={`${uid}-title`} className="flex items-center gap-2 text-2xl font-extrabold">
             <Icon name="upload" className="h-7 w-7" /> Scan Any Card (Auto-Route)

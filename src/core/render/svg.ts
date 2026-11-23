@@ -1,5 +1,6 @@
 import { pageSizeMm } from "../layout";
 import type { CardLayout } from "../types";
+import { ICON_SHAPES, ICON_UNITS } from "./icons";
 import { BAND_GREY, cardPrimitives } from "./primitives";
 
 const greyHex = (g: number) => {
@@ -28,6 +29,13 @@ export function renderCardSvg(layout: CardLayout): string {
       const fill = p.fill ? "#000" : "#fff";
       const stroke = p.strokeMm ? ` stroke="#000" stroke-width="${n(p.strokeMm)}"` : "";
       parts.push(`<circle cx="${n(p.cx)}" cy="${n(p.cy)}" r="${n(p.r)}" fill="${fill}"${stroke}/>`);
+    } else if (p.kind === "icon") {
+      const shapes = ICON_SHAPES[p.name].map((sh) => `<path d="${sh.d}" fill="${sh.fill === "black" ? "#000" : "#fff"}"/>`).join("");
+      parts.push(`<g transform="translate(${n(p.x)} ${n(p.y)}) scale(${n(p.sizeMm / ICON_UNITS)})" aria-label="${p.name} icon">${shapes}</g>`);
+    } else if (p.kind === "rule") {
+      parts.push(`<rect x="${n(p.x)}" y="${n(p.y)}" width="${n(p.w)}" height="${n(p.h)}" fill="#000"/>`);
+    } else if (p.kind === "frame") {
+      parts.push(`<rect x="${n(p.x)}" y="${n(p.y)}" width="${n(p.w)}" height="${n(p.h)}" fill="none" stroke="#000" stroke-width="${n(p.strokeMm)}"/>`);
     } else {
       const anchor = p.anchor ?? "start";
       const weight = p.bold ? ' font-weight="bold"' : "";

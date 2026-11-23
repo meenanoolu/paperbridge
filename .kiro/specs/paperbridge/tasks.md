@@ -113,3 +113,12 @@ Requirement references use the numbering in `requirements.md`.
   - [x] 18.2 `crew-app/` README works as the standalone `paperbridge-care-monitor` repo; `app.json` `repo` set to it
   - [x] 18.3 `product.md` steering covers the whole skeleton; shipped-layout checks moved to `src/__tests__/` so `src/core` has no imports from `src/apps`
   - [x] 18.4 Elder Care footer: "For tracking only; not medical advice" via `appMeta.footerNote` (AAA contrast, 18 px)
+
+- [x] 19. Phase 6: adaptive paper and multilingual UX (branch `feat/adaptive-paper-and-multilingual-ux`)
+  - [x] 19.1 Core: icon, frame and rule primitives; `printedBoxes`; shared measuring with zero-width marks; `textImage` PDF option; English PDF/SVG hashes unchanged _(R31.1, R31.3)_
+  - [x] 19.2 Shell: `WorkspaceTabs`, tab store, `RouteContext`, session state for Scan Any Card; Print Cards and History & Export panels _(R29)_
+  - [x] 19.3 Elder Care: language packs, Translate picker, Icon-Anchored toggle, grapheme-safe wrapping, Doctor PDF English fallback; 512-layout check _(R31.2)_
+  - [x] 19.4 Adaptive Paper Loop: `adaptive.ts` + button on the dashboard and history; Study `due-review.ts` + button; decode-parity tests _(R30)_
+  - [x] 19.5 Test Decoder Resilience drawer and `stress-lab.ts` with tilt/dim/faint sweeps _(R32)_
+  - [x] 19.6 Hooks: `protect-core-pre-tool.json`, `verify-boundaries-on-stop.json`, `scripts/hooks/`, 50-photo `paper-matrix.test.ts` _(R33)_
+  - [x] 19.7 Browser checks: tabs keyboard model, routed Review, Telugu PDF, adapted card, due review card, lab; axe-core 0 AA and 0 AAA violations on 5 states _(R9.2)_

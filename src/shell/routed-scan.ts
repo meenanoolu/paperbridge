@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import type { CompletedScan } from "./scan";
+import { showWorkspaceTab } from "./workspace-tabs";
 
 /**
  * Hand-off from "Scan Any Card" to an app's ScanWorkbench. The shell offers a decoded scan and
@@ -11,6 +12,8 @@ const emit = () => listeners.forEach((l) => l());
 
 export function offerRoutedScan(scan: CompletedScan): void {
   pending = scan;
+  // A routed scan or a batch "Review" always lands on the Scan & Verify tab.
+  showWorkspaceTab("scan");
   emit();
 }
 

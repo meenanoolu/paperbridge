@@ -1,5 +1,8 @@
 export type PageSize = "A4" | "Letter";
 
+/** Print-only column icons (see render/icons.ts). */
+export type CardIcon = "sun" | "moon" | "drop" | "alert" | "check";
+
 /** A rectangular grid of bubbles. Positions are card-space millimetres (origin top-left, y down). */
 export interface BubbleGroup {
   /** Unique key within the layout, e.g. "meds". */
@@ -21,6 +24,15 @@ export interface BubbleGroup {
    * a pill description. One entry per column; "\n" separates lines. Text only: no bubble moves.
    */
   colNotes?: string[];
+  /**
+   * Optional icon per column, drawn above the column label when `printStyle.showIcons` is set
+   * (Icon-Anchored print mode). "" for no icon. Print-only: no bubble moves.
+   */
+  colIcons?: (CardIcon | "")[];
+  /** Column indexes whose label gets a bold frame, e.g. the dose to focus on this week. Print-only. */
+  colHighlights?: number[];
+  /** "frame" (default): a bold box around the label. "underline": a double underline, for labels too wide to box. */
+  colHighlightStyle?: "frame" | "underline";
   /** Shade alternate rows from `fromXMm` to `toXMm` to help the eye track a row. */
   bands?: { fromXMm: number; toXMm: number };
   originMm: [number, number];
@@ -42,7 +54,7 @@ export interface CardLayout {
   /** Print-only styling (e.g. high-visibility mode). Never changes bubbles or markers. */
   printStyle?: PrintStyle;
   /** Instruction lines printed near the bottom of the card. */
-  footer?: { yMm: number; lines: string[] };
+  footer?: { yMm: number; lines: string[]; /** Indexes of lines printed bold, e.g. a focus note. */ boldLines?: number[] };
   groups: BubbleGroup[];
 }
 
@@ -56,6 +68,8 @@ export interface PrintStyle {
   rowLabelScale?: number;
   /** Extra multiplier for column labels, notes and group titles. Default 1. */
   colLabelScale?: number;
+  /** Draw each group's `colIcons` above its column labels (Icon-Anchored print mode). */
+  showIcons?: boolean;
 }
 
 export type BubbleState = "filled" | "blank" | "ambiguous";

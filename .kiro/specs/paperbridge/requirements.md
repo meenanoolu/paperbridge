@@ -181,3 +181,28 @@ PaperBridge turns a printed bubble card into structured data using deterministic
 1. WHEN history is empty, THE history section SHALL offer "Load 4-Week Sample History" for a clearly named demo patient. It SHALL NOT be shown when real history exists, so it never overwrites saved data.
 2. THE sample SHALL hold the 4 weeks before the current one with adherence 93%, 86%, 79%, 71%, a Metformin-miss-with-dizziness pattern, and one manually verified mark, and SHALL drive the trend, patterns, Markdown summary and Doctor Visit PDF.
 3. "Clear History" SHALL remove it completely.
+
+## R29. 3-tab workspace (Phase 6)
+1. EVERY app built on ScanWorkbench SHALL show 3 WAI-ARIA tabs at the top of the page: **Scan & Verify** (default), **Print Cards**, and **History & Export** (Study Bridge: "Class Sheet & Export"). Arrow keys, Home and End SHALL move and activate tabs, with one tab stop and 4 px focus rings.
+2. Scan & Verify SHALL hold Scan Any Card, the sample cards, webcam/upload, the decoded dashboard, unclear-mark verification and Copy for Kiro Crew. Print Cards SHALL hold the 1-Week PDF, card customization, presets, language, Icon-Anchored and High-Visibility modes, and the 4-Week Pack. History & Export SHALL hold the trend, sample history, patterns, summaries and the Doctor Visit PDF (or the class sheet and CSV).
+3. Inactive panels SHALL stay mounted, so a scan, a form or a batch survives switching tabs; Scan Any Card's batch SHALL also survive switching apps.
+4. WHEN a card is auto-routed, a batch starts, a batch row's Review is used, or a new scan completes, THE workspace SHALL show Scan & Verify.
+
+## R30. Adaptive Paper Loop (Phase 6)
+1. WHEN the fixed pattern rules find at least one pattern (on a scan or across saved weeks), Elder Care SHALL offer **Print Adapted Next-Week Card**: next Monday's card with a bold focus note in the footer (e.g. "Focus this week: Night Meds. Take it at the same time each day.", or a doctor check-in for symptom patterns) and the affected dose column's header framed, or double-underlined when a frame would touch a neighbouring label.
+2. WHEN a graded sheet has weak topics, Study Bridge SHALL offer **Print Due Review Card**: a sheet whose header names the topics due and whose footer lists the +1/+3/+7-day review dates.
+3. Adapted cards SHALL change printed text and print-only marks only, pass `checkLayout` and `checkPrintedText` on A4 and Letter, never add footer lines, and decode bubble for bubble like the standard card. Notes and headers SHALL fall back to shorter wording that fits.
+
+## R31. Icon-Anchored mode and offline card languages (Phase 6)
+1. `src/core` SHALL draw optional monochrome vector icons (`printStyle.showIcons` + `colIcons`: sun, moon, drop, alert, check) as filled pdf-lib paths above column labels, with no external assets. Icons SHALL be part of the printed-text collision check and SHALL NOT move any bubble.
+2. Elder Care's Print Cards tab SHALL offer a **Translate card** button with built-in offline packs for English, Telugu, Hindi and Spanish (title, instructions, day names, default column labels, preset routine anchors, footer, focus notes) and an "Other script" option. A non-English choice SHALL allow labels in any script; emoji SHALL be refused. The dashboard, alerts and Doctor Visit PDF SHALL stay English.
+3. Latin-1 text SHALL stay on the Helvetica vector path (byte-identical PDFs). Other text SHALL be drawn by the browser on a canvas with system fonts (about 600 dpi) and embedded as a lossless PNG fitted inside the box `checkPrintedText` measured. Without a canvas (Node), the core SHALL fall back to its standard-font path without failing.
+
+## R32. Optical Stress-Test Lab (Phase 6)
+1. Scan & Verify SHALL offer a collapsed **Test Decoder Resilience** drawer with sliders for tilt (-8 to +8 degrees), dim lighting and shadow, and pen faintness.
+2. After each (debounced) change, THE lab SHALL render the sample card with known marks, distort it, run the real decoder in the browser, and show the decode time and how many bubbles were read correctly, sent for a human check, or read wrong.
+3. Across the lab's range, no bubble SHALL be read wrong: faint marks SHALL turn unclear, never blank or filled by guess.
+
+## R33. Varied Kiro hooks (Phase 6)
+1. A `PreToolUse` hook SHALL ask the person before any write to `src/core/decode/`, `src/core/layout.ts` or `src/core/capture/`, and remind the agent to run the 50-photo A4/Letter regression matrix and the property tests first.
+2. A `Stop` hook SHALL keep the agent working if `src/core` imports `src/apps` or `src/shell`, and, when UI files changed, ask it once to confirm the WCAG 2.2 AA / AAA audit.

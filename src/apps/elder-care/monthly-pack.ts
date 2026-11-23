@@ -1,5 +1,6 @@
 import { checkPrintedText, type CardLayout, type PageSize } from "../../core";
 import { customizeCareLayout, formatDay, mondayOf, weekDates, weekRange, type CareCardSettings } from "./card-settings";
+import { languagePack, numericRange, type LanguagePack } from "./i18n";
 import { ELDER_LAYOUTS } from "./layout";
 
 /**
@@ -20,7 +21,8 @@ function shortRange(from: string, to: string): string {
 }
 
 /** Week headings to try, longest first. The first one that prints without collisions wins. */
-export function packTitleCandidates(week: number, of: number, from: string, to: string): string[] {
+export function packTitleCandidates(week: number, of: number, from: string, to: string, pack: LanguagePack | null = null): string[] {
+  if (pack) return [`${pack.week} ${week}/${of}: ${numericRange(from, to)}`, `${pack.week} ${week}/${of}`];
   return [`Week ${week} of ${of}: ${weekRange(from, to)}`, `Week ${week}/${of}: ${weekRange(from, to)}`, `Week ${week}/${of}: ${shortRange(from, to)}`];
 }
 
@@ -36,7 +38,7 @@ export function monthlyPackLayouts(s: CareCardSettings, page: PageSize, weeks = 
   return packMondays(s.weekStart, weeks).map((monday, i) => {
     const layout = customizeCareLayout(base, { ...s, weekStart: monday });
     const dates = weekDates(monday);
-    const candidates = packTitleCandidates(i + 1, weeks, dates[0], dates[6]);
+    const candidates = packTitleCandidates(i + 1, weeks, dates[0], dates[6], languagePack(s.language));
     const withTitle = (title: string): CardLayout => ({ ...layout, groups: layout.groups.map((g) => (g.key === "care" ? { ...g, title } : g)) });
     return candidates.map(withTitle).find((l) => checkPrintedText(l).length === 0) ?? layout;
   });

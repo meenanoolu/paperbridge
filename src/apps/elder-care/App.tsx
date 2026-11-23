@@ -14,6 +14,12 @@ import { describeCareBubble, ELDER_LAYOUTS } from "./layout";
 import type { DoseLabels } from "./patterns";
 import { ELDER_SAMPLES } from "./samples";
 import { sampleHistory } from "./sample-history";
+import { nextCardMonday } from "./adaptive";
+import { AdaptedCardButton } from "./components/AdaptedCardButton";
+import { ELDER_SAMPLE_SPECS } from "./samples/specs";
+
+/** The Missed-Dose sample's pen marks (dark ones), for the Test Decoder Resilience drawer. */
+const STRESS_MARKS = { filled: ELDER_SAMPLE_SPECS[1].marks.filter((m) => m.style !== "faint").map((m) => m.key) };
 
 /** The alert for a reviewed scan: human overrides applied, with their count recorded. */
 export function alertFor(scan: ReviewedScan, doseLabels?: DoseLabels, habitLabel?: string): ScanAlert {
@@ -76,7 +82,11 @@ export function ElderCareApp() {
         tagline="A large-print weekly paper card for medication and symptoms. No smartphone or login for the person filling it in. Caregivers get adherence, missed doses, and symptom flags from one photo."
         layouts={ELDER_LAYOUTS}
         printLayouts={printLayouts}
-        setup={<CustomizeCardPanel settings={card} onSave={saveCard} onReset={resetCard} saved={cardSaved} />}
+        printTab={<CustomizeCardPanel settings={card} onSave={saveCard} onReset={resetCard} saved={cardSaved} defaultOpen />}
+        historyTab={
+          <HistorySection history={history} currentPatient={card.patientName} card={card} onClear={clearHistory} onLoadSample={() => setHistory(sampleHistory(new Date()))} />
+        }
+        stressTest={STRESS_MARKS}
         samples={ELDER_SAMPLES}
         steps={[
           ["Print", "One page, bold large print, A4 or US Letter."],
@@ -99,6 +109,13 @@ export function ElderCareApp() {
               scannedAt={scan.scannedAt}
               alert={alertFor(scan, doseLabels, habitLabel)}
               card={card}
+              adapt={
+                <AdaptedCardButton
+                  card={card}
+                  patterns={report.patterns}
+                  weekStart={nextCardMonday([card.weekStart, ...history.filter((h) => h.patientName === card.patientName).map((h) => h.weekStart ?? "")], scan.scannedAt)}
+                />
+              }
               actions={
                 <SaveWeek
                   key={scan.scannedAt.toISOString()}
@@ -111,7 +128,6 @@ export function ElderCareApp() {
           );
         }}
       />
-      <HistorySection history={history} currentPatient={card.patientName} card={card} onClear={clearHistory} onLoadSample={() => setHistory(sampleHistory(new Date()))} />
     </>
   );
 }

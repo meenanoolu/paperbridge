@@ -6,6 +6,7 @@ import type { BubbleReading, CardLayout, ScanResult } from "./types";
 
 export type {
   BubbleGroup,
+  CardIcon,
   BubbleReading,
   BubbleState,
   CardLayout,
@@ -36,8 +37,12 @@ export {
   MIN_BAND_GREY,
   NOTE_GAP_MM,
   ROW_LABEL_SIZE_MM,
+  ICON_SIZE_MM,
   type Primitive,
 } from "./render/primitives";
+export { CARD_ICONS, ICON_SHAPES } from "./render/icons";
+export { isWinAnsiText } from "./render/measure";
+export type { TextImageRenderer, TextImageRequest } from "./render/pdf";
 export { decode } from "./decode/decode";
 export { renderCardRaster, type SynthOptions } from "./testing/synth";
 export { createStabilityTracker, resultSignature, STABLE_FRAMES, type StabilityState } from "./capture/stability";
@@ -50,15 +55,15 @@ export type SuccessfulScan = Extract<ScanResult, { ok: true }>;
  * Multi-page vector PDF, one page per layout (e.g. a 4-week pack). Loaded on demand so pdf-lib
  * stays out of the initial bundle.
  */
-export async function renderCardsPdf(layouts: CardLayout[], opts?: { title?: string }): Promise<Uint8Array> {
+export async function renderCardsPdf(layouts: CardLayout[], opts?: import("./render/pdf").CardsPdfOptions): Promise<Uint8Array> {
   const m = await import("./render/pdf");
   return m.renderCardsPdf(layouts, opts);
 }
 
 /** One-page vector PDF. Loaded on demand so pdf-lib stays out of the initial bundle. */
-export async function renderCardPdf(layout: CardLayout): Promise<Uint8Array> {
+export async function renderCardPdf(layout: CardLayout, opts?: { textImage?: import("./render/pdf").TextImageRenderer }): Promise<Uint8Array> {
   const m = await import("./render/pdf");
-  return m.renderCardPdf(layout);
+  return m.renderCardPdf(layout, opts);
 }
 
 /** Map of `group/row/col` to reading, for easy lookup. Returns an empty map for failed scans. */
@@ -73,6 +78,7 @@ export {
   checkPrintedText,
   estimateTextWidthMm,
   textBoxes,
+  printedBoxes,
   parseCardLayout,
   validateLayoutJson,
   type DiagnosticCode,

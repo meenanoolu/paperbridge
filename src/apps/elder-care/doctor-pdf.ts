@@ -41,6 +41,18 @@ export function pdfSafe(s: string): string {
   return printableText(s).replace(/[^\x20-\x7e\xa0-\xff]/g, "?");
 }
 
+/**
+ * The Doctor Visit PDF stays in English with standard fonts. Text a caregiver typed mostly in
+ * another script (Telugu, Hindi...) would print as "????", so it becomes a plain note instead.
+ * A stray symbol in Latin text still prints as "?", as before.
+ */
+export function englishOr(text: string, fallback: string): string {
+  const t = printableText(text);
+  const letters = [...t].filter((c) => /[\p{L}\p{M}]/u.test(c));
+  const other = letters.filter((c) => !/[\x20-\x7e\xa0-\xff]/.test(c));
+  return letters.length > 0 && other.length * 2 >= letters.length ? fallback : t;
+}
+
 class Writer {
   y: number;
   /** Lowest baseline drawn in the body (before the footer), for the layout check. */
@@ -126,7 +138,7 @@ export async function renderDoctorVisitPdf(input: DoctorPdfInput): Promise<Uint8
 export async function renderDoctorVisitPdfWithLayout(input: DoctorPdfInput): Promise<{ bytes: Uint8Array; minBodyY: number; footerTop: number; rowsListed: number }> {
   const pageSize = PAGE_SIZE_MM[input.page ?? "Letter"];
   const doc = await PDFDocument.create();
-  const name = pdfSafe(input.patientName.trim()) || "Unnamed patient";
+  const name = pdfSafe(englishOr(input.patientName.trim(), "(name written in another script on the card)")) || "Unnamed patient";
   const generated = formatDay(localIsoDate(input.generatedAt));
   doc.setTitle(`Doctor Visit Sheet - ${name}`);
   doc.setSubject("Medication adherence summary from PaperBridge Weekly Care Cards");
@@ -153,9 +165,12 @@ export async function renderDoctorVisitPdfWithLayout(input: DoctorPdfInput): Pro
   // Medications as printed on the current card
   w.heading("Medications and routines (as printed on the current card)");
   for (const { col, role } of COLUMNS) {
-    const notes = [anchorOf(input.card, col) && `Routine: ${anchorOf(input.card, col)}`, cueOf(input.card, col) && `Looks like: ${cueOf(input.card, col)}`].filter(Boolean);
+    const other = "(in another script on the card)";
+    const anchor = anchorOf(input.card, col) && englishOr(anchorOf(input.card, col), other);
+    const cue = cueOf(input.card, col) && englishOr(cueOf(input.card, col), other);
+    const notes = [anchor && `Routine: ${anchor}`, cue && `Looks like: ${cue}`].filter(Boolean);
     w.text(`${role}:`, MARGIN, 10.5, { bold: true });
-    w.text(`${columnLabel(input.card, col)}${notes.length ? ` · ${notes.join(" · ")}` : ""}`, MARGIN + 110, 10.5, { maxWidth: w.right - MARGIN - 110 });
+    w.text(`${englishOr(columnLabel(input.card, col), other)}${notes.length ? ` · ${notes.join(" · ")}` : ""}`, MARGIN + 110, 10.5, { maxWidth: w.right - MARGIN - 110 });
     w.y -= 14;
   }
 

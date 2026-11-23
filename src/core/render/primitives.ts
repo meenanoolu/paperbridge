@@ -5,7 +5,8 @@ import {
   idBits,
   idBubbleCenters,
 } from "../layout";
-import type { CardLayout } from "../types";
+import type { CardIcon, CardLayout } from "../types";
+import { estimateTextWidthMm, TEXT_ASCENT, TEXT_DESCENT } from "./measure";
 
 export type Primitive =
   | { kind: "rect"; x: number; y: number; w: number; h: number; fill: "black" | "white" | "band"; grey?: number }
@@ -18,7 +19,13 @@ export type Primitive =
       text: string;
       bold?: boolean;
       anchor?: "start" | "middle" | "end";
-    };
+    }
+  /** A monochrome vector icon in a square box; (x, y) is its top-left corner. */
+  | { kind: "icon"; name: CardIcon; x: number; y: number; sizeMm: number }
+  /** An unfilled rectangle; (x, y, w, h) is the centre line of the stroke. */
+  | { kind: "frame"; x: number; y: number; w: number; h: number; strokeMm: number }
+  /** A solid black bar, e.g. one line of a double underline. */
+  | { kind: "rule"; x: number; y: number; w: number; h: number };
 
 export const BUBBLE_STROKE_MM = 0.5;
 /** Grey level of alternate-row bands (0 black, 1 white). Light enough to never look like a mark. */
@@ -37,6 +44,16 @@ export const COL_NOTE_SIZE_MM = 2.5;
 export const GROUP_TITLE_SIZE_MM = 4.5;
 /** Gap between the column notes and the column label above them. */
 export const NOTE_GAP_MM = 1;
+/** Icon-Anchored mode: icon side before label scale, and the gap between icon and label. */
+export const ICON_SIZE_MM = 6;
+export const ICON_GAP_MM = 2.2;
+/** Highlight frame around a column label: padding to the text, stroke, and the lift that keeps it off the bubbles. */
+export const FRAME_PAD_MM = 0.9;
+export const FRAME_STROKE_MM = 0.6;
+export const HIGHLIGHT_LIFT_MM = 1;
+/** Double underline: bar thickness and the gaps below the text and between the bars. */
+export const RULE_MM = 0.35;
+export const RULE_GAP_MM = 0.4;
 
 /**
  * Everything printed on a card, in card-space millimetres. The SVG and PDF renderers
@@ -112,11 +129,27 @@ export function cardPrimitives(layout: CardLayout): Primitive[] {
         });
       });
     });
-    const colBase = maxNotes ? bubbleTop - maxNotes * noteSize * LINE_HEIGHT - NOTE_GAP_MM : bubbleTop;
+    const highlights = g.colHighlights?.length ? new Set(g.colHighlights) : null;
+    // Highlighted groups lift their labels a little so the frame stays clear of the bubbles.
+    const lift = highlights ? HIGHLIGHT_LIFT_MM : 0;
+    const colBase = (maxNotes ? bubbleTop - maxNotes * noteSize * LINE_HEIGHT - NOTE_GAP_MM : bubbleTop) - lift;
     let maxLines = 1;
     g.cols.forEach((col, j) => {
       const lines = (g.colLabels?.[j] ?? col).split("\n");
       maxLines = Math.max(maxLines, lines.length);
+      if (highlights?.has(j) && g.colHighlightStyle === "underline") {
+        const w = Math.max(...lines.map((t) => estimateTextWidthMm(t, colSize, true)));
+        const x = ox + j * g.pitchMm[0] - w / 2;
+        const y = colBase + TEXT_DESCENT * colSize + RULE_GAP_MM;
+        out.push({ kind: "rule", x, y, w, h: RULE_MM }, { kind: "rule", x, y: y + RULE_MM + RULE_GAP_MM, w, h: RULE_MM });
+      } else if (highlights?.has(j)) {
+        const w = Math.max(...lines.map((t) => estimateTextWidthMm(t, colSize, true)));
+        const top = colBase - (lines.length - 1) * colSize * LINE_HEIGHT - TEXT_ASCENT * colSize - FRAME_PAD_MM;
+        const bottom = colBase + TEXT_DESCENT * colSize + FRAME_PAD_MM;
+        const left = ox + j * g.pitchMm[0] - w / 2 - FRAME_PAD_MM;
+        const half = FRAME_STROKE_MM / 2;
+        out.push({ kind: "frame", x: left - half, y: top - half, w: w + 2 * FRAME_PAD_MM + FRAME_STROKE_MM, h: bottom - top + FRAME_STROKE_MM, strokeMm: FRAME_STROKE_MM });
+      }
       lines.forEach((text, li) => {
         out.push({
           kind: "text",
@@ -129,11 +162,21 @@ export function cardPrimitives(layout: CardLayout): Primitive[] {
         });
       });
     });
+    // Icon-Anchored mode: one row of icons above the tallest label; the group title moves up.
+    let iconLift = 0;
+    if (style.showIcons && g.colIcons?.some(Boolean)) {
+      const size = ICON_SIZE_MM * ck;
+      const bottom = colBase - (maxLines - 1) * colSize * LINE_HEIGHT - TEXT_ASCENT * colSize - ICON_GAP_MM;
+      g.colIcons.forEach((name, j) => {
+        if (name && j < g.cols.length) out.push({ kind: "icon", name, x: ox + j * g.pitchMm[0] - size / 2, y: bottom - size, sizeMm: size });
+      });
+      iconLift = size + ICON_GAP_MM;
+    }
     if (g.title) {
       out.push({
         kind: "text",
         x: ox - g.radiusMm,
-        y: colBase - maxLines * colSize * LINE_HEIGHT - 2,
+        y: colBase - maxLines * colSize * LINE_HEIGHT - 2 - iconLift,
         sizeMm: GROUP_TITLE_SIZE_MM * ck,
         text: g.title,
         bold: true,
@@ -158,7 +201,8 @@ export function cardPrimitives(layout: CardLayout): Primitive[] {
   if (layout.footer) {
     const size = 3.8 * k;
     layout.footer.lines.forEach((text, i) => {
-      out.push({ kind: "text", x: layout.fiducial.insetMm + layout.fiducial.sizeMm + 4, y: layout.footer!.yMm + i * size * 1.4, sizeMm: size, text, bold: style.boldText || undefined });
+      const bold = style.boldText || layout.footer!.boldLines?.includes(i) || undefined;
+      out.push({ kind: "text", x: layout.fiducial.insetMm + layout.fiducial.sizeMm + 4, y: layout.footer!.yMm + i * size * 1.4, sizeMm: size, text, bold });
     });
   }
 

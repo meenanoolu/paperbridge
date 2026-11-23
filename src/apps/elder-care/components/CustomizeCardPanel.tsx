@@ -1,7 +1,10 @@
 import { useEffect, useId, useMemo, useState, type ReactNode } from "react";
 import { renderCardsPdf, renderCardSvg, type PageSize } from "../../../core";
 import { defaultPageSize, downloadBytes } from "../../../shell/components/PrintCard";
+import { Icon } from "../../../shell/components/Icon";
 import { Button, Callout } from "../../../shell/components/ui";
+import { canvasTextImage } from "../../../shell/text-image";
+import { CARD_LANGUAGES, type CardLanguage } from "../i18n";
 import { monthlyPackLayouts, packFileName, packMondays, packTitle, PACK_WEEKS } from "../monthly-pack";
 import { applyPreset, REGIMEN_PRESETS } from "../presets";
 import {
@@ -103,7 +106,7 @@ function MonthlyPack({ settings, dirty }: { settings: CareCardSettings; dirty: b
           onClick={async () => {
             setState({ busy: true, message: "" });
             try {
-              const bytes = await renderCardsPdf(monthlyPackLayouts(settings, page), { title: packTitle(settings) });
+              const bytes = await renderCardsPdf(monthlyPackLayouts(settings, page), { title: packTitle(settings), textImage: canvasTextImage });
               const name = packFileName(settings, page);
               downloadBytes(new Uint8Array(bytes), "application/pdf", name);
               setState({ busy: false, message: `Downloaded ${name} (${PACK_WEEKS} pages).` });
@@ -123,6 +126,51 @@ function MonthlyPack({ settings, dirty }: { settings: CareCardSettings; dirty: b
 }
 
 /**
+ * "Translate card": a globe button that opens a 1-click language choice for the PRINTED card.
+ * Translations are built in and work offline; the dashboard and Doctor Visit PDF stay in English.
+ */
+function TranslatePicker({ value, onPick }: { value: CardLanguage; onPick: (l: CardLanguage) => void }) {
+  const uid = useId();
+  const [open, setOpen] = useState(false);
+  const current = CARD_LANGUAGES.find((l) => l.id === value) ?? CARD_LANGUAGES[0];
+  return (
+    <div className="rounded-xl border-2 border-slate-950 p-4">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={`${uid}-langs`}
+        onClick={() => setOpen((o) => !o)}
+        className="inline-flex min-h-14 items-center gap-3 rounded-xl border-2 border-slate-950 bg-white px-5 py-3 text-lg font-bold hover:bg-slate-100"
+      >
+        <Icon name="globe" className="h-7 w-7" />
+        <span>
+          Translate card: <span lang={current.tag}>{current.native}</span>
+          {current.id !== "en" && current.id !== "other" && <span className="sr-only"> ({current.english})</span>}
+        </span>
+      </button>
+      <p id={`${uid}-hint`} className="mt-2 text-lg text-slate-800">
+        Prints the card's words, day names and instructions in another language, offline. You can still type labels in any
+        script. The dashboard and Doctor Visit PDF stay in English.
+      </p>
+      <div id={`${uid}-langs`} hidden={!open} role="radiogroup" aria-label="Card language" aria-describedby={`${uid}-hint`} className="mt-3 flex flex-wrap gap-2">
+        {CARD_LANGUAGES.map((l) => (
+          <label
+            key={l.id}
+            className={`inline-flex min-h-14 cursor-pointer items-center rounded-xl border-2 border-slate-950 px-4 py-2 text-lg font-bold has-[:focus-visible]:outline-4 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-slate-950 ${
+              value === l.id ? "bg-slate-950 text-white" : "bg-white text-slate-950 hover:bg-slate-100"
+            }`}
+          >
+            <input type="radio" name={`${uid}-lang`} value={l.id} checked={value === l.id} onChange={() => onPick(l.id)} className="sr-only" />
+            <span lang={l.tag}>{l.native}</span>
+            {l.native !== l.english && <span className="ml-2 font-normal">({l.id === "other" ? "any language" : l.english})</span>}
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/**
  * Collapsible "Customize Card" panel. Edits are a draft until Save; the printed card and the
  * dashboard use the saved settings. Only printed text changes, never bubble positions.
  */
@@ -131,8 +179,11 @@ export function CustomizeCardPanel({
   onSave,
   onReset,
   saved,
+  defaultOpen = false,
 }: {
   settings: CareCardSettings;
+  /** Start expanded (on the Print Cards tab it is the main content). */
+  defaultOpen?: boolean;
   onSave: (s: CareCardSettings) => void;
   onReset: () => void;
   /** False if the browser refused to store the settings. */
@@ -153,7 +204,7 @@ export function CustomizeCardPanel({
   const snapped = draft.weekStart && mondayOf(draft.weekStart) !== draft.weekStart ? mondayOf(draft.weekStart) : "";
 
   return (
-    <details className="group rounded-2xl border-2 border-slate-950 bg-white">
+    <details className="group rounded-2xl border-2 border-slate-950 bg-white" open={defaultOpen || undefined}>
       <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 rounded-2xl px-4 py-3 text-xl font-extrabold">
         <span>
           Customize Card
@@ -237,6 +288,39 @@ export function CustomizeCardPanel({
               </div>
             </div>
           </div>
+          <div className="rounded-xl border-2 border-slate-950 p-4">
+            <div className="flex items-start gap-3">
+              <input
+                id={`${uid}-icons`}
+                type="checkbox"
+                checked={!!draft.icons}
+                onChange={(e) => setDraft({ ...draft, icons: e.target.checked })}
+                aria-describedby={`${uid}-icons-hint`}
+                className="mt-1 h-7 w-7 shrink-0 cursor-pointer accent-slate-950"
+              />
+              <div>
+                <label htmlFor={`${uid}-icons`} className="flex cursor-pointer items-center gap-2 text-lg font-bold">
+                  Icon-Anchored Print Mode
+                  <Icon name="sun" className="h-6 w-6" />
+                  <Icon name="moon" className="h-6 w-6" />
+                  <Icon name="drop" className="h-6 w-6" />
+                  <Icon name="alert" className="h-6 w-6" />
+                </label>
+                <p id={`${uid}-icons-hint`} className="text-lg text-slate-800">
+                  Prints a sun, moon, water drop and warning sign above the columns, for readers who rely on pictures more than
+                  words. The circles stay exactly where they are.
+                </p>
+              </div>
+            </div>
+          </div>
+          <TranslatePicker
+            value={draft.language ?? "en"}
+            onPick={(language) => {
+              setDraft({ ...draft, language });
+              const l = CARD_LANGUAGES.find((x) => x.id === language)!;
+              setMessage(`Card language: ${l.english}. Check the preview, then press Save card.`);
+            }}
+          />
           <div role="group" aria-labelledby={`${uid}-presets`} className="rounded-xl border-2 border-slate-950 p-4">
             <p id={`${uid}-presets`} className="text-xl font-extrabold">
               Start from a regimen

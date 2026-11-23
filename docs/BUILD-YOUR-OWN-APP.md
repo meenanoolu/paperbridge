@@ -32,6 +32,13 @@ Rules for the arguments:
 | `interpret.ts` | a pure function `(scan: SuccessfulScan) => Report` | What the marks mean: answers, scores, alerts. No DOM, no clock, no randomness, so it is unit tested directly. |
 | `App.tsx` | `appMeta`, a default component | The page: `<ScanWorkbench>` with your layouts, samples, and a `renderResult` that shows the report. |
 
+`ScanWorkbench` gives every app the same 3 tabs. **Scan & Verify** is built in (Scan Any Card,
+samples, webcam/upload, your `renderResult`, review). Pass `printTab` for extra print options
+(below the built-in 1-Week Card download), `historyTab` for saved results and exports, `tabLabels`
+to rename a tab, and `stressTest={{ filled: [...] }}` (a sample's marked bubble keys) to add the
+Test Decoder Resilience drawer. Print any layout variant with `PrintLayoutButton` from
+`src/shell/components/PrintCard.tsx`; text in any script prints.
+
 `appMeta.layouts` (set by the scaffolder) lets **Scan Any Card** route photos of your card to
 your app. Add an optional `appMeta.batch` (`BatchAdapter` in `src/shell/batch.ts`) to let a
 batch scan bulk-save your results: it names the per-row field, validates it, and saves the rows.
