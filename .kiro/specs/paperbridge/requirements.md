@@ -246,3 +246,20 @@ PaperBridge turns a printed bubble card into structured data using deterministic
 
 ## R42. Visual README (Phase 8)
 1. THE README SHALL open with the tagline, live demo, Crew App repo, blog and X links, and a 3-image grid; a "Built with Kiro" table linking specs, steering, hooks, MCP, the scaffolder and the Crew App; and Featured applications giving both apps equal billing with a 1-line outcome and a screenshot each.
+
+## R43. Shared Print Cards workspace (Phase 9)
+1. ScanWorkbench's Print Cards tab SHALL render the shared controls for every app: Translate card (the languages the app offers), High-Visibility Print Mode, Icon-Anchored Print Mode (only when the layouts declare column icons), problems that block printing, the card download (PDF and SVG) and an optional multi-sheet pack.
+2. Language lists, BCP 47 tags, High-Visibility style, printed-text helpers (clean text, unprintable characters, grapheme-safe wrapping), `localizeLayout` and the pack builder SHALL live in `src/core/`. The canvas renderer for non-Latin text SHALL stay in `src/shell/`, because the core steering forbids DOM APIs outside `src/core/capture/`.
+3. Study Bridge SHALL print its sheet in English, Telugu, Hindi and Spanish and offer a 4-Week Unit Quiz Pack; Elder Care SHALL use the same controls for its card and its 4-Week Monthly Pack, saving the options with its card settings. English output SHALL be unchanged.
+
+## R44. One adaptive-card slot (Phase 9)
+1. Apps MAY return an `adaptiveCard(scan)` spec (heading, button label, layouts, file name, description). THE shell SHALL render it with `AdaptiveCardPanel`, which Elder Care's history also uses. Elder Care's Print Adapted Next-Week Card and Study Bridge's Print Due Review Card SHALL both go through it.
+
+## R45. Skeleton Home and top-right view tabs (Phase 9)
+1. THE header SHALL show Skeleton Home, Elder Care and Study Bridge (and any scaffolded app) as top-right links styled as tabs, with `aria-current="page"` on the open view. An empty or unknown hash SHALL open Skeleton Home.
+2. Skeleton Home SHALL offer **Run Mixed Batch (Elder Care + Study Bridge)**, showing for each decoded card its X-Ray, its unwarped view, its status and the app it was routed to, with a button to open it; then 3 equal domain cards (Elder Care Bridge, Study Bridge, Scaffold App #3 with the command and what it inherits); then Scan Any Card.
+3. THE webcam viewfinder SHALL show 4 target squares where the printed corner markers should sit, green once all 4 are locked.
+
+## R46. Scaffolder parity and a short README (Phase 9)
+1. `npm run create-app` SHALL write `print.ts` (translations for the template's words, column icons, a 4-sheet pack) and pass it to ScanWorkbench, so a new app inherits multilingual print, packs, X-Ray, audio, Read Aloud, Copy Quick Update, auto-route and batch save.
+2. THE root README SHALL stay under 150 lines; longer material SHALL live in `docs/DETAILS.md`. Markdown and UI copy SHALL not use em dashes.

@@ -137,3 +137,11 @@ Requirement references use the numbering in `requirements.md`.
   - [x] 21.3 `appMeta.accent` tokens; `SkeletonGuide` dialog with `dialogKey` _(R41)_
   - [x] 21.4 README hero, image grid, Built with Kiro table, Featured applications; new screenshots _(R42)_
   - [x] 21.5 Tests (scenarios incl. the 2-app batch, pipeline, unwarp, accents contrast, dialog keys), browser checks, axe-core 0 AA / 0 AAA on 4 states _(R9.2)_
+
+- [x] 22. Phase 9: skeleton parity (branch `refactor/skeleton-parity`)
+  - [x] 22.1 Core text, print-options and pack modules; Elder Care re-exports and uses them _(R43.2)_
+  - [x] 22.2 `print-slot.ts`, `PrintWorkspace`; Elder Care print slot; Study Bridge translations and unit quiz pack _(R43)_
+  - [x] 22.3 `AdaptiveCardPanel` + `adaptiveCard` slot; Elder Care and Study Bridge specs _(R44)_
+  - [x] 22.4 Skeleton Home, view tabs, `viewFromHash`, webcam corner targets _(R45)_
+  - [x] 22.5 Scaffolder `print.ts`; README under 150 lines and `docs/DETAILS.md` _(R46)_
+  - [x] 22.6 Tests, browser checks (Telugu quiz PDF, unit pack, mixed batch on Home), axe-core 0 AA / 0 AAA on 5 states
