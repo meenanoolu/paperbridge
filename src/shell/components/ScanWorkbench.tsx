@@ -7,12 +7,14 @@ import { pipelineSteps } from "../pipeline";
 import { DecodePipeline } from "./DecodePipeline";
 import { JudgeDemoStrip } from "./JudgeDemoStrip";
 import { RawUnwarpView } from "./RawUnwarpView";
+import { AdaptiveCardPanel, type AdaptiveCardSpec } from "./AdaptiveCard";
+import { PrintWorkspace } from "./PrintWorkspace";
+import { createPrintSlot, type PrintSlot } from "../print-slot";
 import { showWorkspaceTab, useWorkspaceTab, type WorkspaceTab } from "../workspace-tabs";
 import { AutoRoutePanel } from "./AutoRoutePanel";
 import { DECODE_ERROR_TEXT, useScanner, type CompletedScan, type ReviewedScan } from "../scan";
 import { DecodeFacts } from "./DecodeFacts";
 import { Icon, type IconName } from "./Icon";
-import { PrintCard } from "./PrintCard";
 import { defaultDescribe, ReviewPanel, type DescribeBubble } from "./ReviewPanel";
 import { SamplePanel, type SampleCard } from "./SamplePanel";
 import { ScanPreview } from "./ScanPreview";
@@ -42,8 +44,12 @@ export interface WorkbenchProps {
   printLayouts?: CardLayout[];
   /** Extra panel in the "use your own card" section of Scan & Verify, e.g. an answer key. */
   setup?: ReactNode;
-  /** Print Cards tab content below the blank-card download, e.g. card customization and packs. */
+  /** Extra Print Cards tab content below the shared print controls, e.g. card customization. */
   printTab?: ReactNode;
+  /** The shared Print Cards controls (language, High-Visibility, icons, packs). Defaults to `printLayouts` with High-Visibility. */
+  print?: PrintSlot;
+  /** Optional "next card" built from this scan (e.g. an adapted next-week card or a due review sheet). */
+  adaptiveCard?: (scan: ReviewedScan) => AdaptiveCardSpec | null | undefined;
   /** History & Export tab content, e.g. a multi-week trend or a class sheet. */
   historyTab?: ReactNode;
   /** Per-app tab names, e.g. { history: "Class Sheet & Export" }. */
@@ -81,7 +87,10 @@ export function ScanWorkbench({
   stressTest,
   spokenSummary,
   shareText,
+  print,
+  adaptiveCard,
 }: WorkbenchProps) {
+  const fallbackPrint = useMemo(() => createPrintSlot({ layouts: printLayouts ?? layouts }), [printLayouts, layouts]);
   const [audioCues, setAudioCues] = usePersistentState(AUDIO_CUES_KEY, parseAudioCues, true);
   const [xray, setXray] = useState(false);
   const [unwarp, setUnwarp] = useState(false);
@@ -268,6 +277,10 @@ export function ScanWorkbench({
               </p>
             )}
             {reviewed && renderResult(reviewed)}
+            {reviewed && adaptiveCard && (() => {
+              const spec = adaptiveCard(reviewed);
+              return spec ? <AdaptiveCardPanel spec={spec} /> : null;
+            })()}
             {reviewed && <ResultVoice spoken={spokenSummary?.(reviewed)} share={shareText?.(reviewed)} />}
             <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
               <Card title="What the decoder saw">
@@ -319,15 +332,7 @@ export function ScanWorkbench({
 
   const printPanel = (
     <>
-      <section aria-labelledby={`${layouts[0].id}-print-week`} className="rounded-2xl border-2 border-slate-300 bg-white p-5">
-        <h2 id={`${layouts[0].id}-print-week`} className="text-2xl font-extrabold">
-          Print a blank card
-        </h2>
-        <p className="mt-1 text-lg text-slate-800">One page, A4 or US Letter. Any version of the card scans the same way.</p>
-        <div className="mt-4">
-          <PrintCard layouts={printLayouts ?? layouts} label="Download 1-Week Card (PDF)" />
-        </div>
-      </section>
+      <PrintWorkspace slot={print ?? fallbackPrint} storageKey={`${layouts[0].id}.print-options`} />
       {printTab}
     </>
   );

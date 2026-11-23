@@ -39,6 +39,12 @@ to rename a tab, and `stressTest={{ filled: [...] }}` (a sample's marked bubble 
 Test Decoder Resilience drawer. Print any layout variant with `PrintLayoutButton` from
 `src/shell/components/PrintCard.tsx`; text in any script prints.
 
+**Print Cards** is shared too: pass `print={createPrintSlot({ layouts, text, pack })}` (see the
+generated `print.ts`) and the tab gets Translate card, any-script PDF text, High-Visibility,
+Icon-Anchored mode (when your layout sets `colIcons`) and a multi-sheet pack. `text` maps your
+printed English words to each language. Return an `adaptiveCard(scan)` spec to offer a "next
+card" built from a scan, rendered by the shell's `AdaptiveCardPanel`.
+
 Two optional result slots add shell buttons: `spokenSummary={(scan) => ({ text, lang })}` adds
 **Read Aloud** (offline `speechSynthesis`, voice matched to `lang`), and
 `shareText={(scan) => "..."}` adds **Copy Quick Update**. The **Optical X-Ray** toggle and the

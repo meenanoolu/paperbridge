@@ -23,7 +23,7 @@ export function downloadBytes(bytes: BlobPart, type: string, name: string) {
   download(bytes, type, name);
 }
 
-export function PrintCard({ layouts, label = "Print blank card (PDF)" }: { layouts: CardLayout[]; label?: string }) {
+export function PrintCard({ layouts, label = "Print blank card (PDF)", disabled = false }: { layouts: CardLayout[]; label?: string; disabled?: boolean }) {
   const [page, setPage] = useState<string>(defaultPageSize);
   const [busy, setBusy] = useState(false);
   const layout = layouts.find((l) => l.page === page) ?? layouts[0];
@@ -54,10 +54,12 @@ export function PrintCard({ layouts, label = "Print blank card (PDF)" }: { layou
           </label>
         ))}
       </fieldset>
-      <Button icon="printer" onClick={pdf} disabled={busy}>
+      <Button icon="printer" onClick={pdf} disabled={busy || disabled}>
         {busy ? "Preparing PDF..." : label}
       </Button>
-      <Button onClick={svg}>SVG</Button>
+      <Button onClick={svg} disabled={disabled}>
+        SVG
+      </Button>
     </div>
   );
 }

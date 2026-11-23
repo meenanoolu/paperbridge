@@ -11,7 +11,8 @@ import { gradeSheet, readMarks } from "./grade";
 import { describeAnswerBubble, STUDY_LAYOUTS } from "./layout";
 import { STUDY_SAMPLES } from "./samples";
 import { STUDY_SAMPLE_SPECS } from "./samples/specs";
-import { DueReviewButton } from "./components/DueReviewButton";
+import { dueReviewSpec } from "./due-review";
+import { STUDY_PRINT } from "./print";
 import { studyShareText, studySpokenSummary } from "./voice";
 
 /** A sample sheet's marks, for the Test Decoder Resilience drawer. */
@@ -51,6 +52,8 @@ export function StudyBridgeApp() {
           return `Score ${g.scorePct}%, ${g.correct} of ${g.total} correct. ${g.weakTopics.length ? `Weak topics: ${g.weakTopics.join(", ")}.` : "No weak topics."}`;
         }}
         tabLabels={{ history: "Class Sheet & Export" }}
+        print={STUDY_PRINT}
+        adaptiveCard={(scan) => dueReviewSpec(gradeSheet(scan.result, answerKey, scan.scannedAt))}
         stressTest={STRESS_MARKS}
         spokenSummary={(scan) => studySpokenSummary(gradeSheet(scan.result, answerKey, scan.scannedAt))}
         shareText={(scan) => studyShareText(gradeSheet(scan.result, answerKey, scan.scannedAt))}
@@ -58,7 +61,6 @@ export function StudyBridgeApp() {
         renderResult={(scan) => (
           <>
             <StudyResults report={gradeSheet(scan.result, answerKey, scan.scannedAt)} quiz={answerKey} />
-            <DueReviewButton report={gradeSheet(scan.result, answerKey, scan.scannedAt)} />
             <AddToClass
               key={scan.scannedAt.toISOString()}
               roster={roster}

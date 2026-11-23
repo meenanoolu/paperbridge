@@ -26,6 +26,8 @@ export interface AppMeta {
   /** URL hash and folder name, e.g. "elder-care". */
   id: string;
   label: string;
+  /** Shorter name for the header tabs, e.g. "Elder Care". Defaults to `label`. */
+  shortLabel?: string;
   icon: IconName;
   /** Lower comes first in the switcher. */
   order?: number;
@@ -73,3 +75,32 @@ export function appFromHash(hash: string, apps: RegisteredApp[] = APPS): Registe
   const id = hash.replace(/^#/, "");
   return apps.find((a) => a.id === id) ?? apps[0];
 }
+
+// ---------------------------------------------------------------------------
+// Top-level views: Skeleton Home (the default landing page) and one per app
+// ---------------------------------------------------------------------------
+
+export const HOME_ID = "home";
+
+export type View = { kind: "home" } | { kind: "app"; app: RegisteredApp };
+
+/** "#elder-care" opens that app; "", "#home" or anything unknown opens Skeleton Home. */
+export function viewFromHash(hash: string, apps: RegisteredApp[] = APPS): View {
+  const id = hash.replace(/^#/, "");
+  const app = apps.find((a) => a.id === id);
+  return app ? { kind: "app", app } : { kind: "home" };
+}
+
+export interface NavItem {
+  id: string;
+  label: string;
+  icon: IconName;
+  accent?: AccentTheme;
+}
+
+/** Header tabs, in order: Skeleton Home, then every registered app. */
+export function navItems(apps: RegisteredApp[] = APPS): NavItem[] {
+  return [{ id: HOME_ID, label: "Skeleton Home", icon: "sparkle" }, ...apps.map((a) => ({ id: a.id, label: a.shortLabel ?? a.label, icon: a.icon, accent: a.accent }))];
+}
+
+export const viewId = (v: View) => (v.kind === "home" ? HOME_ID : v.app.id);

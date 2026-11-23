@@ -100,6 +100,8 @@ function card(page: PageSize): CardLayout {
         rowLabels: ITEMS.map((i) => ITEM_LABELS[i]),
         cols: [...CHOICES],
         colLabels: CHOICES.map((c) => CHOICE_LABELS[c]),
+        // Pictures above the columns in Icon-Anchored print mode (Print Cards tab).
+        colIcons: ["check", "alert"],
         originMm: [130, FIRST_ROW_Y],
         pitchMm: [30, ROW_PITCH],
         radiusMm: 6,
@@ -183,6 +185,7 @@ import { Callout, Card, StatusBadge, type Tone } from "../../shell/components/ui
 import { localBatchAdapter, savedAsScan, type LocalBatchOptions } from "../../shell/local-batch";
 import { interpret, type ItemStatus, type Report } from "./interpret";
 import { CHOICE_LABELS, describeBubble, LAYOUT, LAYOUTS } from "./layout";
+import { PRINT } from "./print";
 import { SAMPLES } from "./samples";
 
 /**
@@ -275,6 +278,7 @@ export function ${comp}() {
           <SaveScanForm key={scan.scannedAt.toISOString()} options={SAVED} scan={scan.result} scannedAt={scan.scannedAt} />
         </>
       )}
+      print={PRINT}
       spokenSummary={(scan) => spokenSummary(interpret(scan.result))}
       shareText={(scan) => shareText(interpret(scan.result))}
       historyTab={<SavedScansSection options={SAVED} summarize={(e) => { const r = interpret(savedAsScan(e, LAYOUT)); return \`\${r.answered} of \${r.total} answered\`; }} />}
@@ -287,6 +291,57 @@ export function ${comp}() {
 // \`batch\` lets it bulk-save a stack of them into Saved Cards.
 export const appMeta: AppMeta = { id: ${q(slug)}, label: ${q(name)}, icon: "sparkle", order: 100, layouts: LAYOUTS, batch: localBatchAdapter(SAVED) };
 export default ${comp};
+`;
+}
+
+function printTs() {
+  return `import { createPrintSlot, type PrintText } from "../../shell/print-slot";
+import { LAYOUTS } from "./layout";
+
+/**
+ * Printed words in each card language, by exact match. The shared Print Cards tab adds the
+ * Translate card picker, any-script PDF text, High-Visibility and Icon-Anchored modes, and a
+ * 4-sheet pack. Add a row here when you change the words in layout.ts.
+ */
+export const PRINT_TEXT: PrintText = {
+  te: {
+    "Fill one circle per row with a dark pen.": "ప్రతి వరుసకు ఒక వృత్తం నింపండి.",
+    Checklist: "జాబితా",
+    Yes: "అవును",
+    No: "కాదు",
+    "Fill one circle per row. Leave a row empty if it does not apply.": "ప్రతి వరుసకు ఒక వృత్తం నింపండి. వర్తించకపోతే ఖాళీగా వదలండి.",
+  },
+  hi: {
+    "Fill one circle per row with a dark pen.": "हर पंक्ति में एक गोला भरें।",
+    Checklist: "सूची",
+    Yes: "हाँ",
+    No: "नहीं",
+    "Fill one circle per row. Leave a row empty if it does not apply.": "हर पंक्ति में एक गोला भरें। लागू न हो तो खाली छोड़ें।",
+  },
+  es: {
+    "Fill one circle per row with a dark pen.": "Rellene un círculo por fila.",
+    Checklist: "Lista",
+    Yes: "Sí",
+    No: "No",
+    "Fill one circle per row. Leave a row empty if it does not apply.": "Un círculo por fila. Deje vacía la fila que no aplique.",
+  },
+};
+
+export const PRINT = createPrintSlot({
+  layouts: LAYOUTS,
+  text: PRINT_TEXT,
+  pack: {
+    heading: "Print a set",
+    label: "Download 4-Sheet Pack",
+    sheets: 4,
+    sheetTitles: (i, n, lang) => {
+      const word = (lang === "te" || lang === "hi" || lang === "es" ? PRINT_TEXT[lang]?.Checklist : undefined) ?? "Checklist";
+      return [\`\${word} \${i}/\${n}\`, \`\${i}/\${n}\`];
+    },
+    fileStem: "pack",
+    pdfTitle: "4-sheet pack",
+  },
+});
 `;
 }
 
@@ -427,6 +482,7 @@ export function createApp({ slug, displayName, appsDir = DEFAULT_APPS_DIR }) {
     "layout.ts": layoutTs({ slug, name }),
     "interpret.ts": interpretTs({ name }),
     "App.tsx": appTsx({ slug, name }),
+    "print.ts": printTs(),
     "samples/specs.ts": samplesSpecsTs(),
     "samples/index.ts": samplesIndexTs(),
     "__tests__/layout.test.ts": layoutTestTs({ slug, name }),

@@ -4,8 +4,8 @@ import { Icon } from "../../../shell/components/Icon";
 import { Button, Callout, Card, StatusBadge } from "../../../shell/components/ui";
 import type { CareCardSettings } from "../card-settings";
 import { SAMPLE_CARD, SAMPLE_PATIENT } from "../sample-history";
-import { nextCardMonday } from "../adaptive";
-import { AdaptedCardButton } from "./AdaptedCardButton";
+import { AdaptiveCardPanel } from "../../../shell/components/AdaptiveCard";
+import { adaptedCardSpec, nextCardMonday } from "../adaptive";
 import { formatDoctorSummary, historyPatterns, patientsIn, trend, weekLabel, weeksFor, type WeekEntry } from "../history";
 import { ADHERENCE_TARGET_PCT } from "../interpret";
 
@@ -213,11 +213,14 @@ export function HistorySection({
                       </li>
                     ))}
                   </ul>
-                  <AdaptedCardButton
-                    card={selected === SAMPLE_PATIENT ? SAMPLE_CARD : card}
-                    patterns={patterns}
-                    weekStart={nextCardMonday([...(selected === SAMPLE_PATIENT ? [] : [card.weekStart]), ...weeks.map((w) => w.weekStart ?? "")], now())}
-                  />
+                  {(() => {
+                    const spec = adaptedCardSpec(
+                      selected === SAMPLE_PATIENT ? SAMPLE_CARD : card,
+                      patterns,
+                      nextCardMonday([...(selected === SAMPLE_PATIENT ? [] : [card.weekStart]), ...weeks.map((w) => w.weekStart ?? "")], now()),
+                    );
+                    return spec ? <AdaptiveCardPanel spec={spec} /> : null;
+                  })()}
                 </div>
               )}
               <p className="mb-3 text-lg text-slate-800">

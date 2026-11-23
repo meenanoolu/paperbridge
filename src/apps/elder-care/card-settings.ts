@@ -1,4 +1,19 @@
-import { COL_LABEL_SIZE_MM, COL_NOTE_SIZE_MM, estimateTextWidthMm as coreTextWidth, type CardLayout, type PrintStyle } from "../../core";
+import {
+  COL_LABEL_SIZE_MM,
+  COL_NOTE_SIZE_MM,
+  estimateTextWidthMm as coreTextWidth,
+  graphemes,
+  HIGH_VISIBILITY_STYLE,
+  isLatinText as latin,
+  printableText,
+  unprintableAnyScript,
+  unprintableLatin as unprintableChars,
+  wrapToWidth,
+  type CardLayout,
+} from "../../core";
+
+// Shared with every app (src/core); re-exported for existing imports.
+export { HIGH_VISIBILITY_STYLE, printableText, unprintableAnyScript, unprintableChars, wrapToWidth };
 import { isCardLanguage, languagePack, numericRange, translateAnchor, translateLabel, type CardLanguage } from "./i18n";
 import { CARE_COLS, DAYS, ELDER_LAYOUTS } from "./layout";
 
@@ -41,16 +56,6 @@ export const NOTE_MAX_LINES = 2;
  */
 export const COLUMN_TEXT_MM = 25.6;
 
-/** High-visibility print style. Bubble positions, borders and interiors are unchanged. */
-/**
- * High-visibility print style. Bubble positions, borders and interiors are unchanged.
- * Day labels are 20% larger and everything prints bold. Column labels keep the standard size:
- * they already fill the 26 mm column, and larger type would split medication names mid-word.
- * Bands at 0.90 (standard 0.93): visibly stronger, while faint marks on shaded rows still read
- * as unclear rather than blank (see print-modes.test.ts).
- */
-export const HIGH_VISIBILITY_STYLE: PrintStyle = { boldText: true, bandGrey: 0.9, rowLabelScale: 1.2, colLabelScale: 1 };
-
 export const DEFAULT_LABELS: Record<CareCol, string> = {
   am: "Morning Meds",
   pm: "Night Meds",
@@ -74,35 +79,6 @@ export const LABEL_MAX_LINES = 3;
 
 const DAY_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-/**
- * Text the printed card can show. The PDF uses standard fonts (Latin-1), so typographic
- * dashes and quotes are mapped to plain ones and control characters are removed.
- */
-export function printableText(s: string): string {
-  return s
-    .replace(/[\u2012-\u2015\u2212]/g, "-")
-    .replace(/[\u2018\u2019\u201A\u2032]/g, "'")
-    .replace(/[\u201C\u201D\u201E\u2033]/g, '"')
-    .replace(/\u2026/g, "...")
-    .replace(/[\u0000-\u001f\u007f]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-/** Characters the PDF fonts cannot draw (they would print as "?"). */
-export function unprintableChars(s: string): string[] {
-  return [...new Set([...printableText(s)].filter((c) => !/[\x20-\x7e\xa0-\xff]/.test(c)))];
-}
-
-/**
- * With a non-English card language, text in any script prints (as an image the browser draws
- * with system fonts). Only symbols that would not print as plain black text are refused, such
- * as emoji and private-use characters.
- */
-export function unprintableAnyScript(s: string): string[] {
-  return [...new Set([...printableText(s)].filter((c) => !/[\p{L}\p{M}\p{N}\p{P}\p{Zs}\p{Sm}\p{Sc}\u200c\u200d\xa0-\xff]/u.test(c)))];
-}
 
 /** Whether the settings print through the any-script path (a non-English card language). */
 export const allowsAnyScript = (s: CareCardSettings) => !!s.language && s.language !== "en";
@@ -135,13 +111,6 @@ export function fitNameToHeader(name: string): string {
   return `${n}...`;
 }
 
-const latin = (w: string) => /^[\x20-\x7e\xa0-\xff]*$/.test(w);
-const segmenter = typeof Intl !== "undefined" && "Segmenter" in Intl ? new Intl.Segmenter(undefined, { granularity: "grapheme" }) : null;
-/** User-perceived characters: a Telugu or Hindi syllable with its vowel signs is one unit and is never split. */
-function graphemes(w: string): string[] {
-  return latin(w) || !segmenter ? [...w] : [...segmenter.segment(w)].map((g) => g.segment);
-}
-
 /** Word-wrap a label to the column. Long words are split. Returns null if it needs too many lines. */
 export function wrapLabel(text: string, perLine = LABEL_CHARS_PER_LINE, maxLines = LABEL_MAX_LINES): string[] | null {
   const words = printableText(text)
@@ -157,35 +126,6 @@ export function wrapLabel(text: string, perLine = LABEL_CHARS_PER_LINE, maxLines
   for (const w of words) {
     const last = lines[lines.length - 1];
     if (last !== undefined && len(last) + 1 + len(w) <= perLine) lines[lines.length - 1] = `${last} ${w}`;
-    else lines.push(w);
-  }
-  if (lines.length === 0) return null;
-  return lines.length <= maxLines ? lines : null;
-}
-
-/** Word-wrap to a printed width (estimated). Long words are split. Null if it needs more than `maxLines`. */
-export function wrapToWidth(text: string, sizeMm: number, widthMm: number, maxLines: number, bold = false): string[] | null {
-  const fits = (t: string) => coreTextWidth(t, sizeMm, bold) <= widthMm;
-  const words: string[] = [];
-  for (const w of printableText(text).split(" ").filter(Boolean)) {
-    if (fits(w)) {
-      words.push(w);
-      continue;
-    }
-    let part = "";
-    for (const c of graphemes(w)) {
-      if (part && !fits(part + c)) {
-        words.push(part);
-        part = "";
-      }
-      part += c;
-    }
-    if (part) words.push(part);
-  }
-  const lines: string[] = [];
-  for (const w of words) {
-    const last = lines[lines.length - 1];
-    if (last !== undefined && fits(`${last} ${w}`)) lines[lines.length - 1] = `${last} ${w}`;
     else lines.push(w);
   }
   if (lines.length === 0) return null;

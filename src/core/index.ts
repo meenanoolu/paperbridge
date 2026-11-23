@@ -75,6 +75,20 @@ export function readingsByKey(result: ScanResult): Map<string, BubbleReading> {
   return map;
 }
 
+export { graphemes, isLatinText, printableText, unprintableAnyScript, unprintableLatin, wrapToWidth } from "./text";
+export {
+  applyPrintOptions,
+  hasColumnIcons,
+  HIGH_VISIBILITY_STYLE,
+  isPrintLanguage,
+  localizeLayout,
+  PRINT_LANGUAGE_TAGS,
+  PRINT_LANGUAGES,
+  type PrintLanguage,
+  type PrintLanguageOption,
+  type PrintOptions,
+} from "./print-options";
+export { buildPack, firstFitting, withGroupTitle } from "./pack";
 export {
   checkLayout,
   checkPrintedText,

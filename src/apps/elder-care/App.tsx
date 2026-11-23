@@ -4,7 +4,7 @@ import { ScanWorkbench } from "../../shell/components/ScanWorkbench";
 import { Button } from "../../shell/components/ui";
 import type { ReviewedScan } from "../../shell/scan";
 import { usePersistentState } from "../../shell/usePersistentState";
-import { columnLabel, customizedElderLayouts, DEFAULT_CARE_SETTINGS, parseCareSettings } from "./card-settings";
+import { columnLabel, DEFAULT_CARE_SETTINGS, parseCareSettings } from "./card-settings";
 import { CareDashboard } from "./components/CareDashboard";
 import { CustomizeCardPanel } from "./components/CustomizeCardPanel";
 import { HistorySection } from "./components/HistorySection";
@@ -14,8 +14,8 @@ import { describeCareBubble, ELDER_LAYOUTS } from "./layout";
 import type { DoseLabels } from "./patterns";
 import { ELDER_SAMPLES } from "./samples";
 import { sampleHistory } from "./sample-history";
-import { nextCardMonday } from "./adaptive";
-import { AdaptedCardButton } from "./components/AdaptedCardButton";
+import { adaptedCardSpec, nextCardMonday } from "./adaptive";
+import { elderPrintSlot } from "./print";
 import { ThisWeekDoctorPdf } from "./components/ThisWeekDoctorPdf";
 import { ELDER_SAMPLE_SPECS } from "./samples/specs";
 import { alertCardLanguage, elderShareText, elderSpokenSummary } from "./voice";
@@ -62,7 +62,8 @@ export function ElderCareApp() {
   const [card, saveCard, resetCard, cardSaved] = usePersistentState(CARE_SETTINGS_KEY, parseCareSettings, DEFAULT_CARE_SETTINGS);
   const [history, setHistory, clearHistory] = usePersistentState(HISTORY_KEY, parseHistory, NO_WEEKS);
   const saveWeek = useCallback((e: WeekEntry) => setHistory(addWeek(history, e).list), [history, setHistory]);
-  const printLayouts = useMemo(() => customizedElderLayouts(card), [card]);
+  // Language, High-Visibility, icons and the 4-week pack live in the shared Print Cards tab; they are saved with the card.
+  const printSlot = useMemo(() => elderPrintSlot(card, (next) => saveCard(next)), [card, saveCard]);
   const doseLabels = useMemo<DoseLabels>(() => ({ Morning: columnLabel(card, "am"), Night: columnLabel(card, "pm") }), [card]);
   const habitLabel = columnLabel(card, "water");
   const labels = useMemo(
@@ -84,7 +85,14 @@ export function ElderCareApp() {
         title="Elder Care Bridge"
         tagline="A large-print weekly paper card for medication and symptoms. No smartphone or login for the person filling it in. Caregivers get adherence, missed doses, and symptom flags from one photo."
         layouts={ELDER_LAYOUTS}
-        printLayouts={printLayouts}
+        print={printSlot}
+        adaptiveCard={(scan) =>
+          adaptedCardSpec(
+            card,
+            interpretCareCard(scan.result, { doseLabels, habitLabel }).patterns,
+            nextCardMonday([card.weekStart, ...history.filter((h) => h.patientName === card.patientName).map((h) => h.weekStart ?? "")], scan.scannedAt),
+          )
+        }
         printTab={<CustomizeCardPanel settings={card} onSave={saveCard} onReset={resetCard} saved={cardSaved} defaultOpen />}
         historyTab={
           <HistorySection history={history} currentPatient={card.patientName} card={card} onClear={clearHistory} onLoadSample={() => setHistory(sampleHistory(new Date()))} />
@@ -114,13 +122,6 @@ export function ElderCareApp() {
               scannedAt={scan.scannedAt}
               alert={alertFor(scan, doseLabels, habitLabel, cardLanguage)}
               card={card}
-              adapt={
-                <AdaptedCardButton
-                  card={card}
-                  patterns={report.patterns}
-                  weekStart={nextCardMonday([card.weekStart, ...history.filter((h) => h.patientName === card.patientName).map((h) => h.weekStart ?? "")], scan.scannedAt)}
-                />
-              }
               actions={
                 <div className="space-y-3">
                   <SaveWeek
@@ -143,6 +144,7 @@ export function ElderCareApp() {
 export const appMeta: AppMeta = {
   id: "elder-care",
   label: "Elder Care Bridge",
+  shortLabel: "Elder Care",
   icon: "heart",
   order: 1,
   layouts: ELDER_LAYOUTS,
