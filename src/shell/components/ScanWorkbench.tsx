@@ -1,7 +1,10 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { CardLayout } from "../../core";
 import { applyManualOverrides, countActiveOverrides, NO_OVERRIDES, setOverride, unclearBubbles, type ManualOverrides } from "../overrides";
+import { RouteContext } from "../route-context";
 import { takeRoutedScan, useRoutedScan } from "../routed-scan";
+import { showWorkspaceTab, useWorkspaceTab, type WorkspaceTab } from "../workspace-tabs";
+import { AutoRoutePanel } from "./AutoRoutePanel";
 import { DECODE_ERROR_TEXT, useScanner, type CompletedScan, type ReviewedScan } from "../scan";
 import { DecodeFacts } from "./DecodeFacts";
 import { Icon, type IconName } from "./Icon";
@@ -9,6 +12,8 @@ import { PrintCard } from "./PrintCard";
 import { defaultDescribe, ReviewPanel, type DescribeBubble } from "./ReviewPanel";
 import { SamplePanel, type SampleCard } from "./SamplePanel";
 import { ScanPreview } from "./ScanPreview";
+import { StressLab } from "./StressLab";
+import { WorkspaceTabs } from "./WorkspaceTabs";
 import { WebcamScanner } from "./WebcamScanner";
 import { Button, Callout, Card, StatusBadge } from "./ui";
 
@@ -28,8 +33,16 @@ export interface WorkbenchProps {
   announce?: (scan: ReviewedScan) => string;
   /** Card variants offered for printing. Defaults to `layouts`. Must share `layouts`' bubble geometry. */
   printLayouts?: CardLayout[];
-  /** Extra panel in the "use your own card" section, e.g. card customization or an answer key. */
+  /** Extra panel in the "use your own card" section of Scan & Verify, e.g. an answer key. */
   setup?: ReactNode;
+  /** Print Cards tab content below the blank-card download, e.g. card customization and packs. */
+  printTab?: ReactNode;
+  /** History & Export tab content, e.g. a multi-week trend or a class sheet. */
+  historyTab?: ReactNode;
+  /** Per-app tab names, e.g. { history: "Class Sheet & Export" }. */
+  tabLabels?: Partial<Record<WorkspaceTab, string>>;
+  /** Known marks of a sample card, for the "Test Decoder Resilience" drawer. */
+  stressTest?: { filled: string[] };
   /** Plain-language name of a bubble for the review list and screen readers, e.g. "Wednesday water". */
   describeBubble?: DescribeBubble;
 }
@@ -38,7 +51,26 @@ const prefersReducedMotion = () =>
   typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 /** Shared page frame: sample panel first, then own-card options, then the decoded result. */
-export function ScanWorkbench({ icon, title, tagline, layouts, samples, steps, renderResult, onScan, announce, describeBubble = defaultDescribe, printLayouts, setup }: WorkbenchProps) {
+export function ScanWorkbench({
+  icon,
+  title,
+  tagline,
+  layouts,
+  samples,
+  steps,
+  renderResult,
+  onScan,
+  announce,
+  describeBubble = defaultDescribe,
+  printLayouts,
+  setup,
+  printTab,
+  historyTab,
+  tabLabels,
+  stressTest,
+}: WorkbenchProps) {
+  const tab = useWorkspaceTab();
+  const onRoute = useContext(RouteContext);
   const { state, scanUrl, scanFile, scanFrame, loadScan } = useScanner(layouts);
   const routed = useRoutedScan();
   useEffect(() => {
@@ -74,6 +106,8 @@ export function ScanWorkbench({ icon, title, tagline, layouts, samples, steps, r
 
   useEffect(() => {
     if (!scan || lastScrolled.current === scan) return;
+    // Every new scan is shown on Scan & Verify.
+    showWorkspaceTab("scan");
     lastScrolled.current = scan;
     results.current?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" });
   }, [scan]);
@@ -96,18 +130,21 @@ export function ScanWorkbench({ icon, title, tagline, layouts, samples, steps, r
               : ""
           : "";
 
-  return (
-    <div className="space-y-8">
-      <header className="flex items-start gap-4">
-        <span className="on-dark grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-slate-950 text-yellow-300">
-          <Icon name={icon} className="h-9 w-9" />
-        </span>
-        <div>
-          <h1 className="text-4xl font-black tracking-tight sm:text-5xl">{title}</h1>
-          <p className="mt-2 max-w-3xl text-xl text-slate-800">{tagline}</p>
-        </div>
-      </header>
+  const header = (
+    <header className="flex items-start gap-4">
+      <span className="on-dark grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-slate-950 text-yellow-300">
+        <Icon name={icon} className="h-8 w-8" />
+      </span>
+      <div>
+        <h1 className="text-3xl font-black tracking-tight sm:text-4xl">{title}</h1>
+        <p className="mt-1 max-w-3xl text-lg text-slate-800">{tagline}</p>
+      </div>
+    </header>
+  );
 
+  const scanPanel = (
+    <>
+      {onRoute && <AutoRoutePanel onRoute={onRoute} />}
       <SamplePanel
         samples={samples}
         activeId={activeSample}
@@ -154,7 +191,9 @@ export function ScanWorkbench({ icon, title, tagline, layouts, samples, steps, r
             }}
           />
           <span className="hidden h-10 w-0.5 bg-slate-300 sm:block" aria-hidden />
-          <PrintCard layouts={printLayouts ?? layouts} />
+          <Button icon="printer" onClick={() => showWorkspaceTab("print")}>
+            Need a card? Go to Print Cards
+          </Button>
         </div>
         {setup && <div className="mt-4">{setup}</div>}
         {camera && (
@@ -234,6 +273,38 @@ export function ScanWorkbench({ icon, title, tagline, layouts, samples, steps, r
           </>
         )}
       </div>
+      {stressTest && <StressLab layout={layouts[0]} filled={stressTest.filled} title={title} />}
+    </>
+  );
+
+  const printPanel = (
+    <>
+      <section aria-labelledby={`${layouts[0].id}-print-week`} className="rounded-2xl border-2 border-slate-300 bg-white p-5">
+        <h2 id={`${layouts[0].id}-print-week`} className="text-2xl font-extrabold">
+          Print a blank card
+        </h2>
+        <p className="mt-1 text-lg text-slate-800">One page, A4 or US Letter. Any version of the card scans the same way.</p>
+        <div className="mt-4">
+          <PrintCard layouts={printLayouts ?? layouts} label="Download 1-Week Card (PDF)" />
+        </div>
+      </section>
+      {printTab}
+    </>
+  );
+
+  return (
+    <div className="space-y-6">
+      <WorkspaceTabs
+        scope={layouts[0].id}
+        active={tab}
+        labels={tabLabels}
+        intro={header}
+        panels={{
+          scan: scanPanel,
+          print: printPanel,
+          history: historyTab ?? <p className="text-lg text-slate-800">Nothing saved yet. Scan a card on Scan &amp; Verify first.</p>,
+        }}
+      />
     </div>
   );
 }

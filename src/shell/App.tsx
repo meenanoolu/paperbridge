@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import { appFromHash, APPS } from "./app-registry";
+import { useCallback, useEffect, useState } from "react";
+import { appFromHash, APPS, type RegisteredApp } from "./app-registry";
 import { Icon } from "./components/Icon";
-import { AutoRoutePanel } from "./components/AutoRoutePanel";
 import { OfflineBadge } from "./components/OfflineBadge";
+import { RouteContext } from "./route-context";
 
 export function App() {
   const [app, setApp] = useState(() => appFromHash(window.location.hash));
@@ -16,6 +16,11 @@ export function App() {
   useEffect(() => {
     document.title = `${app.label} | PaperBridge`;
   }, [app]);
+
+  const onRoute = useCallback((target: RegisteredApp) => {
+    if (window.location.hash !== `#${target.id}`) window.location.hash = target.id;
+    setApp(target);
+  }, []);
 
   return (
     <div className="min-h-screen">
@@ -62,14 +67,10 @@ export function App() {
           </nav>
         </div>
       </header>
-      <AutoRoutePanel
-        onRoute={(target) => {
-          if (window.location.hash !== `#${target.id}`) window.location.hash = target.id;
-          setApp(target);
-        }}
-      />
-      <main id="main" tabIndex={-1} className="mx-auto max-w-6xl px-4 py-8 focus:outline-none sm:px-6 sm:py-10">
-        <app.Component key={app.id} />
+      <main id="main" tabIndex={-1} className="mx-auto max-w-6xl px-4 py-6 focus:outline-none sm:px-6 sm:py-8">
+        <RouteContext.Provider value={onRoute}>
+          <app.Component key={app.id} />
+        </RouteContext.Provider>
       </main>
       <footer className="border-t-2 border-slate-300 bg-white">
         <p className="mx-auto max-w-6xl px-4 py-5 text-lg text-slate-800 sm:px-6">
