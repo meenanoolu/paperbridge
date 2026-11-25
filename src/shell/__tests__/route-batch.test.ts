@@ -40,6 +40,7 @@ describe("card-ID lookup", () => {
     expect(routableApps().map((a) => [a.id, a.layouts.map((l) => `${l.id}/${l.page}`)])).toEqual([
       ["elder-care", ["elder-care-weekly/A4", "elder-care-weekly/Letter"]],
       ["study-bridge", ["study-mcq-10/A4", "study-mcq-10/Letter"]],
+      ["seance-cipher", ["seance-cipher/A4", "seance-cipher/Letter"]],
     ]);
     expect(APPS.find((a) => a.id === "elder-care")?.batch).toBe(ELDER_BATCH);
   });
