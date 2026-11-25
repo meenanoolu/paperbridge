@@ -52,6 +52,41 @@ export function playLockOnChime(enabled: boolean, Ctor: AudioCtor | null = audio
   }
 }
 
+/** A soft minor-seventh chord (A3 C4 E4 G4) with a slow swell, about 1.8 s. Seance Cipher's reveal. */
+export const CHORD_NOTES: { hz: number; at: number }[] = [
+  { hz: 220, at: 0 },
+  { hz: 261.63, at: 0.08 },
+  { hz: 329.63, at: 0.16 },
+  { hz: 392, at: 0.24 },
+];
+export const CHORD_DURATION = 1.8;
+
+/** Plays the harmonic chord. Returns false (and does nothing) when audio is off or unavailable. */
+export function playHarmonicChord(enabled: boolean, Ctor: AudioCtor | null = audioContextCtor()): boolean {
+  if (!enabled || !Ctor) return false;
+  try {
+    shared ??= new Ctor();
+    const ctx = shared;
+    if (ctx.state === "suspended") void ctx.resume();
+    const t0 = ctx.currentTime;
+    for (const n of CHORD_NOTES) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(n.hz, t0 + n.at);
+      gain.gain.setValueAtTime(0.0001, t0 + n.at);
+      gain.gain.exponentialRampToValueAtTime(CHIME_GAIN * 0.6, t0 + n.at + 0.4);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + CHORD_DURATION);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(t0 + n.at);
+      osc.stop(t0 + CHORD_DURATION + 0.05);
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** For tests. */
 export function resetAudioForTests(): void {
   shared = null;

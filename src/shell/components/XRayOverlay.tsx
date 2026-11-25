@@ -1,21 +1,48 @@
 import { useId, useState } from "react";
-import { XRAY_LOCK, XRAY_STYLE, xraySummary, type XRayModel } from "../xray";
+import { DEFAULT_XRAY_PALETTE, xraySummary, type XRayModel, type XRayPalette } from "../xray";
 
 /**
  * SVG drawn over a scanned image (same pixel coordinates). Green lock-on boxes on the 4 corner
  * markers, a colour-and-dash ring per bubble, and its ink-density score. Filled and unclear scores
  * are always shown; blank ones appear on hover, or on focus from the readings list below.
  */
-export function XRayOverlay({ model, width, height, focusKey }: { model: XRayModel; width: number; height: number; focusKey?: string | null }) {
+export function XRayOverlay({
+  model,
+  width,
+  height,
+  focusKey,
+  palette = DEFAULT_XRAY_PALETTE,
+}: {
+  model: XRayModel;
+  width: number;
+  height: number;
+  focusKey?: string | null;
+  palette?: XRayPalette;
+}) {
   const u = Math.max(width, height) / 300;
+  const uid = useId().replace(/:/g, "");
+  const XRAY_LOCK = palette.lock;
+  const XRAY_STYLE = palette.styles;
+  const glow = palette.glow ? `url(#${uid}-glow)` : undefined;
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true" data-testid="xray">
+    <svg viewBox={`0 0 ${width} ${height}`} className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true" data-testid="xray" data-glow={palette.glow ? "on" : undefined}>
+      {palette.glow && (
+        <defs>
+          <filter id={`${uid}-glow`} x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation={u * 1.6} result="b" />
+            <feMerge>
+              <feMergeNode in="b" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+      )}
       {model.corners.map((c) => {
         const h = c.size * 0.75;
         return (
           <g key={c.name}>
             <rect x={c.x - h} y={c.y - h} width={2 * h} height={2 * h} fill="none" stroke="#000" strokeWidth={u * 2.6} />
-            <rect x={c.x - h} y={c.y - h} width={2 * h} height={2 * h} fill="none" stroke={XRAY_LOCK} strokeWidth={u * 1.4} data-corner={c.name} />
+            <rect x={c.x - h} y={c.y - h} width={2 * h} height={2 * h} fill="none" stroke={XRAY_LOCK} strokeWidth={u * 1.4} data-corner={c.name} filter={glow} />
           </g>
         );
       })}
@@ -31,7 +58,7 @@ export function XRayOverlay({ model, width, height, focusKey }: { model: XRayMod
           <g key={b.key} data-state={b.state} data-score={b.score} className={b.state === "blank" ? "group pointer-events-auto" : "pointer-events-auto"}>
             <title>{`${b.key}: ${b.state}, ink ${b.score}`}</title>
             <circle cx={b.x} cy={b.y} r={b.r * 1.05} fill="none" stroke="#000" strokeWidth={u * 2.4} />
-            <circle cx={b.x} cy={b.y} r={b.r * 1.05} fill="transparent" stroke={s.ring} strokeWidth={u * 1.3} strokeDasharray={s.dash ? s.dash.split(" ").map((n) => Number(n) * u).join(" ") : undefined} />
+            <circle cx={b.x} cy={b.y} r={b.r * 1.05} fill="transparent" filter={b.state !== "blank" ? glow : undefined} stroke={s.ring} strokeWidth={u * 1.3} strokeDasharray={s.dash ? s.dash.split(" ").map((n) => Number(n) * u).join(" ") : undefined} />
             <g className={show ? undefined : "opacity-0 group-hover:opacity-100"}>
               <rect x={b.x - w / 2} y={top} width={w} height={font * 1.35} rx={font * 0.3} fill={s.label} stroke={s.ring} strokeWidth={u * 0.8} />
               <text x={b.x} y={top + font * 1.03} fontSize={font} fontWeight={700} textAnchor="middle" fill={s.text} fontFamily="ui-sans-serif, system-ui, sans-serif">

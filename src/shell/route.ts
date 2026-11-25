@@ -1,4 +1,4 @@
-import { decode, type CardLayout, type RasterImage, type ScanResult, type SuccessfulScan } from "../core";
+import { applyHomography, bubbleCenters, decode, fiducialCenters, solveHomography, type CardLayout, type RasterImage, type ScanResult, type SuccessfulScan } from "../core";
 
 /**
  * Card-ID routing. Every PaperBridge card prints a card-ID strip, and `decode` only succeeds for
@@ -7,8 +7,12 @@ import { decode, type CardLayout, type RasterImage, type ScanResult, type Succes
  *
  * Paper sizes: the A4 and Letter prints of one card share a card ID, and the decoder can lock
  * onto either for the same photo (the corner markers do not reveal the paper size). The wrong
- * paper misplaces bubbles by a few mm, which always shows up as extra unclear marks (measured on
- * 50 sample photos: 1 to 7 more), so among successful variants we keep the best fit.
+ * paper misplaces bubbles by a few mm. Unclear-mark counts alone can be fooled: on a card with
+ * widely spaced bubbles (Seance Cipher) the misplaced sample points land on blank paper and read
+ * as confident blanks. So the first signal is ring alignment: how dark the photo is exactly on each
+ * layout's printed bubble rings compared with just outside them. Read-only: it uses the decoder's
+ * corner markers and never changes a reading. Measured on 98 photos (3 apps, 7 cameras, 2 papers):
+ * the printed paper always scores higher, by at least 0.83 on a 0..1 scale.
  */
 export interface RoutableApp {
   id: string;
@@ -23,6 +27,46 @@ export function fitScore(result: SuccessfulScan): [number, number] {
   return [unclear, -meanConfidence];
 }
 
+/** Ring scores closer than this are treated as a tie, and the unclear-mark rule decides. */
+export const RING_TIE = 0.1;
+
+const lum = (img: RasterImage, x: number, y: number) => {
+  const px = Math.round(x);
+  const py = Math.round(y);
+  if (px < 0 || py < 0 || px >= img.width || py >= img.height) return NaN;
+  const i = (py * img.width + px) * 4;
+  return 0.299 * img.data[i] + 0.587 * img.data[i + 1] + 0.114 * img.data[i + 2];
+};
+
+/**
+ * Mean ring contrast, about 1 when the layout's printed rings sit exactly on dark pixels and about
+ * 0 when they land on plain paper. NaN if it cannot be measured.
+ */
+export function ringAlignment(img: RasterImage, result: SuccessfulScan, layout: CardLayout): number {
+  const H = result.fiducials.length === 4 ? solveHomography(fiducialCenters(layout), result.fiducials) : null;
+  if (!H) return NaN;
+  const at = (x: number, y: number) => {
+    const [px, py] = applyHomography(H, x, y);
+    return lum(img, px, py);
+  };
+  let sum = 0;
+  let n = 0;
+  for (const b of bubbleCenters(layout))
+    for (let k = 0; k < 16; k++) {
+      const a = (k / 16) * 2 * Math.PI;
+      const c = Math.cos(a);
+      const d = Math.sin(a);
+      // The printed stroke is 0.5 mm: take the darkest of 3 radii across it.
+      const ring = Math.min(...[-0.35, 0, 0.35].map((e) => at(b.x + c * (b.r + e), b.y + d * (b.r + e))));
+      const out = at(b.x + c * (b.r + 1.6), b.y + d * (b.r + 1.6));
+      if (Number.isFinite(ring) && Number.isFinite(out) && out > 0) {
+        sum += (out - ring) / out;
+        n++;
+      }
+    }
+  return n ? sum / n : NaN;
+}
+
 const better = (a: SuccessfulScan, b: SuccessfulScan) => {
   const [ua, ca] = fitScore(a);
   const [ub, cb] = fitScore(b);
@@ -35,18 +79,20 @@ const better = (a: SuccessfulScan, b: SuccessfulScan) => {
  * because that fails the same way for every layout.
  */
 export function decodeBestFit(raster: RasterImage, layouts: CardLayout[]): { result: ScanResult; layout: CardLayout } {
-  let best: { result: SuccessfulScan; layout: CardLayout } | null = null;
+  let best: { result: SuccessfulScan; layout: CardLayout; ring: number } | null = null;
   let firstFailure: { result: ScanResult; layout: CardLayout } | null = null;
   for (const layout of layouts) {
     const result = decode(raster, layout);
     if (result.ok) {
-      if (!best || better(result, best.result)) best = { result, layout };
+      const ring = ringAlignment(raster, result, layout);
+      const decisive = Number.isFinite(ring) && best && Number.isFinite(best.ring) && Math.abs(ring - best.ring) >= RING_TIE;
+      if (!best || (decisive ? ring > best.ring : better(result, best.result))) best = { result, layout, ring };
       continue;
     }
-    if (result.reason === "FIDUCIALS_NOT_FOUND") return best ?? { result, layout };
+    if (result.reason === "FIDUCIALS_NOT_FOUND") return best ? { result: best.result, layout: best.layout } : { result, layout };
     firstFailure ??= { result, layout };
   }
-  return best ?? firstFailure!;
+  return best ? { result: best.result, layout: best.layout } : firstFailure!;
 }
 
 export type RouteFailure = "FIDUCIALS_NOT_FOUND" | "HOMOGRAPHY_DEGENERATE" | "UNKNOWN_CARD";

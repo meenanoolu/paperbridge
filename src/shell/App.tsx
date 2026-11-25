@@ -1,39 +1,59 @@
 import { useCallback, useEffect, useState } from "react";
-import { DEFAULT_ACCENT, HOME_ID, navItems, viewFromHash, viewId, type RegisteredApp, type View } from "./app-registry";
+import { DEFAULT_ACCENT, navItems, viewFromHash, viewId, type RegisteredApp, type View } from "./app-registry";
 import { SkeletonHome } from "./components/SkeletonHome";
 import { SkeletonGuide } from "./components/SkeletonGuide";
 import type { CSSProperties } from "react";
-import { Icon } from "./components/Icon";
 import { OfflineBadge } from "./components/OfflineBadge";
 import { RouteContext } from "./route-context";
 
 /**
- * Top-right view tabs: Skeleton Home, then every app. They are links (each view has its own URL),
- * styled as tabs, with `aria-current="page"` on the open one.
+ * Skeleton Crew Launcher Bar: the PaperBridge mark (Skeleton Home) and one pill per app. Pills
+ * are links, since each frontend has its own URL; the open one has `aria-current="page"`.
  */
-export function ViewTabs({ current }: { current: string }) {
+export function LauncherBar({ current }: { current: string }) {
+  const [home, ...apps] = navItems();
   return (
-    <nav aria-label="Views">
-      <ul className="flex flex-wrap gap-2">
-        {navItems().map((n) => {
-          const on = n.id === current;
-          return (
-            <li key={n.id}>
-              <a
-                href={`#${n.id}`}
-                aria-current={on ? "page" : undefined}
-                className={`inline-flex min-h-12 items-center gap-2 rounded-xl border-b-4 px-4 py-2 text-lg font-bold ${
-                  on ? "border-yellow-300 bg-yellow-300 text-slate-950" : "border-transparent text-white hover:bg-slate-800"
-                }`}
-              >
-                <Icon name={n.icon} />
-                {n.label}
-              </a>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
+    <header className="on-dark sticky top-0 z-30 border-b border-white/10 bg-slate-950/95 text-white backdrop-blur">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2 sm:px-6">
+        <a
+          href={`#${home.id}`}
+          aria-current={current === home.id ? "page" : undefined}
+          aria-label="PaperBridge: Skeleton Home"
+          className={`flex min-h-12 items-center gap-2 rounded-full px-2 pr-4 text-xl font-black tracking-tight ${current === home.id ? "bg-white/10" : "hover:bg-white/5"}`}
+        >
+          <span className="grid h-9 w-9 grid-cols-2 gap-1 rounded-md bg-white p-1.5" aria-hidden>
+            <span className="rounded-sm bg-slate-950" />
+            <span className="rounded-full border-2 border-slate-950" />
+            <span className="rounded-full border-2 border-slate-950" />
+            <span className="rounded-sm bg-slate-950" />
+          </span>
+          PaperBridge
+        </a>
+        <nav aria-label="Apps" className="order-3 w-full sm:order-none sm:w-auto sm:flex-1">
+          <ul className="flex flex-wrap gap-2">
+            {apps.map((n) => {
+              const on = n.id === current;
+              return (
+                <li key={n.id}>
+                  <a
+                    href={`#${n.id}`}
+                    aria-current={on ? "page" : undefined}
+                    className={`inline-flex min-h-12 items-center gap-2 rounded-full px-4 py-2 text-lg font-bold ${on ? "bg-yellow-300 text-slate-950" : "text-white hover:bg-slate-800"}`}
+                  >
+                    <span aria-hidden className="h-3 w-3 rounded-full ring-2 ring-white" style={{ background: n.accent?.strong ?? "#020617" }} />
+                    {n.label}
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+        <div className="ml-auto flex items-center gap-2">
+          <OfflineBadge />
+          <SkeletonGuide />
+        </div>
+      </div>
+    </header>
   );
 }
 
@@ -70,30 +90,13 @@ export function App() {
       >
         Skip to main content
       </a>
-      <header className="on-dark bg-slate-950 text-white">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6">
-          <a href={`#${HOME_ID}`} className="flex items-center gap-3 text-2xl font-black tracking-tight" aria-label="PaperBridge home">
-            <span className="grid h-10 w-10 grid-cols-2 gap-1 rounded-md bg-white p-1.5" aria-hidden>
-              <span className="rounded-sm bg-slate-950" />
-              <span className="rounded-full border-2 border-slate-950" />
-              <span className="rounded-full border-2 border-slate-950" />
-              <span className="rounded-sm bg-slate-950" />
-            </span>
-            PaperBridge
-          </a>
-          <div className="flex flex-wrap items-center justify-end gap-3">
-            <OfflineBadge />
-            <SkeletonGuide />
-            <ViewTabs current={viewId(view)} />
-          </div>
-        </div>
-      </header>
+      <LauncherBar current={viewId(view)} />
       <main
         id="main"
         tabIndex={-1}
         data-accent={accent.name}
         style={{ "--accent": accent.strong, "--accent-soft": accent.soft } as CSSProperties}
-        className="mx-auto max-w-6xl px-4 py-6 focus:outline-none sm:px-6 sm:py-8"
+        className={app?.fullBleed ? "focus:outline-none" : "mx-auto max-w-6xl px-4 py-6 focus:outline-none sm:px-6 sm:py-8"}
       >
         <RouteContext.Provider value={onRoute}>
           {app ? <app.Component key={app.id} /> : <SkeletonHome />}

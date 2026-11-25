@@ -34,14 +34,23 @@ export function ReadAloudButton({ summary, supported = speechSupported() }: { su
 }
 
 /** The shell's result actions: Read Aloud and Copy Quick Update, when the app provides them. */
-export function ResultVoice({ spoken, share }: { spoken?: SpokenSummary | null; share?: string | null }) {
+export function ResultVoice({
+  spoken,
+  share,
+  shareLabel = "Copy Quick Update",
+}: {
+  spoken?: SpokenSummary | null;
+  share?: string | null;
+  /** Button text, e.g. "Copy WhatsApp Update". */
+  shareLabel?: string;
+}) {
   if (!spoken?.text && !share) return null;
   return (
     <section aria-label="Share this result" className="flex flex-wrap items-start gap-3 rounded-2xl border-2 border-slate-300 bg-white p-4">
       {spoken?.text && (
         <ReadAloudButton summary={spoken} />
       )}
-      {share && <CopyButton text={share} label="Copy Quick Update" copiedMessage="Copied. Paste it into a message." />}
+      {share && <CopyButton text={share} label={shareLabel} copiedMessage="Copied. Paste it into a message." />}
     </section>
   );
 }

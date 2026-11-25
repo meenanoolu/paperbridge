@@ -15,7 +15,7 @@ import { XRayOverlay } from "./XRayOverlay";
 
 const REPO = "https://github.com/meenanoolu/paperbridge";
 
-/** What every app gets from the skeleton, listed on the Scaffold App #3 card. */
+/** What every app gets from the skeleton, listed on the Scaffold Your Next App card. */
 export const INHERITED = [
   "Scan Any Card auto-route and batch save",
   "Optical X-Ray and Raw vs. Unwarped",
@@ -181,6 +181,7 @@ export function SkeletonHome() {
   const onRoute = useContext(RouteContext);
   const elder = APPS.find((a) => a.id === "elder-care");
   const study = APPS.find((a) => a.id === "study-bridge");
+  const seance = APPS.find((a) => a.id === "seance-cipher");
   return (
     <div className="space-y-8">
       <header className="flex items-start gap-4">
@@ -195,15 +196,18 @@ export function SkeletonHome() {
         </div>
       </header>
       <MixedBatchShowcase />
-      <ul className="grid gap-4 md:grid-cols-3" aria-label="Apps on the skeleton">
+      <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-4" aria-label="Apps on the skeleton">
         {elder && (
           <DomainCard title="Elder Care Bridge" accent={elder.accent?.strong ?? DEFAULT_ACCENT.strong} outcome="A large-print weekly medication card. One photo gives a caregiver adherence, missed doses, patterns and a Doctor Visit PDF." href={`#${elder.id}`} cta="Open Elder Care" />
         )}
         {study && (
           <DomainCard title="Study Bridge" accent={study.accent?.strong ?? DEFAULT_ACCENT.strong} outcome="A screen-free quiz sheet. One photo gives a score, weak topics with review dates, and a class gradebook." href={`#${study.id}`} cta="Open Study Bridge" />
         )}
-        <DomainCard title="Scaffold App #3" accent={DEFAULT_ACCENT.strong} outcome="One command writes a new paper app on the same skeleton." href={`${REPO}/blob/main/docs/BUILD-YOUR-OWN-APP.md`} cta="Read the guide">
-          <pre tabIndex={0} aria-label="Command to create App #3" className="mt-3 overflow-x-auto rounded-lg bg-slate-950 p-3 text-lg text-white">
+        {seance && (
+          <DomainCard title="Seance Cipher" accent={seance.accent?.strong ?? DEFAULT_ACCENT.strong} outcome="A Kiroween paper mystery. Mark one rune per question, scan the card, and the runes glow, lock on and tell a story." href={`#${seance.id}`} cta="Open Seance Cipher" />
+        )}
+        <DomainCard title="Scaffold Your Next App" accent={DEFAULT_ACCENT.strong} outcome="One command writes a new paper app on the same skeleton." href={`${REPO}/blob/main/docs/BUILD-YOUR-OWN-APP.md`} cta="Read the guide">
+          <pre tabIndex={0} aria-label="Command to create your next app" className="mt-3 overflow-x-auto rounded-lg bg-slate-950 p-3 text-lg text-white">
             <code>npm run create-app clinic-intake "Clinic Intake"</code>
           </pre>
           <p className="mt-3 text-lg font-bold">It inherits:</p>
