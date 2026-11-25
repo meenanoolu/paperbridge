@@ -57,6 +57,26 @@ your app. Add an optional `appMeta.batch` (`BatchAdapter` in `src/shell/batch.ts
 batch scan bulk-save your results: it names the per-row field, validates it, and saves the rows.
 See `src/apps/study-bridge/batch.ts` for a short example.
 
+### Your own full-screen frontend
+
+`ScanWorkbench` is the quickest start. When your app needs its own look, set
+`appMeta.fullBleed = true` (the shell then drops its page container under the launcher bar) and
+compose the primitives from `src/shell/optical.tsx`, driven by one hook:
+
+```tsx
+const scan = useOpticalScan(LAYOUTS, { announce });
+<ScanSources scan={scan} layouts={LAYOUTS} samples={SAMPLES} classes={MY_CLASSES} />  // samples, upload, webcam (OpticalViewfinder), audio cues
+<OpticalViewToggles scan={scan} className={btn} />                                    // Show Optical X-Ray, Raw vs. Unwarped
+<OpticalXRayOverlay scan={scan} palette={{ ...DEFAULT_XRAY_PALETTE, glow: true }} />
+<HumanVerifyControl unclear={scan.unclear} overrides={scan.overrides} onSet={scan.setAnswer} />
+<PrintSheetButton layouts={LAYOUTS} label="Print Card" fileName={(page) => `card-${page}.pdf`} />
+<BatchDropzone />                                                                    // Scan Any Card, routes every registered app
+```
+
+`useOpticalScan` holds the scan state `ScanWorkbench` uses (samples, webcam, X-Ray, unwarp,
+overrides, routed hand-off, audio cues), so both paths decode and review in exactly the same way.
+The three shipped apps are all built this way.
+
 The scaffold also writes:
 
 - `samples/specs.ts`: recipes for the 1-click sample photos (`SAMPLE_SET`). `npm run gen:samples` draws pen marks on your real card, photographs it with the simulated camera, and saves a JPEG.
@@ -89,6 +109,7 @@ generated test fails if any is broken:
 
 - [`src/apps/elder-care/`](../src/apps/elder-care/): weekly medication card, caregiver dashboard, history, Kiro Crew alerts, and customizable printed labels (`card-settings.ts`).
 - [`src/apps/study-bridge/`](../src/apps/study-bridge/): 10-question quiz sheet, editable answer key, class gradebook, and CSV export.
+- [`src/apps/seance-cipher/`](../src/apps/seance-cipher/): a 3-question rune card with chapters, story verdicts and a harmonic chord, the smallest full-screen frontend.
 
 ## Check a layout from Kiro
 

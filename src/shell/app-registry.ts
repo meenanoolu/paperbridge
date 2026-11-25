@@ -37,6 +37,8 @@ export interface AppMeta {
   batch?: BatchAdapter;
   /** One short line shown in the page footer while this app is open, e.g. a disclaimer. */
   footerNote?: string;
+  /** The app draws its own full-width page (custom frontend), so the shell adds no container. */
+  fullBleed?: boolean;
   /** Accent colour for this app's workspace. */
   accent?: AccentTheme;
   /** Sample cards, so the shell's Instant Demo can load them. */
@@ -98,9 +100,9 @@ export interface NavItem {
   accent?: AccentTheme;
 }
 
-/** Header tabs, in order: Skeleton Home, then every registered app. */
+/** Launcher items, in order: Skeleton Home (the PaperBridge mark), then one pill per registered app. */
 export function navItems(apps: RegisteredApp[] = APPS): NavItem[] {
-  return [{ id: HOME_ID, label: "Skeleton Home", icon: "sparkle" }, ...apps.map((a) => ({ id: a.id, label: a.shortLabel ?? a.label, icon: a.icon, accent: a.accent }))];
+  return [{ id: HOME_ID, label: "Skeleton Home", icon: "sparkle" }, ...apps.map((a) => ({ id: a.id, label: a.label, icon: a.icon, accent: a.accent }))];
 }
 
 export const viewId = (v: View) => (v.kind === "home" ? HOME_ID : v.app.id);

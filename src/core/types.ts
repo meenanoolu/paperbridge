@@ -1,7 +1,7 @@
 export type PageSize = "A4" | "Letter";
 
 /** Print-only column icons (see render/icons.ts). */
-export type CardIcon = "sun" | "moon" | "drop" | "alert" | "check";
+export type CardIcon = "sun" | "moon" | "drop" | "alert" | "check" | "eye" | "key" | "flame";
 
 /** A rectangular grid of bubbles. Positions are card-space millimetres (origin top-left, y down). */
 export interface BubbleGroup {

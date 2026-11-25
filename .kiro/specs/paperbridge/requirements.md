@@ -263,3 +263,25 @@ PaperBridge turns a printed bubble card into structured data using deterministic
 ## R46. Scaffolder parity and a short README (Phase 9)
 1. `npm run create-app` SHALL write `print.ts` (translations for the template's words, column icons, a 4-sheet pack) and pass it to ScanWorkbench, so a new app inherits multilingual print, packs, X-Ray, audio, Read Aloud, Copy Quick Update, auto-route and batch save.
 2. THE root README SHALL stay under 150 lines; longer material SHALL live in `docs/DETAILS.md`. Markdown and UI copy SHALL not use em dashes.
+
+## R47. Optical primitives and the launcher bar (Phase 10)
+1. `src/shell/optical.tsx` SHALL export `OpticalViewfinder`, `OpticalXRayOverlay`, `BatchDropzone`, `HumanVerifyControl` and `PrintSheetButton`, driven by a `useOpticalScan` hook that ScanWorkbench SHALL also use, so both paths decode and review the same way.
+2. THE header SHALL be a slim sticky launcher bar: the PaperBridge mark (linking to Skeleton Home, `aria-current` when open), a `nav` labelled "Apps" with one pill per registered app using its full name, the offline badge, and a compact **How Skeleton Works** button that opens the architecture dialog with `npm run create-app`.
+3. WHEN `appMeta.fullBleed` is set, THE shell SHALL give the app the full page width under the bar.
+4. `HumanVerifyControl` SHALL offer Mark filled, Mark blank and Undo for each unclear mark, with accessible names that include the mark, and SHALL show a "Human verified" stamp whose animation respects reduced motion.
+5. THE X-Ray SHALL accept an app palette with an optional glow; the default palette SHALL keep the existing look.
+
+## R48. Elder Care: Warm Clinical Stationery (Phase 10)
+1. Elder Care SHALL use an ivory (#FAF8F5) page with teal (#0F766E) hairlines, and every text and control colour SHALL meet WCAG AAA (7:1).
+2. THE page SHALL have two columns: the card, Optical X-Ray and Raw vs. Unwarped on the left; adherence status, the Human Verified control, Read Aloud, Copy WhatsApp Update, the Doctor Visit PDF and icon card printing in 4 languages on the right. Presets SHALL sit in an accordion.
+
+## R49. Study Bridge: Live Classroom Studio (Phase 10)
+1. Study Bridge SHALL use slate and white with indigo (#3730A3) and emerald, and show score, correct answers, weak topics, class size and decode time as bold `tabular-nums` telemetry.
+2. THE page SHALL show horizontal topic-mastery bars, the batch gradebook, the Due Review Card and the multi-week quiz pack (including Telugu and Hindi), in Live Scan, Print Studio and Gradebook panels.
+
+## R50. Seance Cipher and 3-family routing (Phase 10)
+1. `src/apps/seance-cipher/` SHALL provide the Oracle Cipher card: 3 questions of 4 runes (moon, eye, key, flame) with icons, 3 chapters, a unique card ID, and 2 samples, one with a faint mark.
+2. WHEN a reading has an unclear mark, THE app SHALL withhold the verdict and ask a person to confirm it. WHEN every answer is known, THE app SHALL show a story verdict from the majority rune, play a harmonic chord if audio cues are on, and offer the next chapter's card to print.
+3. THE theme SHALL be obsidian (#0B0D12) with brass (#D4AF37) hairlines, serif headings, a laser sweep that respects reduced motion and a glowing X-Ray, at WCAG AA.
+4. Scan Any Card SHALL route Elder Care, Study Bridge and Seance Cipher cards, on A4 and Letter, in one batch.
+5. WHEN choosing between paper sizes, THE shell SHALL prefer the size whose printed bubble rings line up with the photo, falling back to fewest unclear marks when the ring scores are close. No file in `src/core/decode/`, `src/core/layout.ts` or `src/core/capture/` SHALL change.

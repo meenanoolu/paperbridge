@@ -22,7 +22,7 @@ fill it in with a dark pen, then on **Scan & Verify** use **Scan with webcam** o
 (file picker or drag-and-drop). Each card's printed ID picks its app. One photo opens straight in
 that app; a batch shows a summary like "4 cards decoded locally in 118 ms: 3 ready, 1 needs human
 review", lists every file with its app, gives each failed file its own error, and bulk-saves Elder
-Care cards to the history and Study Bridge sheets to the class sheet. Files with unclear marks get
+Care cards to the history, Study Bridge sheets to the class sheet and Seance readings to the Grimoire. Files with unclear marks get
 a **Review** button.
 
 ![Scan Any Card batch: 4 cards decoded locally, 3 ready, 1 needs human review, 2 photos not read with a reason each](images/batch-summary.png)
@@ -52,7 +52,10 @@ A collapsed drawer on Scan & Verify. Three sliders (tilt -8 to +8 degrees, dim l
 
 ## Built once in the skeleton, inherited by every app
 
-These live in `src/shell/` and work for Elder Care Bridge, Study Bridge and any app from `npm run create-app`, with little or no app code:
+These live in `src/shell/` and work for Elder Care Bridge, Study Bridge, Seance Cipher and any app from `npm run create-app`, with little or no app code:
+
+- **Launcher bar and full-screen frontends:** a slim sticky bar with the PaperBridge mark (back to Skeleton Home), one pill per app and **How Skeleton Works**. An app that sets `appMeta.fullBleed` gets the whole page below it and builds its own layout from the primitives in `src/shell/optical.tsx` (`OpticalViewfinder`, `OpticalXRayOverlay`, `BatchDropzone`, `HumanVerifyControl`, `PrintSheetButton`), all driven by the `useOpticalScan` hook that `ScanWorkbench` also uses.
+- **Human Verified stamp:** `HumanVerifyControl` gives each unclear mark Mark filled, Mark blank and Undo buttons and stamps the answer (the animation respects reduced motion). Each app passes its own colours.
 
 - **Optical X-Ray** (Scan & Verify and the Stress-Test Lab): green lock-on boxes on the 4 corner markers, and a ring on every bubble coded by colour and dash (filled, unclear, blank) with the ink density the decoder measured, e.g. `0.79`, `0.29`, `0.02`. It only displays the existing decode result: no decoder code changed. A readings list gives the same data to keyboard and screen-reader users. **0 app code.**
 - **Audio cues:** a short chime, synthesised offline with the Web Audio API, when the webcam locks onto all 4 corners. A toggle turns it off. **0 app code.**
@@ -60,10 +63,10 @@ These live in `src/shell/` and work for Elder Care Bridge, Study Bridge and any 
 - **Try an Instant Demo:** 3 one-click scenarios built from what apps declare in `appMeta.demo`: a faint mark with the X-Ray on, a mixed 2-app batch through Scan Any Card, and a clean week. **1 line per app.**
 - **3-step decode pipeline:** Photo Input, Optical Unwarp (with the real decode time), Verified Output, with "needs review" until every unclear mark is checked. **0 app code.**
 - **Raw vs. Unwarped:** the photo next to the card redrawn flat from the same 4 corner correspondences the decoder uses (display only). **0 app code.**
-- **Accents:** `appMeta.accent` colours the tabs, app badge and primary buttons (Elder Care teal, Study Bridge indigo; white text on both is AAA).
+- **Accents and X-Ray palettes:** `appMeta.accent` colours the launcher pill dot, app badge and primary buttons. The X-Ray takes a palette, with an optional glow (Seance Cipher uses emerald and amber).
 - **Print Cards workspace:** Translate card (English, Telugu, Hindi, Spanish, any script), any-script PDF text, High-Visibility and Icon-Anchored modes, the card download and a multi-sheet pack. An app passes a `print` slot; `createPrintSlot` builds one from a translation table. Elder Care uses it for the 4-Week Monthly Pack, Study Bridge for the 4-Week Unit Quiz Pack and its Telugu, Hindi and Spanish sheets.
 - **Adaptive next card:** an app returns an `adaptiveCard` spec for a scan, and the shell renders it with one component: Elder Care's Print Adapted Next-Week Card and Study Bridge's Print Due Review Card.
-- **Skeleton Home:** the default landing view. One click runs a real Elder Care photo and a real Study Bridge photo through Scan Any Card, showing each card's X-Ray, its unwarped view and the app it was routed to, then 3 domain cards (Elder Care, Study Bridge, Scaffold App #3).
+- **Skeleton Home:** the default landing view. One click runs a real Elder Care photo and a real Study Bridge photo through Scan Any Card, showing each card's X-Ray, its unwarped view and the app it was routed to, then 4 domain cards (Elder Care, Study Bridge, Seance Cipher, Scaffold Your Next App).
 - **Saving without storage code:** a generic saved-cards list in `localStorage` with a ready Scan Any Card batch adapter. Scaffolded apps use it by default.
 
 ![Optical X-Ray on the Missed-Dose sample: green boxes on the 4 corners, 22 filled at 0.78-0.81, the faint Wednesday water mark amber at 0.29, 40 blank at 0.00-0.03](images/optical-xray.png)
@@ -120,6 +123,19 @@ Teacher workflow:
 - **Class sheet:** enter a student's name or ID after each scan. The **Class Weak-Topic Breakdown** shows the share of students below 70% per topic.
 - **Export CSV Gradebook:** Student, Score, %, Double-Marked, Blank, Unclear, Weak Topics. Opens cleanly in Excel and Sheets, and names starting with `=` can't run as formulas.
 
+### Seance Cipher ([`src/apps/seance-cipher/`](../src/apps/seance-cipher/))
+
+A playful third domain that proves the skeleton is not tied to care or school. The **Oracle Cipher**
+card has 3 questions, each answered with one of 4 runes (moon, eye, key, flame), across 3 chapters
+(The Lantern Hall, The Drowned Bell, The Last Mirror). One photo gives:
+
+- each answer as chosen, blank, double-marked or unclear; a faint rune stops the reading until a person confirms it
+- a story verdict from the majority rune (or "the veil" when no rune wins), read aloud on request
+- a short harmonic chord (A3, C4, E4, G4, Web Audio, offline) when audio cues are on
+- the current and next chapter's card to print, and readings saved to "the Grimoire" through the generic batch adapter
+
+Two haunted samples ship with it: The Lantern Hall (clean) and The Smudged Seance (one faint mark).
+The obsidian `#0B0D12` and brass `#D4AF37` theme passes WCAG 2.2 AA.
 
 ### Kiro Crew App (`crew-app/`)
 
@@ -221,6 +237,7 @@ them. They found these bugs before any human saw a wrong answer:
 | Crew bundle smoke test | Two React copies (the UI package installed `react`), so hooks crashed | Types only in `crew-app/ui`; React comes from the host |
 | Batch test across paper sizes (5 samples x 5 cameras x 2 papers) | Every scan path tried A4 first and accepted it, so **Letter prints were read with A4 bubble positions**: 1 to 7 extra unclear marks, sometimes different readings | Decode every paper size and keep the best fit (fewest unclear marks, then highest confidence): 50 of 50 correct |
 | Keyboard audit | The skip link set `#main`, which switched Study Bridge back to Elder Care | Move focus without changing the hash |
+| Seance sample x 7 cameras x 2 papers | An A4 smudged Seance card read with the Letter layout showed 0 unclear marks (misplaced samples landed on blank paper), so "fewest unclear" picked the wrong paper | Score how dark each bubble's printed ring is through the homography and prefer the paper whose rings line up; on 98 photos the printed paper always wins, by at least 0.835 |
 
 The tests also caught a mistake in our own expectations: we expected Sam's quiz to score
 50%, but the decoder correctly read 6 of 10 (60%). The test was fixed, not the decoder.
@@ -289,10 +306,11 @@ regenerates the sample photos, and saving any app file typechecks it.
 
 ```
 src/core/              optical skeleton: layout, validate (geometry + printed text), render (SVG/PDF, multi-page, vector icons, highlights), decode, capture, testing/synth
-src/shell/             shared UI: ScanWorkbench with 3 tabs, Optical X-Ray, audio cues, Read Aloud / Copy Quick Update, generic saved cards, app registry, Scan Any Card routing + batch, stress lab, any-script text images, overrides, storage, offline badge
+src/shell/             shared UI: launcher bar, optical primitives + useOpticalScan, ScanWorkbench with 3 tabs, Optical X-Ray, audio cues, Read Aloud / Copy Quick Update, generic saved cards, app registry, Scan Any Card routing + batch, stress lab, any-script text images, overrides, storage, offline badge
 src/apps/elder-care/   layout, interpret, card settings (anchors, cues, High-Visibility, icons), i18n packs, adaptive card, presets, monthly pack,
                        patterns, history, sample history, Doctor Visit PDF, batch adapter, CareDashboard
-src/apps/study-bridge/ layout, answer key, grade, class sheet + CSV, due review sheet, batch adapter, StudyResults
+src/apps/study-bridge/ layout, answer key, grade, class sheet + CSV, due review sheet, batch adapter, StudyResults, Studio (telemetry, topic mastery)
+src/apps/seance-cipher/ layout (3 chapters), oracle (story verdicts), theme, samples
 src/__tests__/         integration tests: shipped app layouts against the core Layout Validator
 scripts/               gen-samples.ts, create-app.mjs, gen-icons.ts, hooks/ (Kiro hook scripts)
 mcp/                   Layout Validator MCP server (validate_card_layout, list_registered_apps)
@@ -307,7 +325,7 @@ docs/                  BUILD-YOUR-OWN-APP.md, screenshots
 | Command | What it does |
 |---|---|
 | `npm run dev` | Start the app |
-| `npm test` | 342 tests: property tests, end-to-end sample decodes, interpreters, overrides, history, CSV, layout validator, scaffolder, MCP tools, auto-routing and batch scan, 50-photo paper-size matrix, monthly pack, presets, adaptive cards, language packs and icons, stress lab, tabs, hooks, Optical X-Ray, audio and speech controls, generic batch save, Instant Demo scenarios, decode pipeline, Raw vs. Unwarped, accents and the architecture dialog, shared print and packs in every app, Skeleton Home and view tabs, Crew App contract, cardLanguage and bundle |
+| `npm test` | 364 tests: property tests, end-to-end sample decodes, interpreters, overrides, history, CSV, layout validator, scaffolder, MCP tools, auto-routing and batch scan, 50-photo paper-size matrix, monthly pack, presets, adaptive cards, language packs and icons, stress lab, tabs, hooks, Optical X-Ray, audio and speech controls, generic batch save, Instant Demo scenarios, decode pipeline, Raw vs. Unwarped, accents and the architecture dialog, shared print and packs in every app, Skeleton Home and the launcher, Seance Cipher layout and verdicts, auto-route across 3 apps, frontend keyboard markup, Crew App contract, cardLanguage and bundle |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run build` | Production build plus service worker and `manifest.webmanifest` (pdf-lib loads only when printing) |
 | `npm run gen:samples` | Regenerate every app's sample photos (deterministic, byte-identical) |

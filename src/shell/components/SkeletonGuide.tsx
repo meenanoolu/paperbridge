@@ -25,7 +25,7 @@ const Down = () => (
   </svg>
 );
 
-/** Body of the dialog: the shared engine, the apps on it, App #3, and the Kiro Crew handoff. */
+/** Body of the dialog: the shared engine, the apps on it, the next app, and the Kiro Crew handoff. */
 export function SkeletonDiagram() {
   return (
     <div className="space-y-3">
@@ -38,7 +38,7 @@ export function SkeletonDiagram() {
                   {a.label}
                 </li>
               ))}
-              <li className="rounded-lg border-2 border-dashed border-slate-950 px-2 py-0.5 font-bold">App #3: npm run create-app</li>
+              <li className="rounded-lg border-2 border-dashed border-slate-950 px-2 py-0.5 font-bold">Next app: npm run create-app</li>
             </ul>
             <p className="mt-1">Each app is a layout (the printed card), a pure interpreter (marks to report) and a page.</p>
           </Layer>
@@ -63,7 +63,7 @@ export function SkeletonDiagram() {
         </li>
       </ol>
       <div className="grid gap-3 sm:grid-cols-2">
-        <Layer title="App #3 in one command:" path="scripts/create-app.mjs" tone="bg-white">
+        <Layer title="Your next app in one command:" path="scripts/create-app.mjs" tone="bg-white">
           <code className="font-mono">npm run create-app clinic-intake "Clinic Intake"</code> writes a card, an interpreter, tests and a
           page that already routes, batch-saves and reads aloud.
         </Layer>
@@ -108,10 +108,10 @@ export function SkeletonGuide() {
         type="button"
         aria-haspopup="dialog"
         onClick={() => setOpen(true)}
-        className="inline-flex min-h-12 items-center gap-2 rounded-xl border-2 border-white px-4 py-2 text-lg font-bold text-white hover:bg-slate-800"
+        className="inline-flex min-h-12 items-center gap-2 rounded-full border-2 border-white/80 px-4 py-1.5 text-lg font-bold text-white hover:bg-slate-800"
       >
-        <Icon name="sparkle" />
-        How the Skeleton Works
+        <Icon name="sparkle" className="h-5 w-5" />
+        How Skeleton Works
       </button>
       {open && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/70 p-4" onMouseDown={(e) => e.target === e.currentTarget && setOpen(false)}>
@@ -125,7 +125,7 @@ export function SkeletonGuide() {
           >
             <div className="flex items-start justify-between gap-3">
               <h2 id={`${uid}-title`} className="text-3xl font-black">
-                How the Skeleton Works
+                How Skeleton Works
               </h2>
               <button
                 type="button"

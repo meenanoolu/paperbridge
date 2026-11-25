@@ -176,9 +176,9 @@ describe("App accents and the Skeleton Architecture dialog", () => {
   });
 
   it("the header button opens a labelled dialog that shows the engine, every app, App #3 and the Crew handoff", () => {
-    expect(renderToString(createElement(SkeletonGuide))).toMatch(/aria-haspopup="dialog"[^>]*>.*How the Skeleton Works<\/button>$/);
+    expect(renderToString(createElement(SkeletonGuide))).toMatch(/aria-haspopup="dialog"[^>]*>.*How Skeleton Works<\/button>$/);
     const body = renderToString(createElement(SkeletonDiagram)).replace(/<!-- -->/g, "");
-    for (const t of ["src/apps", "src/shell", "src/core", "scripts/create-app.mjs", "crew-app", "Elder Care Bridge", "Study Bridge", "App #3: npm run create-app"]) expect(body).toContain(t);
+    for (const t of ["src/apps", "src/shell", "src/core", "scripts/create-app.mjs", "crew-app", "Elder Care Bridge", "Study Bridge", "Next app: npm run create-app"]) expect(body).toContain(t);
   });
 });
 

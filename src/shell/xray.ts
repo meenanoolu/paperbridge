@@ -79,3 +79,12 @@ export const XRAY_STYLE: Record<XRayState, { ring: string; dash?: string; label:
   blank: { ring: "#94a3b8", dash: "1.5 2.5", label: "#0f172a", text: "#ffffff" },
 };
 export const XRAY_LOCK = "#22c55e";
+
+/** A colour set for the overlay, so an app can theme it (e.g. Seance Cipher's glowing runes). */
+export interface XRayPalette {
+  lock: string;
+  styles: typeof XRAY_STYLE;
+  /** Soft glow around rings and lock-on boxes. */
+  glow?: boolean;
+}
+export const DEFAULT_XRAY_PALETTE: XRayPalette = { lock: XRAY_LOCK, styles: XRAY_STYLE };

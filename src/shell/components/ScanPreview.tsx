@@ -30,6 +30,7 @@ export function ScanPreview({
   onCycle,
   describe,
   xray = false,
+  palette,
 }: {
   scan: CompletedScan;
   overrides?: ManualOverrides;
@@ -38,6 +39,8 @@ export function ScanPreview({
   describe?: DescribeBubble;
   /** Show the Optical X-Ray (lock-on boxes, density rings and scores) instead of the plain overlay. */
   xray?: boolean;
+  /** Overlay colours (defaults to the high-contrast set). */
+  palette?: import("../xray").XRayPalette;
 }) {
   const { result, width, height } = scan;
   const model = useMemo(() => (xray ? xrayModel(result, scan.layout) : null), [xray, result, scan.layout]);
@@ -48,7 +51,7 @@ export function ScanPreview({
     <figure>
       <div className="relative overflow-hidden rounded-xl border-2 border-slate-400 bg-slate-800">
         <img src={scan.imageUrl} alt={`Scanned image: ${scan.label}`} className="block h-auto w-full" />
-        {model && <XRayOverlay model={model} width={width} height={height} focusKey={focusKey} />}
+        {model && <XRayOverlay model={model} width={width} height={height} focusKey={focusKey} palette={palette} />}
         {result.ok && !model && (
           <svg viewBox={`0 0 ${width} ${height}`} className="absolute inset-0 h-full w-full" aria-hidden="true">
             <polygon

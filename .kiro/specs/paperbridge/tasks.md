@@ -145,3 +145,12 @@ Requirement references use the numbering in `requirements.md`.
   - [x] 22.4 Skeleton Home, view tabs, `viewFromHash`, webcam corner targets _(R45)_
   - [x] 22.5 Scaffolder `print.ts`; README under 150 lines and `docs/DETAILS.md` _(R46)_
   - [x] 22.6 Tests, browser checks (Telugu quiz PDF, unit pack, mixed batch on Home), axe-core 0 AA / 0 AAA on 5 states
+
+- [x] 23. Phase 10: three frontends and Seance Cipher (branch `feat/three-distinct-frontends-and-seance-app`)
+  - [x] 23.1 Core rune icons (eye, key, flame) _(R50.1)_
+  - [x] 23.2 `useOpticalScan`, `optical.tsx`, `HumanVerifyControl`, X-Ray palette, launcher bar, `fullBleed`, paper-fit ring alignment _(R47, R50.5)_
+  - [x] 23.3 Elder Care Warm Clinical Stationery _(R48)_
+  - [x] 23.4 Study Bridge Live Classroom Studio _(R49)_
+  - [x] 23.5 Seance Cipher layout, oracle, samples, page and harmonic chord _(R50.1-R50.3)_
+  - [x] 23.6 Tests (Seance layout and verdicts, 3-app auto-route and batch, paper fit, launcher, keyboard markup), browser checks, axe-core 0 AA on 5 states (Elder Care AAA 0) _(R50.4, R9.2)_
+  - [x] 23.7 README showcase of 3 frontends, DETAILS, developer guide

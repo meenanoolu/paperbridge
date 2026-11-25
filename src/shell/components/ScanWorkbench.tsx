@@ -1,8 +1,7 @@
-import { useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useContext, useMemo, useRef, type ReactNode } from "react";
 import type { CardLayout } from "../../core";
-import { applyManualOverrides, countActiveOverrides, NO_OVERRIDES, setOverride, unclearBubbles, type ManualOverrides } from "../overrides";
 import { RouteContext } from "../route-context";
-import { takeRoutedScan, takeRoutedView, useRoutedScan } from "../routed-scan";
+import { useOpticalScan } from "../useOpticalScan";
 import { pipelineSteps } from "../pipeline";
 import { DecodePipeline } from "./DecodePipeline";
 import { JudgeDemoStrip } from "./JudgeDemoStrip";
@@ -12,7 +11,7 @@ import { PrintWorkspace } from "./PrintWorkspace";
 import { createPrintSlot, type PrintSlot } from "../print-slot";
 import { showWorkspaceTab, useWorkspaceTab, type WorkspaceTab } from "../workspace-tabs";
 import { AutoRoutePanel } from "./AutoRoutePanel";
-import { DECODE_ERROR_TEXT, useScanner, type CompletedScan, type ReviewedScan } from "../scan";
+import type { ReviewedScan } from "../scan";
 import { DecodeFacts } from "./DecodeFacts";
 import { Icon, type IconName } from "./Icon";
 import { defaultDescribe, ReviewPanel, type DescribeBubble } from "./ReviewPanel";
@@ -20,8 +19,7 @@ import { SamplePanel, type SampleCard } from "./SamplePanel";
 import { ScanPreview } from "./ScanPreview";
 import { StressLab } from "./StressLab";
 import { ResultVoice } from "./ResultVoice";
-import { AUDIO_CUES_KEY, parseAudioCues, playLockOnChime, type SpokenSummary } from "../audio-cues";
-import { usePersistentState } from "../usePersistentState";
+import { playLockOnChime, type SpokenSummary } from "../audio-cues";
 import { WorkspaceTabs } from "./WorkspaceTabs";
 import { WebcamScanner } from "./WebcamScanner";
 import { Button, Callout, Card, StatusBadge } from "./ui";
@@ -91,72 +89,19 @@ export function ScanWorkbench({
   adaptiveCard,
 }: WorkbenchProps) {
   const fallbackPrint = useMemo(() => createPrintSlot({ layouts: printLayouts ?? layouts }), [printLayouts, layouts]);
-  const [audioCues, setAudioCues] = usePersistentState(AUDIO_CUES_KEY, parseAudioCues, true);
-  const [xray, setXray] = useState(false);
-  const [unwarp, setUnwarp] = useState(false);
   const tab = useWorkspaceTab();
   const onRoute = useContext(RouteContext);
-  const { state, scanUrl, scanFile, scanFrame, loadScan } = useScanner(layouts);
-  const routed = useRoutedScan();
-  useEffect(() => {
-    const scan = routed && takeRoutedScan(layouts.map((l) => l.id));
-    if (!scan) return;
-    setCamera(false);
-    setActiveSample(null);
-    const view = takeRoutedView();
-    setXray(!!view.xray);
-    setUnwarp(!!view.unwarp);
-    loadScan(scan);
-  }, [routed, layouts, loadScan]);
-  const [activeSample, setActiveSample] = useState<string | null>(null);
-  const [camera, setCamera] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const results = useRef<HTMLDivElement>(null);
-  const lastScrolled = useRef<CompletedScan | null>(null);
-  // Overrides belong to one scan: a new scan starts with none, so there is no reset race.
-  const [review, setReview] = useState<{ scan: CompletedScan | null; overrides: ManualOverrides }>({ scan: null, overrides: NO_OVERRIDES });
-
-  const scan = state.status === "done" ? state.scan : null;
-  const overrides = review.scan === scan ? review.overrides : NO_OVERRIDES;
-  const reviewed = useMemo<ReviewedScan | null>(() => {
-    if (!scan || !scan.result.ok) return null;
-    return {
-      ...scan,
-      rawResult: scan.result,
-      result: applyManualOverrides(scan.result, overrides),
-      overrides,
-      manualOverrides: countActiveOverrides(scan.result, overrides),
-    };
-  }, [scan, overrides]);
-  const unclear = useMemo(() => (scan ? unclearBubbles(scan.result) : []), [scan]);
-  const editOverride = (key: string, value: Parameters<typeof setOverride>[2]) =>
-    setReview((r) => ({ scan, overrides: setOverride(r.scan === scan ? r.overrides : NO_OVERRIDES, key, value) }));
-
-  useEffect(() => {
-    if (!scan || lastScrolled.current === scan) return;
+  const onNewScan = useCallback(() => {
     // Every new scan is shown on Scan & Verify.
     showWorkspaceTab("scan");
-    lastScrolled.current = scan;
     results.current?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" });
-  }, [scan]);
-
-  useEffect(() => {
-    if (reviewed) onScan?.(reviewed);
-  }, [reviewed, onScan]);
-
-  const busy = state.status === "busy";
-  const liveMessage =
-    state.status === "busy"
-      ? `Decoding ${state.label}.`
-      : state.status === "error"
-        ? state.message
-        : state.status === "done"
-          ? reviewed
-            ? `${reviewed.manualOverrides > 0 ? `Updated. Manually verified (${reviewed.manualOverrides}).` : `Scanned ${reviewed.label}.`} ${announce?.(reviewed) ?? ""}`
-            : !state.scan.result.ok
-              ? `Scan failed. ${DECODE_ERROR_TEXT[state.scan.result.reason].title}.`
-              : ""
-          : "";
+  }, []);
+  const o = useOpticalScan(layouts, { onScan, announce, onNewScan });
+  const { state, reviewed, unclear, overrides, busy, liveMessage, activeSample, setActiveSample, camera, setCamera, xray, setXray, unwarp, setUnwarp, audioCues, setAudioCues } = o;
+  const editOverride = o.setAnswer;
+  const scanUrl = (src: string, title: string, id: string) => o.pickSample(id, src, title);
 
   const header = (
     <header className="flex items-start gap-4">
@@ -178,11 +123,7 @@ export function ScanWorkbench({
         samples={samples}
         activeId={activeSample}
         busy={busy}
-        onPick={(s) => {
-          setCamera(false);
-          setActiveSample(s.id);
-          void scanUrl(s.src, s.title);
-        }}
+        onPick={(s) => scanUrl(s.src, s.title, s.id)}
       />
 
       <section aria-labelledby="own-card" className="rounded-2xl border-2 border-slate-300 bg-white p-5">
@@ -217,9 +158,7 @@ export function ScanWorkbench({
               const f = e.target.files?.[0];
               e.target.value = "";
               if (!f) return;
-              setCamera(false);
-              setActiveSample(null);
-              void scanFile(f);
+              o.upload(f);
             }}
           />
           <span className="hidden h-10 w-0.5 bg-slate-300 sm:block" aria-hidden />
@@ -234,10 +173,7 @@ export function ScanWorkbench({
               layout={layouts[0]}
               onClose={() => setCamera(false)}
               onLock={() => playLockOnChime(audioCues)}
-              onCapture={(frame) => {
-                setCamera(false);
-                scanFrame(frame);
-              }}
+              onCapture={(frame) => o.scanFrame(frame)}
             />
           </div>
         )}
@@ -259,7 +195,7 @@ export function ScanWorkbench({
             ))}
           </ol>
         )}
-        {busy && (
+        {state.status === "busy" && (
           <p className="flex items-center gap-3 rounded-2xl border-2 border-slate-950 bg-white p-5 text-xl font-bold">
             <span className="h-6 w-6 motion-safe:animate-spin rounded-full border-4 border-slate-950 border-t-transparent" aria-hidden />
             Decoding {state.label}...
@@ -304,7 +240,7 @@ export function ScanWorkbench({
                   overrides={overrides}
                   describe={describeBubble}
                   onSet={editOverride}
-                  onResetAll={() => setReview({ scan, overrides: NO_OVERRIDES })}
+                  onResetAll={o.resetAnswers}
                 />
               </Card>
               <Card title="Decode details">

@@ -17,3 +17,15 @@
     outline-color: #fde047;
   }
 }
+
+/* Shared optical animations. Used only behind Tailwind's motion-safe: variant. */
+@keyframes stamp {
+  0% { transform: scale(2.2) rotate(-14deg); opacity: 0; }
+  60% { transform: scale(0.94) rotate(-6deg); opacity: 1; }
+  100% { transform: scale(1) rotate(-6deg); opacity: 1; }
+}
+@keyframes laser-sweep {
+  0% { top: 0%; }
+  50% { top: calc(100% - 3px); }
+  100% { top: 0%; }
+}

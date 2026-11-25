@@ -8,6 +8,7 @@ describe("app registry", () => {
     expect(APPS.map((a) => [a.id, a.label])).toEqual([
       ["elder-care", "Elder Care Bridge"],
       ["study-bridge", "Study Bridge"],
+      ["seance-cipher", "Seance Cipher"],
     ]);
   });
 

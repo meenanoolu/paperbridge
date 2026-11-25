@@ -18,7 +18,7 @@ import { gradeSheet } from "../../apps/study-bridge/grade";
 import { STUDY_LAYOUT, STUDY_LAYOUTS } from "../../apps/study-bridge/layout";
 import { quizSheetTitles, STUDY_PRINT, STUDY_PRINT_TEXT } from "../../apps/study-bridge/print";
 import { STUDY_SAMPLE_SPECS } from "../../apps/study-bridge/samples/specs";
-import { ViewTabs } from "../App";
+import { LauncherBar } from "../App";
 import { bubbleCenters, checkLayout, checkPrintedText, decode, fiducialCenters, idBits, isWinAnsiText, localizeLayout, renderCardPdf, renderCardsPdf } from "../../core";
 import { APPS, HOME_ID, navItems, viewFromHash, viewId } from "../app-registry";
 import { AdaptiveCardPanel } from "../components/AdaptiveCard";
@@ -179,13 +179,13 @@ describe("Skeleton Home and the top-right view tabs", () => {
     expect(viewId({ kind: "home" })).toBe(HOME_ID);
   });
 
-  it("lists Skeleton Home, Elder Care and Study Bridge, in that order, marking the open one", () => {
-    expect(navItems().map((n) => n.label)).toEqual(["Skeleton Home", "Elder Care", "Study Bridge"]);
-    const html = strip(renderToString(createElement(ViewTabs, { current: HOME_ID })));
-    expect(html).toContain('<nav aria-label="Views">');
-    expect(html.match(/<a href="#/g)).toHaveLength(3);
+  it("lists Skeleton Home, then the 3 apps, in that order, marking the open one", () => {
+    expect(navItems().map((n) => n.label)).toEqual(["Skeleton Home", "Elder Care Bridge", "Study Bridge", "Seance Cipher"]);
+    const html = strip(renderToString(createElement(LauncherBar, { current: HOME_ID })));
+    expect(html).toMatch(/<nav aria-label="Apps"/);
+    expect(html.match(/<a href="#/g)).toHaveLength(4);
     expect(html).toMatch(/href="#home" aria-current="page"/);
-    expect(strip(renderToString(createElement(ViewTabs, { current: "study-bridge" })))).toMatch(/href="#study-bridge" aria-current="page"/);
+    expect(strip(renderToString(createElement(LauncherBar, { current: "study-bridge" })))).toMatch(/href="#study-bridge" aria-current="page"/);
   });
 
   it("Skeleton Home shows the 1-click Mixed Batch, then 3 equal domain cards, including the App #3 command and what it inherits", () => {
@@ -194,7 +194,7 @@ describe("Skeleton Home and the top-right view tabs", () => {
     expect(html).toContain("Run Mixed Batch (Elder Care + Study Bridge)");
     const cards = html.slice(html.indexOf('aria-label="Apps on the skeleton"'));
     expect(cards.indexOf("Elder Care Bridge")).toBeLessThan(cards.indexOf("Study Bridge"));
-    expect(cards.indexOf("Study Bridge")).toBeLessThan(cards.indexOf("Scaffold App #3"));
+    expect(cards.indexOf("Study Bridge")).toBeLessThan(cards.indexOf("Scaffold Your Next App"));
     expect(html).toContain("npm run create-app clinic-intake &quot;Clinic Intake&quot;");
     for (const i of INHERITED) expect(html).toContain(i);
     expect(html).toContain(`border-top-color:${APPS.find((a) => a.id === "elder-care")!.accent!.strong}`);
