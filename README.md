@@ -41,7 +41,7 @@ All three are built from the same `src/core/` engine and the same `src/shell/` p
 
 ### Try it in 60 seconds (no printer needed)
 
-1. Open the [live demo](https://paperbridge-acvw.onrender.com/). On **Skeleton Home**, click **Run Mixed Batch**: real photos are unwarped, X-Rayed and routed to their own apps.
+1. Open the [live demo](https://paperbridge-acvw.onrender.com/). On **Skeleton Home**, click **Run Mixed-Domain Auto-Route Demo**: one real card from each app is unwarped, X-Rayed and routed to its own app.
 2. Click **Seance Cipher** in the launcher, then the sample **The Smudged Seance**. One faint rune goes to you: press **Mark filled** and the spirits give their verdict.
 3. Open **Elder Care Bridge**, load a sample and stamp the amber mark **Human Verified**, then print the adapted next-week card.
 4. Open **Study Bridge**, scan a quiz, then **Print Studio** for the Telugu or Hindi sheet and the quiz pack.
@@ -85,7 +85,7 @@ offline in the browser with no account or upload, and unclear marks go to a pers
 ```bash
 npm install
 npm run dev                                       # opens on Skeleton Home
-npm test                                          # 364 tests, including a 50-photo A4/Letter matrix
+npm test                                          # 365 tests, including a 50-photo A4/Letter matrix
 npm run create-app clinic-intake "Clinic Intake"  # your next app, ready to scan
 ```
 
