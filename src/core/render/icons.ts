@@ -8,7 +8,7 @@ import type { CardIcon } from "../types";
 
 export type { CardIcon };
 
-export const CARD_ICONS: readonly CardIcon[] = ["sun", "moon", "drop", "alert", "check"];
+export const CARD_ICONS: readonly CardIcon[] = ["sun", "moon", "drop", "alert", "check", "eye", "key", "flame"];
 
 export interface IconShape {
   d: string;
@@ -76,6 +76,25 @@ export const ICON_SHAPES: Record<CardIcon, IconShape[]> = {
     { d: circle(5, 5, 4.7), fill: "black" },
     { d: circle(5, 5, 3.7), fill: "white" },
     { d: poly([[2.7, 5.2], [3.7, 4.2], [4.5, 5.0], [6.5, 3.0], [7.5, 4.0], [4.5, 7.0]]), fill: "black" },
+  ],
+  // Rune: an open eye (almond outline, white iris, black pupil).
+  eye: [
+    { d: "M0.4 5 C2.2 1.6 7.8 1.6 9.6 5 C7.8 8.4 2.2 8.4 0.4 5 Z", fill: "black" },
+    { d: "M1.8 5 C3.4 2.9 6.6 2.9 8.2 5 C6.6 7.1 3.4 7.1 1.8 5 Z", fill: "white" },
+    { d: circle(5, 5, 1.7), fill: "black" },
+  ],
+  // Rune: a key (ring bow, shaft and two teeth).
+  key: [
+    { d: circle(2.9, 5, 2.4), fill: "black" },
+    { d: circle(2.9, 5, 1.1), fill: "white" },
+    { d: poly([[4.9, 4.3], [9.7, 4.3], [9.7, 5.7], [4.9, 5.7]]), fill: "black" },
+    { d: poly([[7.1, 5.6], [8.0, 5.6], [8.0, 7.6], [7.1, 7.6]]), fill: "black" },
+    { d: poly([[8.6, 5.6], [9.5, 5.6], [9.5, 7.0], [8.6, 7.0]]), fill: "black" },
+  ],
+  // Rune: a flame (outer teardrop with a white inner tongue).
+  flame: [
+    { d: "M5 0.3 C6.4 2.6 8.6 4.2 8.6 6.6 C8.6 8.6 7 9.8 5 9.8 C3 9.8 1.4 8.6 1.4 6.6 C1.4 5 2.4 3.8 3.4 3 C3.5 4.2 3.9 5 4.6 5.4 C4.4 3.6 4.4 2 5 0.3 Z", fill: "black" },
+    { d: "M5 5.2 C5.9 6.3 6.6 7 6.6 7.9 C6.6 8.8 5.9 9.3 5 9.3 C4.1 9.3 3.4 8.8 3.4 7.9 C3.4 7.1 4.2 6.3 5 5.2 Z", fill: "white" },
   ],
 };
 
