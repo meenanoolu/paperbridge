@@ -96,7 +96,7 @@ export function App() {
         tabIndex={-1}
         data-accent={accent.name}
         style={{ "--accent": accent.strong, "--accent-soft": accent.soft } as CSSProperties}
-        className={app?.fullBleed ? "focus:outline-none" : "mx-auto max-w-6xl px-4 py-6 focus:outline-none sm:px-6 sm:py-8"}
+        className={!app || app.fullBleed ? "focus:outline-none" : "mx-auto max-w-6xl px-4 py-6 focus:outline-none sm:px-6 sm:py-8"}
       >
         <RouteContext.Provider value={onRoute}>
           {app ? <app.Component key={app.id} /> : <SkeletonHome />}
