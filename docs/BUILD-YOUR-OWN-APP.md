@@ -109,7 +109,7 @@ generated test fails if any is broken:
 
 - [`src/apps/elder-care/`](../src/apps/elder-care/): weekly medication card, caregiver dashboard, history, Kiro Crew alerts, and customizable printed labels (`card-settings.ts`).
 - [`src/apps/study-bridge/`](../src/apps/study-bridge/): 10-question quiz sheet, editable answer key, class gradebook, and CSV export.
-- [`src/apps/seance-cipher/`](../src/apps/seance-cipher/): a 3-question rune card with chapters, story verdicts and a harmonic chord, the smallest full-screen frontend.
+- [`src/apps/seance-cipher/`](../src/apps/seance-cipher/): X-Ray Rite, an endless arcade game on a 12-circle sheet. It shows that a bubble's ink density (`fill`) is an analog input, not only filled or blank: `riteEngine.ts` is a pure state machine you can copy, `riteCamera.ts` is a live frame loop, and `riteSheet.ts` adds your own vector pictures to a printed card without touching the bubbles. The original 3-question Oracle Cipher card is kept inside it.
 
 ## Check a layout from Kiro
 

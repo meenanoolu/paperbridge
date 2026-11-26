@@ -123,19 +123,33 @@ Teacher workflow:
 - **Class sheet:** enter a student's name or ID after each scan. The **Class Weak-Topic Breakdown** shows the share of students below 70% per topic.
 - **Export CSV Gradebook:** Student, Score, %, Double-Marked, Blank, Unclear, Weak Topics. Opens cleanly in Excel and Sheets, and names starting with `=` can't run as formulas.
 
-### Seance Cipher ([`src/apps/seance-cipher/`](../src/apps/seance-cipher/))
+### Seance Cipher: X-Ray Rite ([`src/apps/seance-cipher/`](../src/apps/seance-cipher/))
 
-A playful third domain that proves the skeleton is not tied to care or school. The **Oracle Cipher**
-card has 3 questions, each answered with one of 4 runes (moon, eye, key, flame), across 3 chapters
-(The Lantern Hall, The Drowned Bell, The Last Mirror). One photo gives:
+An endless survival arcade on a printed sheet. **The 12-Rune Sheet** has 12 blank white circles in 3 rows of 4. Each circle is named above (`1 Skull` to `12 Star`) and its rune is drawn below as a vector picture, so nothing but a finger or token ever touches a circle. It keeps the Oracle Cipher card's exact 12 bubble coordinates, corner markers and card ID, so photos of either print decode the same way and the two bundled sample photos still route here.
 
-- each answer as chosen, blank, double-marked or unclear; a faint rune stops the reading until a person confirms it
-- a story verdict from the majority rune (or "the veil" when no rune wins), read aloud on request
-- a short harmonic chord (A3, C4, E4, G4, Web Audio, offline) when audio cues are on
-- the current and next chapter's card to print, and readings saved to "the Grimoire" through the generic batch adapter
+**The game** (`riteEngine.ts`, pure and unit tested):
 
-Two haunted samples ship with it: The Lantern Hall (clean) and The Smudged Seance (one faint mark).
-The obsidian `#0B0D12` and brass `#D4AF37` theme passes WCAG 2.2 AA.
+| Rule | Value |
+|---|---|
+| States | `menu`, `waveIntro` (1.5 s announcement), `active`, `gameOver` |
+| Lives | 3. A missed wave costs one, breaks the combo and moves on to the next wave |
+| Wave timer | `max(1800, 4200 - 180 x wave)` ms |
+| Targets | 1 rune for waves 1 to 3, 2 for 4 to 6, 3 for 7 to 9, 4 from wave 10 |
+| Banish | cover reading of `PERFECT = 0.48` or more. Pays `round(100 x (1 + 0.15 x combo))` |
+| Trembling Hand | reading from `0.22` up to just under `0.48`. The timer drains at 60% speed (40% slower) while it lasts. The rune is cursed for the wave: its banish pays points but cannot grow the combo, and no banish grows it while another target is cursed |
+| Wave clear | bonus of 1 point per 10 ms left on the timer |
+| Camera loses the sheet | the timer waits, so a hidden card never costs a life |
+
+**Two ways to play** (`RiteGame.tsx`):
+
+- **Live optical webcam.** `riteCamera.ts` decodes a frame every 100 ms with the same optical decoder. The first frames try A4 and Letter and keep the paper whose printed rings line up (`decodeBestFit`); after that one decode per frame. The cover of a rune is the decoder's own ink density `fill` inside its bubble. A two-frame noise guard (the lower of the last two readings) stops one bad frame from banishing a rune. The overlay pulses targets in antique gold `#D4AF37`, flickers a crimson beam and dashed ring on a trembling target, and bursts emerald on a banish. The timer, the camera stream and the video are released on stop and on unmount.
+- **Instant digital launchpad.** The 12 runes as a 3 x 4 grid of buttons. Hold a pad (mouse, touch, Space or Enter) or its key (`1-9`, `0`, `-`, `=`) for 250 ms or more and it reads `1.0` (a full banish); a quick tap reads `0.35` (a trembling hand). Judges without a printer can play at once.
+
+Web Audio chords (no audio files): a major triad that climbs a semitone per combo step on a banish, a beating buzz on a tremble, a falling third when a life is lost and a low minor chord at Game Over. **Game Over** shows the frozen Optical X-Ray (the last camera frame, or the sheet on the launchpad, with the runes still standing marked in dashed crimson), the final wave, score and max combo, **Play Again** (focus moves there) and **Copy Score Receipt**. The best score is kept on the device.
+
+Real numbers from the simulated camera on the printed sheet: nothing on a circle reads 0.00; a dark token 0.94; a dark fingertip 0.78; a dark fingertip over 60% of the circle 0.53; a mid skin tone 0.45; a pale skin tone 0.30; a dark fingertip half off the circle 0.38. So the 0.48 line is met by a dark token or a pressed dark fingertip, while a pale fingertip in bright light lands in the Trembling Hand range. Real webcams are not verified.
+
+The original 3-question **Oracle Cipher** card is kept in a collapsed section: the same 12 circles and card ID, story verdicts, the faint-mark human check, and the landing place for a card routed here from Skeleton Home. The obsidian `#0B0D12` and brass `#D4AF37` theme passes WCAG 2.2 AA.
 
 ### Kiro Crew App (`crew-app/`)
 
@@ -237,6 +251,12 @@ them. They found these bugs before any human saw a wrong answer:
 | Crew bundle smoke test | Two React copies (the UI package installed `react`), so hooks crashed | Types only in `crew-app/ui`; React comes from the host |
 | Batch test across paper sizes (5 samples x 5 cameras x 2 papers) | Every scan path tried A4 first and accepted it, so **Letter prints were read with A4 bubble positions**: 1 to 7 extra unclear marks, sometimes different readings | Decode every paper size and keep the best fit (fewest unclear marks, then highest confidence): 50 of 50 correct |
 | Keyboard audit | The skip link set `#main`, which switched Study Bridge back to Elder Care | Move focus without changing the hash |
+| Bundle size check on X-Ray Rite | Importing `pdf-lib` at the top of the sheet module pulled it into the first load (454 KB to 915 KB) | Import it on demand inside `riteSheetPdf`, like the core's PDF code: 495 KB, `pdf-lib` lazy again |
+| Real-browser look at a lit pad | The pulse faded the whole button, so the rune name dropped below AA contrast at the dim point | Pulse a separate glow ring; the button never fades |
+| axe-core on the launchpad | `label-content-name-mismatch` on all 12 pads: the aria-label did not contain the visible "1 Skull" | No aria-label; the visible words are the name |
+| Screenshot of a lit Moon pad | The crescent's cut-out was painted in the pad colour and showed as a dark disc over the gold beam | Draw each rune through an SVG mask, so cut-outs are real holes |
+| Keyboard audit on the print panel | The page's yellow focus ring vanished on parchment | Parchment panels set a dark ring for their controls |
+| Unit test of the Trembling Hand | A 0.3 reading put on a rune that happened to be a target slowed the timer, so "time ran out" never fired | Test readings go on a rune that is not lit (the engine is right: a tremble slows the timer) |
 | Seance sample x 7 cameras x 2 papers | An A4 smudged Seance card read with the Letter layout showed 0 unclear marks (misplaced samples landed on blank paper), so "fewest unclear" picked the wrong paper | Score how dark each bubble's printed ring is through the homography and prefer the paper whose rings line up; on 98 photos the printed paper always wins, by at least 0.835 |
 
 The tests also caught a mistake in our own expectations: we expected Sam's quiz to score
@@ -310,7 +330,7 @@ src/shell/             shared UI: launcher bar, optical primitives + useOpticalS
 src/apps/elder-care/   layout, interpret, card settings (anchors, cues, High-Visibility, icons), i18n packs, adaptive card, presets, monthly pack,
                        patterns, history, sample history, Doctor Visit PDF, batch adapter, CareDashboard
 src/apps/study-bridge/ layout, answer key, grade, class sheet + CSV, due review sheet, batch adapter, StudyResults, Studio (telemetry, topic mastery)
-src/apps/seance-cipher/ layout (3 chapters), oracle (story verdicts), theme, samples
+src/apps/seance-cipher/ layout (3 chapters + the 12-Rune Sheet), oracle (story verdicts), riteEngine (pure game), riteCamera, riteSheet + runeGlyphs, RiteGame/RitePads/RiteLive/RiteReceipt, riteAudio, theme, samples
 src/__tests__/         integration tests: shipped app layouts against the core Layout Validator
 scripts/               gen-samples.ts, create-app.mjs, gen-icons.ts, hooks/ (Kiro hook scripts)
 mcp/                   Layout Validator MCP server (validate_card_layout, list_registered_apps)
@@ -325,7 +345,7 @@ docs/                  BUILD-YOUR-OWN-APP.md, screenshots
 | Command | What it does |
 |---|---|
 | `npm run dev` | Start the app |
-| `npm test` | 365 tests: property tests, end-to-end sample decodes, interpreters, overrides, history, CSV, layout validator, scaffolder, MCP tools, auto-routing and batch scan, 50-photo paper-size matrix, monthly pack, presets, adaptive cards, language packs and icons, stress lab, tabs, hooks, Optical X-Ray, audio and speech controls, generic batch save, Instant Demo scenarios, decode pipeline, Raw vs. Unwarped, accents and the architecture dialog, shared print and packs in every app, Skeleton Home and the launcher, Seance Cipher layout and verdicts, auto-route across 3 apps, frontend keyboard markup, Crew App contract, cardLanguage and bundle |
+| `npm test` | 444 tests: property tests, end-to-end sample decodes, interpreters, overrides, history, CSV, layout validator, scaffolder, MCP tools, auto-routing and batch scan, 50-photo paper-size matrix, monthly pack, presets, adaptive cards, language packs and icons, stress lab, tabs, hooks, Optical X-Ray, audio and speech controls, generic batch save, Instant Demo scenarios, decode pipeline, Raw vs. Unwarped, accents and the architecture dialog, shared print and packs in every app, Skeleton Home and the launcher, Seance Cipher layout and verdicts, the X-Ray Rite engine, sheet, camera loop, audio and page, auto-route across 3 apps, frontend keyboard markup, Crew App contract, cardLanguage and bundle |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run build` | Production build plus service worker and `manifest.webmanifest` (pdf-lib loads only when printing) |
 | `npm run gen:samples` | Regenerate every app's sample photos (deterministic, byte-identical) |

@@ -25,24 +25,39 @@ All three are built from the same `src/core/` engine and the same `src/shell/` p
   <tr>
     <th width="33%"><a href="src/apps/elder-care/">Elder Care Bridge</a><br>Warm Clinical Stationery</th>
     <th width="33%"><a href="src/apps/study-bridge/">Study Bridge</a><br>Live Classroom Studio</th>
-    <th width="33%"><a href="src/apps/seance-cipher/">Seance Cipher</a><br>Obsidian and brass</th>
+    <th width="33%"><a href="src/apps/seance-cipher/">Seance Cipher</a><br>X-Ray Rite, obsidian arcade</th>
   </tr>
   <tr>
     <td><img src="docs/images/frontend-elder.png" alt="Elder Care Bridge: ivory page with teal hairlines, the card with its Optical X-Ray on the left, adherence status and a Human verified stamp on the right"></td>
     <td><img src="docs/images/frontend-study.png" alt="Study Bridge: indigo banner, bold telemetry for score and decode time, horizontal topic-mastery bars"></td>
-    <td><img src="docs/images/frontend-seance.png" alt="Seance Cipher: obsidian page with brass hairlines, a glowing X-Ray over the Oracle Cipher card and the story verdict"></td>
+    <td><img src="docs/images/frontend-seance.png" alt="X-Ray Rite: the 12-rune launchpad with one rune lit in gold, a wave timer, 3 lives, score and combo"></td>
   </tr>
   <tr>
     <td>Ivory and teal, AAA contrast. Two columns: card, X-Ray and Raw vs. Unwarped on the left; adherence, a 1-click <b>Human Verified</b> stamp, Read Aloud, WhatsApp update, Doctor Visit PDF and icon cards in 4 languages on the right. Presets sit in an accordion.</td>
     <td>Slate, indigo and emerald with <code>tabular-nums</code> telemetry. Live Scan, Print Studio and Gradebook tabs: topic-mastery bars, a batch gradebook, the Due Review Card and a multi-week quiz pack in Telugu and Hindi.</td>
-    <td>Serif headings, a laser scan sweep and a glowing emerald and amber X-Ray. The Oracle Cipher card has 3 questions of 4 runes; decoding reveals a story verdict, plays a harmonic chord (with audio cues on) and offers the next chapter to print.</td>
+    <td><b>X-Ray Rite: The Endless Obsidian Seance.</b> An endless survival arcade on a printed 12-rune sheet. Runes light up in waves; cover one with a finger or token before the timer ends. A shaky half cover is a Trembling Hand. No printer? Play on the digital launchpad.</td>
   </tr>
 </table>
+
+### X-Ray Rite: The Endless Obsidian Seance
+
+Seance Cipher is now an endless survival game on the same optical engine. Print the 12-Rune Sheet (12 blank white circles, each with a spooky rune: Skull, Bat, Ghost, Pumpkin, Eye, Moon, Candle, Cross, Spider, Bone, Coffin, Star) or use the digital launchpad.
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/images/xray-rite-live.png" alt="Live webcam mode: a photographed 12-rune sheet with one rune ringed in dashed crimson, its cover reading 0.40, and a crimson timer bar"></td>
+    <td width="50%"><img src="docs/images/xray-rite-sheet.png" alt="The printable X-Ray Rite 12-Rune Sheet: 12 blank circles in 3 rows of 4, each named above and drawn below"></td>
+  </tr>
+</table>
+
+- A cover reading of **0.48 or more** banishes a rune and grows the combo (multiplier 1 + 0.15 per step). **0.22 to 0.47** is the **Trembling Hand**: the timer drains 40% slower, but combo growth is locked until the rune is fully covered.
+- 3 lives. Each wave is faster (`max(1800, 4200 - 180 x wave)` ms) and lights 1 to 4 runes. Game Over gives a frozen X-Ray frame and a copyable score receipt.
+- Honest limit: a dark token or fingertip reads 0.78 or more, but a pale fingertip in bright light can read only 0.30 to 0.45, so it trembles. The thresholds are constants in `riteEngine.ts`. Real webcams are not tuned yet.
 
 ### Try it in 60 seconds (no printer needed)
 
 1. Open the [live demo](https://paperbridge-acvw.onrender.com/). On **Skeleton Home**, click **Run Mixed-Domain Auto-Route Demo**: one real card from each app is unwarped, X-Rayed and routed to its own app.
-2. Click **Seance Cipher** in the launcher, then the sample **The Smudged Seance**. One faint rune goes to you: press **Mark filled** and the spirits give their verdict.
+2. Click **Seance Cipher**, then **Start the Rite**. Hold a lit rune's pad (or its key) to banish it, or tap it to feel the Trembling Hand. Let the timer run out three times for the Game Over receipt with its frozen X-Ray.
 3. Open **Elder Care Bridge**, load a sample and stamp the amber mark **Human Verified**, then print the adapted next-week card.
 4. Open **Study Bridge**, scan a quiz, then **Print Studio** for the Telugu or Hindi sheet and the quiz pack.
 
@@ -52,7 +67,7 @@ All three are built from the same `src/core/` engine and the same `src/shell/` p
 
 | Kiro feature | Where | What it does here |
 |---|---|---|
-| **Spec-driven development** | [`.kiro/specs/paperbridge/`](.kiro/specs/paperbridge/) | EARS [requirements](.kiro/specs/paperbridge/requirements.md) R1-R50, [design](.kiro/specs/paperbridge/design.md) decisions with measured numbers, and [tasks](.kiro/specs/paperbridge/tasks.md) 1-23, one task group per commit |
+| **Spec-driven development** | [`.kiro/specs/paperbridge/`](.kiro/specs/paperbridge/) | EARS [requirements](.kiro/specs/paperbridge/requirements.md) R1-R55, [design](.kiro/specs/paperbridge/design.md) decisions with measured numbers, and [tasks](.kiro/specs/paperbridge/tasks.md) 1-24, one task group per commit |
 | **Steering** | [`.kiro/steering/`](.kiro/steering/) | Always-on product rules, a `src/core/**` rule for the deterministic decoder, a `src/apps/**` rule for accessible thin apps |
 | **Agent hooks** | [`.kiro/hooks/`](.kiro/hooks/) | 5 hooks of 3 kinds: tests, sample regeneration and typecheck on save; a `PreToolUse` guard on the protected decoder; a `Stop` check for core boundaries and WCAG |
 | **MCP server** | [`mcp/`](mcp/) | Layout Validator: `validate_card_layout` and `list_registered_apps`, so Kiro checks a card before anyone prints it |
