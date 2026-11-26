@@ -154,3 +154,11 @@ Requirement references use the numbering in `requirements.md`.
   - [x] 23.5 Seance Cipher layout, oracle, samples, page and harmonic chord _(R50.1-R50.3)_
   - [x] 23.6 Tests (Seance layout and verdicts, 3-app auto-route and batch, paper fit, launcher, keyboard markup), browser checks, axe-core 0 AA on 5 states (Elder Care AAA 0) _(R50.4, R9.2)_
   - [x] 23.7 README showcase of 3 frontends, DETAILS, developer guide
+
+- [x] 24. Phase 11: X-Ray Rite (branch `feat/xray-rite-endless-arcade`)
+  - [x] 24.1 `riteEngine.ts` (pure wave game, launchpad input, noise guard, receipt) and `riteVision.ts` (cover readings from a decode) _(R52)_
+  - [x] 24.2 `layout.ts` Rite sheet on the shared bubble geometry; `runeGlyphs.ts`, `riteSheet.ts` (SVG, PDF, frozen X-Ray), `RitePrint.tsx` _(R51)_
+  - [x] 24.3 `riteCamera.ts`, `riteAudio.ts`, `RiteGame.tsx`, `RitePads.tsx`, `RiteLive.tsx`, `RiteReceipt.tsx`; `App.tsx` keeps the Oracle reading collapsed _(R53, R54)_
+  - [x] 24.4 Tests: engine, sheet and camera readings, page markup and handlers, audio, the camera loop in Node _(R51-R55)_
+  - [x] 24.5 Browser checks: both modes to Game Over, keyboard, axe-core 0 AA on 6 states, 4 px rings, reduced motion, 390 px width, camera released on leave _(R55)_
+  - [x] 24.6 README showcase, DETAILS, developer guide _(R55.2)_

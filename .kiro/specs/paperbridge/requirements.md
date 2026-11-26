@@ -285,3 +285,23 @@ PaperBridge turns a printed bubble card into structured data using deterministic
 3. THE theme SHALL be obsidian (#0B0D12) with brass (#D4AF37) hairlines, serif headings, a laser sweep that respects reduced motion and a glowing X-Ray, at WCAG AA.
 4. Scan Any Card SHALL route Elder Care, Study Bridge and Seance Cipher cards, on A4 and Letter, in one batch.
 5. WHEN choosing between paper sizes, THE shell SHALL prefer the size whose printed bubble rings line up with the photo, falling back to fewest unclear marks when the ring scores are close. No file in `src/core/decode/`, `src/core/layout.ts` or `src/core/capture/` SHALL change.
+
+## R51. X-Ray Rite 12-Rune Sheet (Phase 11)
+1. THE app SHALL offer a printable 1-page **X-Ray Rite 12-Rune Sheet** on A4 and US Letter with the same card ID and version, the same 12 bubble coordinates, corner markers and ID strip as the Oracle Cipher card, so every earlier printout and sample photo still decodes and routes to Seance Cipher.
+2. THE sheet SHALL name the 12 runes in order (1 Skull, 2 Bat, 3 Ghost, 4 Pumpkin, 5 Eye, 6 Moon, 7 Candle, 8 Cross, 9 Spider, 10 Bone, 11 Coffin, 12 Star) above their bubbles and draw each as a vector picture below its bubble. Every bubble centre SHALL stay blank white, and no picture SHALL touch a bubble, a corner marker, the ID strip, printed text or another picture. The sheet SHALL pass the Layout Validator and download as PDF and SVG.
+
+## R52. Endless wave engine (Phase 11)
+1. THE game rules SHALL be pure state transitions (`menu`, `waveIntro`, `active`, `gameOver`) with `wave`, `lives` (3), `score`, `combo`, `maxCombo` and `multiplier` (`1 + combo * 0.15`). The wave timer SHALL be `max(1800, 4200 - wave * 180)` ms, and a wave SHALL light 1 to 4 runes (1 for waves 1 to 3, one more every 3 waves).
+2. A cover reading of 0.48 or more SHALL banish a rune, pay `round(100 * multiplier)` and grow the combo. A reading from 0.22 up to just under 0.48 SHALL be the Trembling Hand: the timer SHALL drain 40% slower while it lasts, and that rune SHALL be cursed for the wave, so its banish pays points but does not grow the combo, and no banish grows the combo while another target is cursed.
+3. WHEN the timer runs out THE game SHALL cost a life, break the combo and start the next wave; at 0 lives it SHALL end. WHEN the camera cannot see the sheet THE timer SHALL wait.
+
+## R53. Two play modes (Phase 11)
+1. **Live optical webcam**: THE app SHALL decode camera frames continuously with the optical decoder, choose the paper size by printed-ring fit, read each rune's cover as the decoder's ink density, and require two agreeing frames before a cover counts. It SHALL highlight targets in pulsing antique gold (#D4AF37), flicker a crimson beam on a trembling target, and play Web Audio chords on a banish and on a tremble. Its timer and camera SHALL be released on stop and on unmount.
+2. **Instant digital launchpad**: THE app SHALL show a 3 x 4 grid of the 12 runes driven by mouse, touch and the keys 1-9, 0, minus and equals. Holding a pad for 250 ms or more SHALL read 1.0; a quick tap SHALL read 0.35.
+
+## R54. Game Over receipt (Phase 11)
+1. WHEN the game ends THE app SHALL show the frozen Optical X-Ray (the last camera frame, or the sheet on the launchpad, with runes still lit marked), the final wave, score and max combo, a **Play Again** button that takes focus, and a **Copy Score Receipt** button that copies plain text. The best score SHALL be kept on the device.
+
+## R55. Accessibility and protected code (Phase 11)
+1. Text SHALL meet WCAG 2.2 AA contrast, every control SHALL show the 4 px focus ring, every button's accessible name SHALL contain its visible words, flicker SHALL stay under 3 flashes a second and every animation SHALL stop for reduced motion. State SHALL never rely on colour alone, and the game SHALL be pausable and announce events in a polite status line.
+2. THE change SHALL leave `src/core/`, `src/shell/`, `src/apps/elder-care/` and `src/apps/study-bridge/` unchanged, keep `pdf-lib` out of the initial bundle, and use no em dashes in UI copy or markdown.
