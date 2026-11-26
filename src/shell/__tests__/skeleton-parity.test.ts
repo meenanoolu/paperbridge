@@ -23,7 +23,7 @@ import { bubbleCenters, checkLayout, checkPrintedText, decode, fiducialCenters, 
 import { APPS, HOME_ID, navItems, viewFromHash, viewId } from "../app-registry";
 import { AdaptiveCardPanel } from "../components/AdaptiveCard";
 import { PrintWorkspace } from "../components/PrintWorkspace";
-import { INHERITED, SkeletonHome } from "../components/SkeletonHome";
+import { DEMO_LABEL, INHERITED, mixedDomainRefs, SkeletonHome } from "../components/SkeletonHome";
 import { createPrintSlot, parsePrintOptions } from "../print-slot";
 import { RouteContext } from "../route-context";
 import { guideGeometry } from "../webcam-guide";
@@ -188,17 +188,29 @@ describe("Skeleton Home and the top-right view tabs", () => {
     expect(strip(renderToString(createElement(LauncherBar, { current: "study-bridge" })))).toMatch(/href="#study-bridge" aria-current="page"/);
   });
 
-  it("Skeleton Home shows the 1-click Mixed Batch, then 3 equal domain cards, including the App #3 command and what it inherits", () => {
+  it("Skeleton Home is a 3-world stage: headline, 3 portal cards linking to each app, the mixed-domain demo and the scaffold guide", () => {
     const html = strip(renderToString(createElement(RouteContext.Provider, { value: () => {} }, createElement(SkeletonHome))));
-    expect(html).toContain("<h1");
-    expect(html).toContain("Run Mixed Batch (Elder Care + Study Bridge)");
+    expect(html).toMatch(/<h1[^>]*>One Optical Engine. Three Distinct Worlds.<\/h1>/);
+    expect(html).toContain("Offline-first deterministic paper scanning across healthcare, classrooms, and physical puzzle games.");
     const cards = html.slice(html.indexOf('aria-label="Apps on the skeleton"'));
     expect(cards.indexOf("Elder Care Bridge")).toBeLessThan(cards.indexOf("Study Bridge"));
-    expect(cards.indexOf("Study Bridge")).toBeLessThan(cards.indexOf("Scaffold Your Next App"));
-    expect(html).toContain("npm run create-app clinic-intake &quot;Clinic Intake&quot;");
+    expect(cards.indexOf("Study Bridge")).toBeLessThan(cards.indexOf("Seance Cipher"));
+    for (const [id, pill] of [["elder-care", "Clinical Care"], ["study-bridge", "Classroom Studio"], ["seance-cipher", "Physical Paper Game"]]) {
+      expect(html).toMatch(new RegExp(`<h2[^>]*><a href="#${id}" aria-describedby="world-${id}-desc"[^>]*>`));
+      expect(html).toContain(pill);
+    }
+    expect(html).toContain(DEMO_LABEL);
+    expect(html).toMatch(/aria-haspopup="dialog"[^>]*>.*Scaffold Your Next App \(<code[^>]*>npm run create-app<\/code>\)<\/span><\/button>/);
+    expect(html).toContain('class="on-dark relative');
     for (const i of INHERITED) expect(html).toContain(i);
-    expect(html).toContain(`border-top-color:${APPS.find((a) => a.id === "elder-care")!.accent!.strong}`);
     expect(html).toContain("Scan Any Card (Auto-Route)");
+  });
+
+  it("the mixed-domain demo takes one sample card from each of the 3 apps", () => {
+    const refs = mixedDomainRefs(APPS);
+    expect(refs.map((r) => r.appId).sort()).toEqual(["elder-care", "seance-cipher", "study-bridge"]);
+    expect(refs.find((r) => r.appId === "elder-care")!.sample.id).toBe("missed-dose");
+    expect(refs.find((r) => r.appId === "study-bridge")!.sample.id).toBe("sam-review");
   });
 });
 

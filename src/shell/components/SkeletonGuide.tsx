@@ -75,8 +75,11 @@ export function SkeletonDiagram() {
   );
 }
 
-/** Header button + accessible modal dialog explaining the architecture. */
-export function SkeletonGuide() {
+const GUIDE_BUTTON =
+  "inline-flex min-h-12 items-center gap-2 rounded-full border-2 border-white/80 px-4 py-1.5 text-lg font-bold text-white hover:bg-slate-800";
+
+/** Header button + accessible modal dialog explaining the architecture. `label` and `className` restyle the trigger only. */
+export function SkeletonGuide({ label = "How Skeleton Works", className = GUIDE_BUTTON }: { label?: ReactNode; className?: string } = {}) {
   const uid = useId();
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -108,10 +111,10 @@ export function SkeletonGuide() {
         type="button"
         aria-haspopup="dialog"
         onClick={() => setOpen(true)}
-        className="inline-flex min-h-12 items-center gap-2 rounded-full border-2 border-white/80 px-4 py-1.5 text-lg font-bold text-white hover:bg-slate-800"
+        className={className}
       >
         <Icon name="sparkle" className="h-5 w-5" />
-        How Skeleton Works
+        {label}
       </button>
       {open && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/70 p-4" onMouseDown={(e) => e.target === e.currentTarget && setOpen(false)}>
