@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import type { AppMeta } from "../../shell/app-registry";
 import { AdaptiveCardPanel } from "../../shell/components/AdaptiveCard";
+import { FriendlyNotice, hasNoMarks, ScanProblem } from "../../shell/components/FriendlyNotice";
 import { PrintWorkspace } from "../../shell/components/PrintWorkspace";
 import { Callout } from "../../shell/components/ui";
 import { WorkspaceTabs } from "../../shell/components/WorkspaceTabs";
@@ -70,12 +71,27 @@ export function StudyBridgeApp() {
           <h2 id="studio-scan" className="text-3xl font-bold" style={{ fontFamily: HAND }}>
             Scan a sheet
           </h2>
+          <p className="text-lg text-slate-800">Tap a sample quiz sheet to see it graded in a blink, or upload a photo of your own.</p>
           <ScanSources scan={scan} layouts={STUDY_LAYOUTS} samples={STUDY_SAMPLES} classes={STUDIO} samplesLabel="Sample sheets (no printer needed)" />
           {scan.state.status !== "idle" && <DecodePipeline steps={pipelineSteps(scan.state, Math.max(0, scan.unclear.length - (r?.manualOverrides ?? 0)))} />}
           {scan.state.status === "error" && <Callout tone="bad" title={scan.state.message} />}
+          <ScanProblem scan={scan.scan} />
+          {r && hasNoMarks(r.result) && (
+            <FriendlyNotice kind="empty-sheet" joke="Looks like an empty page!">
+              <p>Did the dog eat the homework? No pen marks were read on this sheet. Check the photo shows the filled-in sheet, or tap a sample quiz sheet above to see a graded class.</p>
+            </FriendlyNotice>
+          )}
           <OpticalViewToggles scan={scan} className={STUDIO.button} />
           <OpticalXRayOverlay scan={scan} describe={describeAnswerBubble} />
-          <HumanVerifyControl unclear={scan.unclear} overrides={scan.overrides} onSet={scan.setAnswer} describe={describeAnswerBubble} theme={VERIFY} title="Unclear answers to check" />
+          <HumanVerifyControl
+            unclear={scan.unclear}
+            overrides={scan.overrides}
+            onSet={scan.setAnswer}
+            describe={describeAnswerBubble}
+            theme={VERIFY}
+            title="Unclear answers to check"
+            hint="This answer mark is too faint to trust. Look at the amber circle on the photo, then tap Mark filled or Mark blank."
+          />
         </section>
         <div className="space-y-4">
           <TopicMastery report={g} />

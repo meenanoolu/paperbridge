@@ -86,7 +86,7 @@ export function DriftingGhosts() {
 
 /** What the guide says, by app (or by nothing in particular). Plain, playful and short. */
 export const GUIDE_HINTS: Record<string, string> = {
-  default: "Boo! Point at a paper, or tab to one, and I will tell you what lives in it.",
+  default: "Boo! Pick a paper world below, or press the amber button to watch one engine sort a mixed stack of cards.",
   "elder-care": "Pills, naps and dizzy days on one sheet. Spooky? No. Just lots of checkmarks.",
   "study-bridge": "A quiz on paper, graded by one photo. I never peek at the answers. Well, once.",
   "seance-cipher": "Cover each glowing rune before the clock runs out. Careful: shaky hands make us ghosts giggle.",

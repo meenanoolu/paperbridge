@@ -1,6 +1,6 @@
 import { useId, type KeyboardEvent, type PointerEvent } from "react";
 import { RITE_RUNE_NAMES } from "./layout";
-import { classifyCoverage, PAD_KEYS, PERFECT, type Target } from "./riteEngine";
+import { classifyCoverage, HOLD_MS, PAD_KEYS, PERFECT, type Target } from "./riteEngine";
 import { GLYPH_UNITS, RUNE_GLYPHS } from "./runeGlyphs";
 
 /**
@@ -54,18 +54,22 @@ export function LaunchPad({
   bursts,
   onPress,
   onRelease,
+  held = [],
 }: {
   targets: readonly Target[];
   coverage: readonly number[];
   bursts: readonly Burst[];
   onPress: (rune: number) => void;
   onRelease: (rune: number) => void;
+  /** Pads being held right now (by pointer or key): they show the hold filling up, at once. */
+  held?: readonly number[];
 }) {
   return (
     <ul className="grid h-full min-h-0 grid-cols-3 grid-rows-4 gap-2 sm:grid-cols-4 sm:grid-rows-3 sm:gap-3" aria-label="Rune launchpad">
       {RITE_RUNE_NAMES.map((name, i) => {
         const st = padStatus(i, targets, coverage[i] ?? 0);
         const burst = bursts.find((b) => b.rune === i);
+        const down = held.includes(i);
         const keyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
           if (e.key !== " " && e.key !== "Enter") return;
           e.preventDefault();
@@ -76,7 +80,7 @@ export function LaunchPad({
           e.preventDefault();
           onRelease(i);
         };
-        const down = (e: PointerEvent<HTMLButtonElement>) => {
+        const pointerDown = (e: PointerEvent<HTMLButtonElement>) => {
           e.currentTarget.setPointerCapture?.(e.pointerId);
           onPress(i);
         };
@@ -86,8 +90,9 @@ export function LaunchPad({
               type="button"
               data-rune={i}
               data-kind={st.kind}
-              className={`relative flex h-full min-h-0 w-full touch-none select-none flex-col items-center justify-center gap-0.5 overflow-hidden rounded-2xl border-4 p-1 text-[#F3EBD3] sm:gap-1 sm:p-2 ${KIND_CLASS[st.kind]}`}
-              onPointerDown={down}
+              data-held={down ? "true" : undefined}
+              className={`relative flex h-full min-h-0 w-full touch-none select-none flex-col items-center justify-center gap-0.5 overflow-hidden rounded-2xl border-4 p-1 text-[#F3EBD3] sm:gap-1 sm:p-2 ${KIND_CLASS[st.kind]} ${down ? "motion-safe:scale-[0.97] brightness-125" : ""}`}
+              onPointerDown={pointerDown}
               onPointerUp={() => onRelease(i)}
               onPointerCancel={() => onRelease(i)}
               onContextMenu={(e) => e.preventDefault()}
@@ -105,6 +110,7 @@ export function LaunchPad({
                   style={{ background: `linear-gradient(to bottom, ${st.kind === "trembling" ? "rgba(255,107,122,0.7)" : "rgba(212,175,55,0.6)"}, transparent)` }}
                 />
               )}
+              {down && <span aria-hidden="true" data-hold="true" className="rite-hold absolute inset-x-0 top-0 h-1.5 bg-[#F3EBD3]" style={{ animationDuration: `${HOLD_MS}ms` }} />}
               {burst && <span key={burst.id} aria-hidden="true" data-burst="true" className="rite-burst pointer-events-none absolute inset-2 rounded-full border-4 border-[#34d399]" />}
               <RuneGlyph index={i} className="relative h-[clamp(1.5rem,5svh,2.75rem)] w-[clamp(1.5rem,5svh,2.75rem)]" />
               <span className="relative text-base font-bold sm:text-lg">

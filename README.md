@@ -6,6 +6,14 @@ Print a card, fill it in with a pen, take one photo. One shared optical engine r
 markers and a perspective unwarp, sends anything unclear to a person, and powers three very different full-screen
 apps plus a Kiro Crew App. Built for **Kiroween 2026: Skeleton Crew**.
 
+## The 60-second version
+
+- **The problem.** Paper forms still run clinics, classrooms and care at home. Apps that scan them either guess with AI or need special hardware.
+- **What it does.** Print a card, mark it with a pen, take one photo. PaperBridge finds the 4 corner squares, flattens the photo, and reads each bubble on your own device. No account, no upload, no extra hardware: a phone or webcam and a printer (or a sample card) is enough.
+- **Why it is not AI.** The reader is plain geometry and pixel counts, so the same photo always gives the same answer. A mark it cannot judge is shown to a person, who taps Mark filled or Mark blank. Nothing is guessed.
+- **What surprised us.** Letter prints were being read as A4 until a 50-photo test caught it. A pale fingertip reads only 0.30 to 0.45 as "covered", which became the Trembling Hand rule in the game. A first-time audit then showed that Elder Care and Study Bridge said nothing in words when a photo had no card in it (see [DETAILS](docs/DETAILS.md#first-time-user-audit-phase-13)).
+- **Kiro surfaces used.** Specs, steering, agent hooks, an MCP server, a scaffolder and a Kiro Crew App (table below).
+
 <!-- Demo video row, hidden until the video is uploaded. Paste it back into the table below the Live demo row:
 | **Demo video** | [Watch on YouTube](https://www.youtube.com/watch?v=VIDEO_ID) |
 -->
@@ -16,7 +24,7 @@ apps plus a Kiro Crew App. Built for **Kiroween 2026: Skeleton Crew**.
 | **Blog post** | [Building PaperBridge: An Offline-First Optical UI Skeleton for Elder Care with Kiro](https://dev.to/meena_n/building-paperbridge-an-offline-first-optical-ui-skeleton-for-elder-care-with-kiro-1h76) (DEV) |
 | **Social post** | [PaperBridge on X](https://x.com/MNoolu34434/status/2124436517087248756) |
 
-![Skeleton Home, the haunted drafting table: a friendly ghost guide above 3 tilted paper objects, a metal-clipped clipboard for Elder Care, a ruled school sheet with a red A+ for Study Bridge and an obsidian and gold oracle card for X-Ray Rite](docs/images/skeleton-home.png)
+![Skeleton Home, the haunted drafting table: a plain-language promise with 3 step chips, a friendly ghost guide, the amber demo button above the fold and 3 tilted paper objects, a metal-clipped clipboard for Elder Care, a ruled school sheet with a red A+ for Study Bridge and an obsidian and gold oracle card for X-Ray Rite](docs/images/skeleton-home.png)
 
 ## One skeleton, three frontends
 
@@ -30,9 +38,9 @@ All three are built from the same `src/core/` engine and the same `src/shell/` p
     <th width="33%"><a href="src/apps/seance-cipher/">Seance Cipher</a><br>X-Ray Rite, one-screen arcade</th>
   </tr>
   <tr>
-    <td><img src="docs/images/frontend-elder.png" alt="Elder Care Bridge: a single cream caregiver sheet on a linen desk with a brass paper clip, a large 71 percent result, a checked faint mark and a pressed HUMAN VERIFIED rubber stamp with its dated impression"></td>
+    <td><img src="docs/images/frontend-elder.png" alt="Elder Care Bridge: a single cream caregiver sheet on a linen desk with a brass paper clip, a large 71 percent result, a faint-mark check with a one-sentence hint naming the Mark filled and Mark blank buttons, and the HUMAN VERIFIED rubber stamp"></td>
     <td><img src="docs/images/frontend-study.png" alt="Study Bridge: ruled gradebook paper with a red margin line, red-ink score stamps, notebook tabs and pink and yellow highlighter topic bars"></td>
-    <td><img src="docs/images/frontend-seance.png" alt="X-Ray Rite: the whole game on one screen, a 3 by 4 rune launchpad with the Spider rune trembling in dashed crimson, a countdown ring, 3 lives and a ghostly status line"></td>
+    <td><img src="docs/images/frontend-seance.png" alt="X-Ray Rite: the whole game on one screen, a 3 by 4 rune launchpad with the Coffin rune trembling in dashed crimson, a countdown ring, 3 lives and a ghost coach saying to press down firmly and hold"></td>
   </tr>
   <tr>
     <td>One centred sheet of cream paper on linen, AAA contrast, with numbered fields instead of dashboard boxes. A big <b>HUMAN VERIFIED</b> rubber stamp that only works once every faint mark is checked. Print options and presets sit in a closed drawer.</td>
@@ -47,7 +55,7 @@ Seance Cipher is now an endless survival game on the same optical engine. Print 
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/images/xray-rite-live.png" alt="Live webcam mode: a photographed 12-rune sheet with one rune ringed in dashed crimson, its cover reading 0.40, and a crimson timer bar"></td>
+    <td width="50%"><img src="docs/images/xray-rite-live.png" alt="Live webcam mode: a photographed 12-rune sheet with the glowing Pumpkin rune marked in gold, the 3 step chips in the HUD, a countdown ring and the ghost coach saying to cover the glowing rune"></td>
     <td width="50%"><img src="docs/images/xray-rite-sheet.png" alt="The printable X-Ray Rite 12-Rune Sheet: 12 blank circles in 3 rows of 4, each named above and drawn below"></td>
   </tr>
 </table>
@@ -59,7 +67,7 @@ Seance Cipher is now an endless survival game on the same optical engine. Print 
 ### Try it in 60 seconds (no printer needed)
 
 1. Open the [live demo](https://paperbridge-acvw.onrender.com/). On **Skeleton Home**, point at (or tab to) each paper and the ghost guide explains it. Then click **Run Mixed-Domain Auto-Route Demo**: one real card from each app is unwarped, X-Rayed and routed to its own app.
-2. Click **Seance Cipher**, then **Start the Rite**. Hold a lit rune's pad (or its key) to banish it, or tap it to feel the Trembling Hand. Let the timer run out three times for the Game Over receipt with its frozen X-Ray.
+2. Click **Seance Cipher**, then **Start the Rite**. A ghost coach tells you the next move: hold a lit rune's pad (or its key) to banish it, or tap it to feel the Trembling Hand. Let the timer run out three times for the Game Over receipt with its frozen X-Ray.
 3. Open **Elder Care Bridge**, load a sample and stamp the amber mark **Human Verified**, then print the adapted next-week card.
 4. Open **Study Bridge**, scan a quiz, then **Print Studio** for the Telugu or Hindi sheet and the quiz pack.
 
@@ -69,7 +77,7 @@ Seance Cipher is now an endless survival game on the same optical engine. Print 
 
 | Kiro feature | Where | What it does here |
 |---|---|---|
-| **Spec-driven development** | [`.kiro/specs/paperbridge/`](.kiro/specs/paperbridge/) | EARS [requirements](.kiro/specs/paperbridge/requirements.md) R1-R59, [design](.kiro/specs/paperbridge/design.md) decisions with measured numbers, and [tasks](.kiro/specs/paperbridge/tasks.md) 1-25, one task group per commit |
+| **Spec-driven development** | [`.kiro/specs/paperbridge/`](.kiro/specs/paperbridge/) | EARS [requirements](.kiro/specs/paperbridge/requirements.md) R1-R62, [design](.kiro/specs/paperbridge/design.md) decisions with measured numbers, and [tasks](.kiro/specs/paperbridge/tasks.md) 1-26, one task group per commit |
 | **Steering** | [`.kiro/steering/`](.kiro/steering/) | Always-on product rules, a `src/core/**` rule for the deterministic decoder, a `src/apps/**` rule for accessible thin apps |
 | **Agent hooks** | [`.kiro/hooks/`](.kiro/hooks/) | 5 hooks of 3 kinds: tests, sample regeneration and typecheck on save; a `PreToolUse` guard on the protected decoder; a `Stop` check for core boundaries and WCAG |
 | **MCP server** | [`mcp/`](mcp/) | Layout Validator: `validate_card_layout` and `list_registered_apps`, so Kiro checks a card before anyone prints it |
@@ -102,7 +110,7 @@ offline in the browser with no account or upload, and unclear marks go to a pers
 ```bash
 npm install
 npm run dev                                       # opens on Skeleton Home
-npm test                                          # 365 tests, including a 50-photo A4/Letter matrix
+npm test                                          # 517 tests, including a 50-photo A4/Letter matrix
 npm run create-app clinic-intake "Clinic Intake"  # your next app, ready to scan
 ```
 

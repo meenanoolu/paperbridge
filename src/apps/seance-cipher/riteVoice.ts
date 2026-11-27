@@ -4,14 +4,14 @@ import { announceEvents, type RiteEvent } from "./riteEngine";
 /**
  * The ghosts' voice. The engine's own sentences (`announceEvents`) stay plain and exact; this
  * wraps them with a joke when a Trembling Hand starts, because that is when a player most needs
- * to be told, kindly, what to do: cover the rune fully. Pure, so it is unit tested.
+ * to be told, kindly, what to do: press down firmly on the rune. Pure, so it is unit tested.
  */
 export const TREMBLE_LINES: ((rune: string) => string)[] = [
-  (n) => `Ooooh, your hand wobbles like a ghost in a draft. Cover the ${n} fully!`,
-  (n) => `The ${n} giggles at your shaky hand. Press down firmly!`,
-  (n) => `Spooky shakes! The ${n} is only half covered.`,
-  (n) => `Boo! A trembling hand. Hold the ${n} steady and the ghosts will behave.`,
-  (n) => `The ghosts are tickling your fingers. Cover the ${n} all the way!`,
+  (n) => `Your hand is shaking! Press down firmly on the ${n} to break the curse!`,
+  (n) => `The ${n} giggles at your wobbly hand. Press down firmly and hold!`,
+  (n) => `Spooky shakes! The ${n} is only half covered. Press down on all of it!`,
+  (n) => `Boo! A trembling hand. Hold the ${n} steady and the curse breaks.`,
+  (n) => `The ghosts are tickling your fingers. Press firmly on the ${n}, all the way!`,
 ];
 
 /** Said (and shown) the whole time a target trembles. The numbers are the engine's rules. */

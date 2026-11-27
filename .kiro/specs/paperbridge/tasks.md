@@ -170,3 +170,11 @@ Requirement references use the numbering in `requirements.md`.
   - [x] 25.4 X-Ray Rite one-screen stage, countdown ring, drawer, `riteVoice.ts` _(R59)_
   - [x] 25.5 Tests: Skeleton Home, caregiver sheet and stamp, gradebook, ghost voice, one-screen layout; browser audit (axe-core, keyboard, reduced motion, fit at 3 sizes, 390 px) _(R56-R59)_
   - [x] 25.6 Retaken screenshots, README, DETAILS _(R55.2)_
+
+- [x] 26. Phase 13: first-time user audit (branch `feat/judge-aligned-polish`)
+  - [x] 26.1 Stranger walkthrough of Home, Elder Care, Study Bridge and X-Ray Rite in Chromium; list of friction _(R60-R62)_
+  - [x] 26.2 `riteCoach.ts`, `CoachGhost.tsx`, 3-step cards and chips, hold feedback, no-sheet fallback, receipt tip; `riteVoice.ts` lines _(R60)_
+  - [x] 26.3 `FriendlyNotice.tsx`, `HumanVerifyControl` hint, Elder Care and Study Bridge notices _(R61)_
+  - [x] 26.4 Skeleton Home promise, steps, order and guide line _(R62)_
+  - [x] 26.5 Tests (38 new): coach, notices, first-minute UI, home; axe-core, keyboard, reduced motion and fit re-checked in Chromium
+  - [x] 26.6 Retaken screenshots, README, DETAILS

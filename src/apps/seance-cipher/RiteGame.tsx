@@ -4,9 +4,11 @@ import { defaultPageSize } from "../../shell/components/PrintCard";
 import { usePersistentState } from "../../shell/usePersistentState";
 import { xrayModel } from "../../shell/xray";
 import { RITE_RUNE_COUNT, RITE_RUNE_NAMES, SEANCE_RITE_LAYOUTS } from "./layout";
+import { CoachGhost } from "./CoachGhost";
 import { LiveOverlay, type LiveView } from "./RiteLive";
 import { LaunchPad, RuneGlyph, type Burst } from "./RitePads";
 import { RiteReceipt } from "./RiteReceipt";
+import { coachFor, HOWTO_STEPS, sheetMissing, type Reaction } from "./riteCoach";
 import { closeRiteAudio, playRite } from "./riteAudio";
 import { CAMERA_HELP, openRiteCamera, type RiteCamera, type RiteFrame } from "./riteCamera";
 import {
@@ -104,6 +106,9 @@ export function RiteGame() {
   const [frame, setFrame] = useState<FrozenFrame | null>(null);
   const [cam, setCam] = useState<{ status: "off" | "starting" | "on" | "error"; message: string }>({ status: "off", message: "" });
   const [view, setView] = useState<LiveView | null>(null);
+  const [held, setHeld] = useState<number[]>([]);
+  const [reaction, setReaction] = useState<Reaction | null>(null);
+  const [noSheet, setNoSheet] = useState(false);
 
   // Everything the animation loop and the camera callbacks read lives in refs, so they never go stale.
   const gameRef = useRef(game);
@@ -123,6 +128,7 @@ export function RiteGame() {
   const mounted = useRef(true);
   const openToken = useRef(0);
   const burstId = useRef(0);
+  const lastSeen = useRef(0);
 
   // --- Camera -------------------------------------------------------------------------------
 
@@ -130,7 +136,10 @@ export function RiteGame() {
     const cov = coverageFromScan(f.result);
     liveRef.current = { cover: confirmCoverage(prevRaw.current, cov), at: performance.now() };
     prevRaw.current = cov;
-    if (f.result.ok) lastGood.current = f;
+    if (f.result.ok) {
+      lastGood.current = f;
+      lastSeen.current = performance.now();
+    }
     const model = xrayModel(f.result, f.layout);
     const byKey = new Map(model?.bubbles.map((b) => [b.key, b]));
     setView({
@@ -148,6 +157,7 @@ export function RiteGame() {
     prevRaw.current = null;
     lastGood.current = null;
     setView(null);
+    setNoSheet(false);
     setCam({ status: "off", message: "" });
   }, []);
 
@@ -165,6 +175,7 @@ export function RiteGame() {
         return false;
       }
       camRef.current = camera;
+      lastSeen.current = performance.now();
       setCam({ status: "on", message: "" });
       return true;
     } catch (err) {
@@ -227,6 +238,9 @@ export function RiteGame() {
           finish(next);
         }
       }
+      const at = performance.now();
+      if (next.events.some((e) => e.type === "lifeLost")) setReaction({ kind: "lifeLost", at });
+      else if (fresh.length) setReaction({ kind: "banish", runes: fresh.map((b) => b.rune), at });
       if (fresh.length) {
         setBursts((b) => [...b, ...fresh]);
         const t = window.setTimeout(() => {
@@ -277,9 +291,11 @@ export function RiteGame() {
 
   const press = useCallback((i: number) => {
     padRef.current = padPress(padRef.current, i, performance.now());
+    setHeld((h) => (h.includes(i) ? h : [...h, i]));
   }, []);
   const release = useCallback((i: number) => {
     padRef.current = padRelease(padRef.current, i, performance.now());
+    setHeld((h) => h.filter((x) => x !== i));
   }, []);
 
   useEffect(() => {
@@ -297,6 +313,7 @@ export function RiteGame() {
     // A key held while the window loses focus would otherwise stay down forever.
     const blur = () => {
       padRef.current = emptyPad;
+      setHeld([]);
     };
     window.addEventListener("keydown", down);
     window.addEventListener("keyup", up);
@@ -332,6 +349,8 @@ export function RiteGame() {
     setBursts([]);
     setDisplay(zeros());
     setStatus("Choose a mode, then start the rite.");
+    setReaction(null);
+    setHeld([]);
     camRef.current?.setActive(true);
     const menu = createGame(seed());
     gameRef.current = menu;
@@ -342,11 +361,23 @@ export function RiteGame() {
     if (m === mode) return;
     stopCamera();
     padRef.current = emptyPad;
+    setHeld([]);
     toMenu();
     setMode(m);
   };
 
+  // Live mode: if the camera has not seen the sheet for 2 seconds, the ghost offers the launchpad.
+  useEffect(() => {
+    if (mode !== "live" || cam.status !== "on" || game.phase === "gameOver") {
+      setNoSheet(false);
+      return;
+    }
+    const id = window.setInterval(() => setNoSheet(sheetMissing(performance.now(), lastSeen.current)), 400);
+    return () => window.clearInterval(id);
+  }, [mode, cam.status, game.phase]);
+
   const playing = game.phase === "waveIntro" || game.phase === "active";
+  const coach = coachFor({ game, mode, paused, noSheet, reaction, now: performance.now() });
   const receipt = receiptOf(game, mode);
   const names = game.targets.map((t) => RITE_RUNE_NAMES[t.rune]).join(", ");
   const startLabel = mode === "live" && cam.status !== "on" ? (cam.status === "starting" ? "Opening the camera..." : "Open Camera and Start the Rite") : "Start the Rite";
@@ -430,10 +461,23 @@ export function RiteGame() {
           </Stat>
           <Stat label="Best">{formatScore(best)}</Stat>
         </ul>
-        {playing && game.trembling && (
+        {playing && game.trembling ? (
           <p className="max-w-md flex-1 text-lg font-bold leading-snug text-[#FF6B7A]" data-testid="rite-tremble">
             {TREMBLE_HINT}
           </p>
+        ) : (
+          game.phase !== "menu" && (
+            <ol aria-label="How to play" data-steps="chips" className="flex max-w-xl flex-1 flex-wrap content-center gap-x-2 gap-y-1">
+              {HOWTO_STEPS.map((st) => (
+                <li key={st.n} className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/50 bg-[#151821] px-3 py-0.5 text-base font-semibold text-[#F3EBD3]">
+                  <span aria-hidden="true" className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#D4AF37] text-sm font-black text-[#0B0D12]">
+                    {st.n}
+                  </span>
+                  {st.short}
+                </li>
+              ))}
+            </ol>
+          )
         )}
         {playing && <TimerRing left={game.timeLeftMs} total={game.waveMs} trembling={game.trembling} />}
       </div>
@@ -444,8 +488,9 @@ export function RiteGame() {
           <div hidden={game.phase === "gameOver"} className="relative mx-auto h-full max-w-full overflow-hidden rounded-xl border-2 border-[#D4AF37]/70 bg-black" style={{ aspectRatio: "16 / 9" }} data-stage="live">
             <video ref={videoRef} className="absolute inset-0 h-full w-full object-contain" aria-label="Live camera preview" muted playsInline />
             {view && <LiveOverlay view={view} targets={game.targets} coverage={display} bursts={bursts} />}
-            {cam.status === "on" && playing && !game.cardVisible && (
-              <p className="absolute inset-x-0 bottom-0 bg-[#0B0D12]/90 p-3 text-center text-lg font-bold text-[#FBBF24]">The sheet is out of view. The timer waits until all 4 corner squares are visible.</p>
+            {noSheet && playing && <CornerGuide />}
+            {cam.status === "on" && playing && !game.cardVisible && !noSheet && (
+              <p className="absolute inset-x-0 bottom-0 bg-[#0B0D12]/90 p-3 text-center text-lg font-bold text-[#FBBF24]">The sheet slipped out of view. The timer waits until all 4 corner squares are visible.</p>
             )}
             {game.phase === "waveIntro" && <WaveBanner wave={game.wave} names={names} runes={runes} />}
             {paused && <PausedBanner />}
@@ -453,7 +498,7 @@ export function RiteGame() {
         )}
         {mode === "digital" && game.phase !== "gameOver" && (
           <div className="relative h-full">
-            <LaunchPad targets={game.targets} coverage={display} bursts={bursts} onPress={press} onRelease={release} />
+            <LaunchPad targets={game.targets} coverage={display} bursts={bursts} onPress={press} onRelease={release} held={held} />
             {game.phase === "waveIntro" && <WaveBanner wave={game.wave} names={names} runes={runes} />}
             {paused && <PausedBanner />}
           </div>
@@ -461,20 +506,23 @@ export function RiteGame() {
 
         {game.phase === "menu" && (
           <div className="absolute inset-0 z-20 grid place-items-center overflow-auto rounded-xl bg-[#0B0D12]/88 p-3" data-overlay="menu">
-            <div className="max-w-3xl space-y-3 rounded-2xl border-2 border-[#D4AF37] bg-[#10131a] p-5">
+            <div className="max-w-4xl space-y-4 rounded-2xl border-2 border-[#D4AF37] bg-[#10131a] p-5">
               <h3 className="text-3xl font-semibold text-[#D4AF37]" style={SERIF}>
                 How the rite works
               </h3>
-              <ul className="list-disc space-y-1 pl-6 text-lg text-[#F3EBD3]" aria-label="How the rite works">
-                <li>
-                  Runes light up in gold. Cover one fully (a reading of {PERFECT.toFixed(2)} or more) to banish it and build your combo. Each banish pays 100 points times your multiplier, 1 plus 0.15 for every combo step.
-                </li>
-                <li>
-                  A shaky half cover ({INTERFERENCE_RANGE[0].toFixed(2)} to {INTERFERENCE_RANGE[1].toFixed(2)}) is the Trembling Hand: the timer runs 40% slower, but that rune cannot grow your combo.
-                </li>
-                <li>Run out of time and you lose a life. You have 3. Every wave is faster, and later waves light up to 4 runes at once.</li>
-                <li>{mode === "digital" ? "Hold a pad, or its key, for a full cover. A quick tap reads as a trembling hand." : "Hold the printed sheet so all 4 corner squares are in view. The timer waits whenever they are not."}</li>
-              </ul>
+              <ol className="grid gap-3 sm:grid-cols-3" aria-label="How the rite works" data-steps="cards">
+                {HOWTO_STEPS.map((st) => (
+                  <li key={st.n} className="flex gap-3 rounded-xl border border-[#D4AF37]/60 bg-[#151821] p-3">
+                    <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#D4AF37] text-xl font-black text-[#0B0D12]">
+                      {st.n}
+                    </span>
+                    <span>
+                      <span className="block text-xl font-bold leading-tight text-[#F3EBD3]">{st.title}</span>
+                      <span className="mt-1 block text-lg leading-snug text-[#D9CFB4]">{st.detail}</span>
+                    </span>
+                  </li>
+                ))}
+              </ol>
               {mode === "live" && cam.status === "error" && <p className="text-lg font-bold text-[#FBBF24]">{cam.message}</p>}
               <div className="flex flex-wrap items-center gap-3">
                 <button type="button" className={primary} onClick={() => void onStart()} disabled={cam.status === "starting"}>
@@ -486,6 +534,19 @@ export function RiteGame() {
                   </button>
                 )}
               </div>
+              <details className="text-lg text-[#F3EBD3]">
+                <summary className="cursor-pointer font-bold text-[#D4AF37]">The exact scoring rules</summary>
+                <ul className="mt-2 list-disc space-y-1 pl-6" aria-label="Scoring rules">
+                  <li>
+                    Runes light up in gold. Cover one fully (a reading of {PERFECT.toFixed(2)} or more) to banish it and build your combo. Each banish pays 100 points times your multiplier, 1 plus 0.15 for every combo step.
+                  </li>
+                  <li>
+                    A shaky half cover ({INTERFERENCE_RANGE[0].toFixed(2)} to {INTERFERENCE_RANGE[1].toFixed(2)}) is the Trembling Hand: the timer runs 40% slower, but that rune cannot grow your combo.
+                  </li>
+                  <li>Run out of time and you lose a life. You have 3. Every wave is faster, and later waves light up to 4 runes at once.</li>
+                  <li>{mode === "digital" ? "Hold a pad, or its key, for a full cover. A quick tap reads as a trembling hand." : "Hold the printed sheet so all 4 corner squares are in view. The timer waits whenever they are not."}</li>
+                </ul>
+              </details>
             </div>
           </div>
         )}
@@ -497,7 +558,18 @@ export function RiteGame() {
         )}
       </div>
 
-      <p role="status" aria-live="polite" className="min-h-8 text-xl font-bold text-[#F3EBD3]" data-testid="rite-status">
+      <div className="flex min-h-12 items-center gap-3" data-testid="rite-coach-row">
+        <CoachGhost mood={coach.mood} className="h-11 w-11 shrink-0" />
+        <p className="min-w-0 flex-1 rounded-xl rounded-bl-sm bg-[#F8F3E6] px-4 py-1.5 text-lg font-bold leading-snug text-slate-950" data-testid="rite-coach" data-mood={coach.mood}>
+          {coach.text}
+        </p>
+        {mode === "live" && noSheet && game.phase !== "gameOver" && (
+          <button type="button" className={btnSm} onClick={() => changeMode("digital")}>
+            Switch to Launchpad
+          </button>
+        )}
+      </div>
+      <p className="sr-only" role="status" aria-live="polite" data-testid="rite-status">
         {status}
       </p>
     </section>
@@ -505,6 +577,19 @@ export function RiteGame() {
 }
 
 /** The wave countdown as a ring: gold, crimson while a hand trembles. The number in the middle is the same time as text. */
+/** Four dashed corners where the sheet's black squares should land. Decoration: the ghost says it in words. */
+export function CornerGuide() {
+  const corner = "absolute h-12 w-12 border-[#FBBF24]";
+  return (
+    <div aria-hidden="true" data-guide="corners" className="pointer-events-none absolute inset-[7%]">
+      <span className={`${corner} left-0 top-0 rounded-tl-lg border-l-4 border-t-4`} />
+      <span className={`${corner} right-0 top-0 rounded-tr-lg border-r-4 border-t-4`} />
+      <span className={`${corner} bottom-0 left-0 rounded-bl-lg border-b-4 border-l-4`} />
+      <span className={`${corner} bottom-0 right-0 rounded-br-lg border-b-4 border-r-4`} />
+    </div>
+  );
+}
+
 export function TimerRing({ left, total, trembling }: { left: number; total: number; trembling: boolean }) {
   const r = 34;
   const c = 2 * Math.PI * r;

@@ -97,6 +97,9 @@ export function mixedDomainRefs(apps: Pick<AppMeta, "id" | "label" | "samples" |
 
 export const DEMO_LABEL = "Run Mixed-Domain Auto-Route Demo";
 
+/** The whole idea in 3 steps, for someone who has never heard of it. */
+export const HOME_STEPS = ["Print a card", "Mark it with a pen", "Snap one photo"] as const;
+
 /** Focus rings on the dark stage are yellow (`.on-dark`), 4 px, from index.css. */
 const CTA =
   "inline-flex min-h-14 items-center justify-center gap-3 rounded-full bg-amber-400 px-7 py-3 text-lg font-black text-slate-950 shadow-[0_10px_40px_-8px_rgba(251,191,36,0.7)] transition-[background-color] hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-70";
@@ -142,6 +145,7 @@ export function MixedBatchShowcase({ secondary }: { secondary?: ReactNode }) {
         <p role="status" aria-live="polite" className="min-h-7 text-center text-lg font-bold text-slate-100">
           {error || (run ? batchSummary(run.run) : "")}
         </p>
+        {!run && !error && <p className="-mt-2 max-w-xl text-center text-lg text-slate-300">One tap reads 3 real card photos on this device and sends each one to the right app.</p>}
       </div>
       {shown.length > 0 && (
         <section
@@ -219,18 +223,30 @@ export function SkeletonHome() {
         <Fiducial className="right-5 top-5" />
         <Fiducial className="bottom-5 left-5" />
         <Fiducial className="bottom-5 right-5" />
-        <div className="relative z-10 mx-auto flex max-w-7xl flex-col gap-10 px-4 py-14 sm:px-8 sm:py-16">
+        <div className="relative z-10 mx-auto flex max-w-7xl flex-col gap-6 px-4 py-10 sm:px-8 sm:py-10">
           <header className="mx-auto max-w-4xl text-center">
             <p className="text-base font-bold uppercase tracking-[0.3em] text-amber-200">PaperBridge Skeleton</p>
-            <h1 id="home-title" className="mt-4 text-5xl font-black leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-7xl">
+            <h1 id="home-title" className="mt-3 text-5xl font-black leading-[1.05] tracking-tight text-white sm:text-6xl">
               One Optical Engine. Three Distinct Worlds.
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-xl leading-relaxed text-slate-300">
               Offline-first deterministic paper scanning across healthcare, classrooms, and physical puzzle games.
             </p>
+            <p className="mx-auto mt-4 max-w-3xl text-xl font-semibold leading-snug text-white" data-testid="home-promise">
+              Fill in a paper card with a pen, take one photo, and PaperBridge reads it on your own device. No account, no upload, no AI guessing: anything it cannot read goes to a person.
+            </p>
+            <ol aria-label="How PaperBridge works" className="mt-4 flex flex-wrap justify-center gap-2" data-steps="home">
+              {HOME_STEPS.map((st, i) => (
+                <li key={st} className="inline-flex items-center gap-2 rounded-full border border-amber-200/60 bg-slate-900/70 px-4 py-1 text-lg font-bold text-amber-100">
+                  <span aria-hidden="true" className="grid h-7 w-7 place-items-center rounded-full bg-amber-300 text-base font-black text-slate-950">
+                    {i + 1}
+                  </span>
+                  {st}
+                </li>
+              ))}
+            </ol>
           </header>
           <GhostGuide hint={hint} />
-          <ArtifactRow ids={ids} onHint={setHint} />
           <MixedBatchShowcase
             secondary={
               <span onMouseEnter={() => setHint("scaffold")} onMouseLeave={() => setHint(null)} onFocus={() => setHint("scaffold")} onBlur={() => setHint(null)}>
@@ -245,6 +261,7 @@ export function SkeletonHome() {
               </span>
             }
           />
+          <ArtifactRow ids={ids} onHint={setHint} />
           <div className="mx-auto max-w-5xl text-center">
             <p className="text-lg font-bold text-slate-200">Every world inherits from the skeleton:</p>
             <ul className="mt-3 flex flex-wrap justify-center gap-2" aria-label="What every app inherits">
