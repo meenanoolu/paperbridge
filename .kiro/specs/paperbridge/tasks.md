@@ -185,3 +185,11 @@ Requirement references use the numbering in `requirements.md`.
   - [x] 27.3 Elder Care, Study Bridge and X-Ray Rite signatures; scan lock-on and pipeline motion _(R66)_
   - [x] 27.4 Tests (50 new, 2 updated): spring maths, transition, tactile, reveal-once, every stylesheet guarded by reduced motion, markup of each world
   - [x] 27.5 Chromium: axe-core, keyboard rings, reduced motion, 390 px, transitions and every world's animations; retaken screenshots, README, DETAILS
+
+- [x] 28. Phase 15: Haunted Treasure Hunt and a spooky skin (branch `feat/spooky-frontends`)
+  - [x] 28.1 `TrickOrTreatScene.tsx` on Skeleton Home, bundled Creepster font, Trick or Treat button _(R68)_
+  - [x] 28.2 `hunt.ts` (pure rules) and checked against the 4 decoded sample photos: rooms read as marked, faint mark reads as unclear _(R67)_
+  - [x] 28.3 `HuntGame.tsx`, hunt samples, `gen-samples.ts` multi-set support, arcade moved into a collapsed drawer _(R67)_
+  - [x] 28.4 `HalloweenDoodles.tsx` on Elder Care, Study Bridge and Seance Cipher; Home card copy _(R68)_
+  - [x] 28.5 Existing tests updated for the new page structure and copy; typecheck and the full suite pass
+  - [ ] 28.6 Chromium pass: axe-core, keyboard, reduced motion, 390 px; retaken screenshots, DETAILS

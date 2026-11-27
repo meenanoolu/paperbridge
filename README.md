@@ -47,7 +47,7 @@ All three are built from the same `src/core/` engine and the same `src/shell/` p
   <tr>
     <th width="33%"><a href="src/apps/elder-care/">Elder Care Bridge</a><br>One caregiver sheet on linen</th>
     <th width="33%"><a href="src/apps/study-bridge/">Study Bridge</a><br>The teacher's gradebook</th>
-    <th width="33%"><a href="src/apps/seance-cipher/">Seance Cipher</a><br>X-Ray Rite, one-screen arcade</th>
+    <th width="33%"><a href="src/apps/seance-cipher/">Seance Cipher</a><br>Haunted Treasure Hunt</th>
   </tr>
   <tr>
     <td><img src="docs/images/frontend-elder.png" alt="Elder Care Bridge: a single cream caregiver sheet on a linen desk with a brass paper clip, a large 71 percent result, a faint-mark check with a one-sentence hint naming the Mark filled and Mark blank buttons, and the HUMAN VERIFIED rubber stamp"></td>
@@ -70,7 +70,19 @@ All three are built from the same `src/core/` engine and the same `src/shell/` p
 
 > **Not medical advice.** Elder Care Bridge helps people track doses and symptoms on paper and talk to their care team. It does not diagnose or recommend treatment.
 
-## Bonus world: a game on the same engine
+## Bonus world: a paper game on the same engine
+
+### Haunted Treasure Hunt
+
+A creature hides in one of 12 rooms of a haunted house. Print the map (the 12-Rune Sheet), mark **one room** with a pen, take **one photo**, and the reader answers *scorching, hot, warm, cold* or *freezing* from how many rooms away you are. You have 5 candles (guesses).
+
+- **Alone or with a friend.** The house hides the creature (seeded, so a seed always gives the same room), or a friend picks a room while you look away.
+- **One photo, one move.** No live camera needed, so it works on a phone held over a printed page.
+- **No guessing, ever.** A photo only counts when exactly one room is clearly filled. A faint mark goes to a person (Mark filled or Mark blank). Several rooms, no room, or a room you already tried gives a plain message and costs nothing.
+- **No printer?** Tap a window on the house, or load one of 4 sample photos (one has a faint mark).
+- **Reuses the skeleton.** Same card ID, decoder, X-Ray, samples and Human Verify; the rules are in [`hunt.ts`](src/apps/seance-cipher/hunt.ts), a pure file.
+
+The original endless arcade is still there in a collapsed drawer.
 
 ### X-Ray Rite: The Endless Obsidian Seance
 
@@ -87,7 +99,7 @@ Seance Cipher is now an endless survival game on the same optical engine. Print 
 - 3 lives. Each wave is faster (`max(1800, 4200 - 180 x wave)` ms) and lights 1 to 4 runes. Game Over gives a frozen X-Ray frame and a copyable score receipt.
 - Honest limit: a dark token or fingertip reads 0.78 or more, but a pale fingertip in bright light can read only 0.30 to 0.45, so it trembles. The thresholds are constants in `riteEngine.ts`. Real webcams are not tuned yet.
 
-This is a small extra that shows the engine is reusable. The two serious apps above are the main story.
+The two serious apps above are the main story; the games show that the same engine can drive a very different product.
 
 ## Built with Kiro
 

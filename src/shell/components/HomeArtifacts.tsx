@@ -36,10 +36,10 @@ export const ARTIFACTS: Artifact[] = [
   },
   {
     id: "seance-cipher",
-    title: "X-Ray Rite",
+    title: "Haunted Treasure Hunt",
     eyebrow: "Seance Cipher",
     tag: "Physical Paper Game",
-    description: "An endless paper arcade. Cover each glowing rune before the clock runs out, on a printed sheet or a launchpad.",
+    description: "Hunt a hiding creature through 12 rooms. Mark one room with a pen, take one photo and hear hot or cold. Play alone or with a friend.",
     open: "Draw the oracle card",
   },
 ];

@@ -21,6 +21,7 @@ import { Button, Callout, StatusBadge } from "../../shell/components/ui";
 import type { ReviewedScan } from "../../shell/scan";
 import { usePersistentState } from "../../shell/usePersistentState";
 import { columnLabel, DEFAULT_CARE_SETTINGS, parseCareSettings } from "./card-settings";
+import { BatDoodle, Cobweb, FallingTreats, Pumpkin } from "../../shell/components/HalloweenDoodles";
 import { CareDashboard } from "./components/CareDashboard";
 import { CARE_CSS, Field, LINEN_STYLE, PaperClip } from "./components/CareSheet";
 import { CustomizeCardPanel } from "./components/CustomizeCardPanel";
@@ -114,8 +115,15 @@ export function ElderCareApp() {
 
   const pending = Math.max(0, scan.unclear.length - (r?.manualOverrides ?? 0));
   return (
-    <div className="min-h-[80vh] bg-[#F4EFE6] px-3 py-8 text-slate-950 sm:px-6 sm:py-12" style={LINEN_STYLE} data-frontend="elder-care">
+    <div className="relative isolate min-h-[80vh] overflow-hidden bg-[#F4EFE6] px-3 py-8 text-slate-950 sm:px-6 sm:py-12" style={LINEN_STYLE} data-frontend="elder-care">
       <style>{CARE_CSS}</style>
+      {/* Quiet Halloween touches on the linen around the sheet. They sit behind the content. */}
+      <FallingTreats kinds={["leaf", "candy", "leaf", "pumpkin"]} colors={["#c2410c", "#b45309", "#7c2d12", "#ea580c"]} count={8} opacity={0.35} />
+      <Cobweb className="absolute left-0 top-0 -z-10 h-28 w-28 lg:h-40 lg:w-40" color="#a8a29e" />
+      <Cobweb className="absolute right-0 top-0 -z-10 h-28 w-28 -scale-x-100 lg:h-40 lg:w-40" color="#a8a29e" />
+      <Pumpkin className="absolute bottom-3 left-3 -z-10 hidden h-20 w-20 lg:block" />
+      <Pumpkin className="absolute bottom-3 right-5 -z-10 hidden h-14 w-14 lg:block" />
+      <BatDoodle className="-z-10 left-[10%] top-24 hidden h-8 w-10 lg:block" color="#44403c" />
       <div className="care-sheet relative mx-auto max-w-4xl space-y-8 bg-[#FAF8F5] px-5 pb-12 pt-14 shadow-[0_1px_0_#e4dac6,0_2px_0_#f0e9db,0_34px_60px_-34px_rgba(70,48,12,0.55)] sm:px-12 m-rise">
         <PaperClip />
         <header className="space-y-2 text-center">

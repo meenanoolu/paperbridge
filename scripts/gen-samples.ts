@@ -21,8 +21,12 @@ const SETS: (SampleSet & { dir: string })[] = [];
 for (const slug of readdirSync(appsDir).sort()) {
   const specs = join(appsDir, slug, "samples/specs.ts");
   if (!existsSync(specs)) continue;
-  const mod = (await import(pathToFileURL(specs).href)) as { SAMPLE_SET?: SampleSet };
-  if (mod.SAMPLE_SET) SETS.push({ ...mod.SAMPLE_SET, dir: relative(root, dirname(specs)) });
+  // Any export whose name ends in SAMPLE_SET is a set (an app may have more than one card layout).
+  const mod = (await import(pathToFileURL(specs).href)) as Record<string, unknown>;
+  for (const [name, value] of Object.entries(mod)) {
+    const set = value as Partial<SampleSet> | undefined;
+    if (name.endsWith("SAMPLE_SET") && set?.layout && set.specs) SETS.push({ layout: set.layout, specs: set.specs, dir: relative(root, dirname(specs)) });
+  }
 }
 
 let failed = false;

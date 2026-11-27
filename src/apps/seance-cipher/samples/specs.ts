@@ -1,5 +1,5 @@
 import type { SampleSet, SampleSpec } from "../../../shell/sample-spec";
-import { SEANCE_LAYOUT } from "../layout";
+import { SEANCE_LAYOUT, SEANCE_RITE_LAYOUTS } from "../layout";
 
 /** Two haunted sample cards: one clean reading, one with a smudged mark a person must confirm. */
 export const SEANCE_SAMPLE_SPECS: SampleSpec[] = [
@@ -44,3 +44,49 @@ export const SEANCE_SAMPLE_SPECS: SampleSpec[] = [
 ];
 
 export const SAMPLE_SET: SampleSet = { layout: SEANCE_LAYOUT, specs: SEANCE_SAMPLE_SPECS };
+
+/**
+ * Four photos of the printed Haunted Treasure Hunt map (the 12-Rune Sheet), each with one room
+ * marked in pen. One of them is a faint mark that a person must confirm. Same geometry and card
+ * ID as the Oracle card, so the same decoder reads them.
+ */
+export const HUNT_SAMPLE_SPECS: SampleSpec[] = [
+  {
+    id: "hunt-moon-attic",
+    title: "Search the Moon Attic",
+    description: "Room 6 marked in pen. A clean photo.",
+    file: "hunt-moon-attic.jpg",
+    inkSeed: 61,
+    marks: [{ key: "q2/rune/eye" }],
+    camera: { scale: 1.4, rotationDeg: -6, perspective: [0.03, -0.02], gradient: { angleRad: 2.0, strength: 0.25 }, noiseSigma: 3, seed: 71, marginMm: 16, background: [0.16, 0.13, 0.12] },
+  },
+  {
+    id: "hunt-skull-crypt",
+    title: "Search the Skull Crypt",
+    description: "Room 1 marked, photographed at an angle.",
+    file: "hunt-skull-crypt.jpg",
+    inkSeed: 62,
+    marks: [{ key: "q1/rune/moon" }],
+    camera: { scale: 1.35, rotationDeg: 8, perspective: [-0.03, 0.03], gradient: { angleRad: 0.6, strength: 0.3 }, noiseSigma: 3, seed: 72, marginMm: 16, background: [0.12, 0.1, 0.12] },
+  },
+  {
+    id: "hunt-star-tower",
+    title: "Search the Star Tower",
+    description: "Room 12 marked, in dim candlelight.",
+    file: "hunt-star-tower.jpg",
+    inkSeed: 63,
+    marks: [{ key: "q3/rune/flame" }],
+    camera: { scale: 1.3, rotationDeg: -3, perspective: [0.02, 0.03], gradient: { angleRad: 1.2, strength: 0.35 }, brightness: 0.8, noiseSigma: 4, seed: 73, marginMm: 18, background: [0.1, 0.09, 0.11] },
+  },
+  {
+    id: "hunt-faint-mark",
+    title: "A faint mark in the Spider Cellar",
+    description: "Room 9 marked too lightly. The reader will not guess: a person decides.",
+    file: "hunt-faint-mark.jpg",
+    inkSeed: 64,
+    marks: [{ key: "q3/rune/moon", style: "faint" }],
+    camera: { scale: 1.3, rotationDeg: 5, perspective: [-0.03, 0.02], gradient: { angleRad: 0.4, strength: 0.38 }, brightness: 0.74, noiseSigma: 4, seed: 74, marginMm: 18, background: [0.1, 0.09, 0.11] },
+  },
+];
+
+export const HUNT_SAMPLE_SET: SampleSet = { layout: SEANCE_RITE_LAYOUTS[0], specs: HUNT_SAMPLE_SPECS };
