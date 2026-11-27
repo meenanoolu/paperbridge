@@ -16,26 +16,28 @@ apps plus a Kiro Crew App. Built for **Kiroween 2026: Skeleton Crew**.
 | **Blog post** | [Building PaperBridge: An Offline-First Optical UI Skeleton for Elder Care with Kiro](https://dev.to/meena_n/building-paperbridge-an-offline-first-optical-ui-skeleton-for-elder-care-with-kiro-1h76) (DEV) |
 | **Social post** | [PaperBridge on X](https://x.com/MNoolu34434/status/2124436517087248756) |
 
+![Skeleton Home, the haunted drafting table: a friendly ghost guide above 3 tilted paper objects, a metal-clipped clipboard for Elder Care, a ruled school sheet with a red A+ for Study Bridge and an obsidian and gold oracle card for X-Ray Rite](docs/images/skeleton-home.png)
+
 ## One skeleton, three frontends
 
-A slim launcher bar (the PaperBridge mark, one pill per app, **How Skeleton Works**) opens each app full screen.
+A slim launcher bar (the PaperBridge mark, one pill per app, **How Skeleton Works**) opens each app full screen. Each app is a different physical object: a clipped clipboard, a ruled gradebook, an oracle card.
 All three are built from the same `src/core/` engine and the same `src/shell/` primitives, and each looks nothing like the others.
 
 <table>
   <tr>
-    <th width="33%"><a href="src/apps/elder-care/">Elder Care Bridge</a><br>Warm Clinical Stationery</th>
-    <th width="33%"><a href="src/apps/study-bridge/">Study Bridge</a><br>Live Classroom Studio</th>
-    <th width="33%"><a href="src/apps/seance-cipher/">Seance Cipher</a><br>X-Ray Rite, obsidian arcade</th>
+    <th width="33%"><a href="src/apps/elder-care/">Elder Care Bridge</a><br>One caregiver sheet on linen</th>
+    <th width="33%"><a href="src/apps/study-bridge/">Study Bridge</a><br>The teacher's gradebook</th>
+    <th width="33%"><a href="src/apps/seance-cipher/">Seance Cipher</a><br>X-Ray Rite, one-screen arcade</th>
   </tr>
   <tr>
-    <td><img src="docs/images/frontend-elder.png" alt="Elder Care Bridge: ivory page with teal hairlines, the card with its Optical X-Ray on the left, adherence status and a Human verified stamp on the right"></td>
-    <td><img src="docs/images/frontend-study.png" alt="Study Bridge: indigo banner, bold telemetry for score and decode time, horizontal topic-mastery bars"></td>
-    <td><img src="docs/images/frontend-seance.png" alt="X-Ray Rite: the 12-rune launchpad with one rune lit in gold, a wave timer, 3 lives, score and combo"></td>
+    <td><img src="docs/images/frontend-elder.png" alt="Elder Care Bridge: a single cream caregiver sheet on a linen desk with a brass paper clip, a large 71 percent result, a checked faint mark and a pressed HUMAN VERIFIED rubber stamp with its dated impression"></td>
+    <td><img src="docs/images/frontend-study.png" alt="Study Bridge: ruled gradebook paper with a red margin line, red-ink score stamps, notebook tabs and pink and yellow highlighter topic bars"></td>
+    <td><img src="docs/images/frontend-seance.png" alt="X-Ray Rite: the whole game on one screen, a 3 by 4 rune launchpad with the Spider rune trembling in dashed crimson, a countdown ring, 3 lives and a ghostly status line"></td>
   </tr>
   <tr>
-    <td>Ivory and teal, AAA contrast. Two columns: card, X-Ray and Raw vs. Unwarped on the left; adherence, a 1-click <b>Human Verified</b> stamp, Read Aloud, WhatsApp update, Doctor Visit PDF and icon cards in 4 languages on the right. Presets sit in an accordion.</td>
-    <td>Slate, indigo and emerald with <code>tabular-nums</code> telemetry. Live Scan, Print Studio and Gradebook tabs: topic-mastery bars, a batch gradebook, the Due Review Card and a multi-week quiz pack in Telugu and Hindi.</td>
-    <td><b>X-Ray Rite: The Endless Obsidian Seance.</b> An endless survival arcade on a printed 12-rune sheet. Runes light up in waves; cover one with a finger or token before the timer ends. A shaky half cover is a Trembling Hand. No printer? Play on the digital launchpad.</td>
+    <td>One centred sheet of cream paper on linen, AAA contrast, with numbered fields instead of dashboard boxes. A big <b>HUMAN VERIFIED</b> rubber stamp that only works once every faint mark is checked. Print options and presets sit in a closed drawer.</td>
+    <td>Ruled paper with a red margin line. Scores are red-ink rubber stamps, topics are marked with a highlighter, and Live Scan, Print Studio and Gradebook are notebook tabs. Due Review Card and multi-week quiz packs in Telugu and Hindi.</td>
+    <td><b>X-Ray Rite: The Endless Obsidian Seance.</b> An endless arcade on a printed 12-rune sheet that fills one screen. Cover each lit rune before the countdown ring ends. A shaky half cover is a Trembling Hand, and the ghosts tease you about it. No printer? Use the digital launchpad.</td>
   </tr>
 </table>
 
@@ -56,7 +58,7 @@ Seance Cipher is now an endless survival game on the same optical engine. Print 
 
 ### Try it in 60 seconds (no printer needed)
 
-1. Open the [live demo](https://paperbridge-acvw.onrender.com/). On **Skeleton Home**, click **Run Mixed-Domain Auto-Route Demo**: one real card from each app is unwarped, X-Rayed and routed to its own app.
+1. Open the [live demo](https://paperbridge-acvw.onrender.com/). On **Skeleton Home**, point at (or tab to) each paper and the ghost guide explains it. Then click **Run Mixed-Domain Auto-Route Demo**: one real card from each app is unwarped, X-Rayed and routed to its own app.
 2. Click **Seance Cipher**, then **Start the Rite**. Hold a lit rune's pad (or its key) to banish it, or tap it to feel the Trembling Hand. Let the timer run out three times for the Game Over receipt with its frozen X-Ray.
 3. Open **Elder Care Bridge**, load a sample and stamp the amber mark **Human Verified**, then print the adapted next-week card.
 4. Open **Study Bridge**, scan a quiz, then **Print Studio** for the Telugu or Hindi sheet and the quiz pack.
@@ -67,7 +69,7 @@ Seance Cipher is now an endless survival game on the same optical engine. Print 
 
 | Kiro feature | Where | What it does here |
 |---|---|---|
-| **Spec-driven development** | [`.kiro/specs/paperbridge/`](.kiro/specs/paperbridge/) | EARS [requirements](.kiro/specs/paperbridge/requirements.md) R1-R55, [design](.kiro/specs/paperbridge/design.md) decisions with measured numbers, and [tasks](.kiro/specs/paperbridge/tasks.md) 1-24, one task group per commit |
+| **Spec-driven development** | [`.kiro/specs/paperbridge/`](.kiro/specs/paperbridge/) | EARS [requirements](.kiro/specs/paperbridge/requirements.md) R1-R59, [design](.kiro/specs/paperbridge/design.md) decisions with measured numbers, and [tasks](.kiro/specs/paperbridge/tasks.md) 1-25, one task group per commit |
 | **Steering** | [`.kiro/steering/`](.kiro/steering/) | Always-on product rules, a `src/core/**` rule for the deterministic decoder, a `src/apps/**` rule for accessible thin apps |
 | **Agent hooks** | [`.kiro/hooks/`](.kiro/hooks/) | 5 hooks of 3 kinds: tests, sample regeneration and typecheck on save; a `PreToolUse` guard on the protected decoder; a `Stop` check for core boundaries and WCAG |
 | **MCP server** | [`mcp/`](mcp/) | Layout Validator: `validate_card_layout` and `list_registered_apps`, so Kiro checks a card before anyone prints it |

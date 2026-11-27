@@ -305,3 +305,18 @@ PaperBridge turns a printed bubble card into structured data using deterministic
 ## R55. Accessibility and protected code (Phase 11)
 1. Text SHALL meet WCAG 2.2 AA contrast, every control SHALL show the 4 px focus ring, every button's accessible name SHALL contain its visible words, flicker SHALL stay under 3 flashes a second and every animation SHALL stop for reduced motion. State SHALL never rely on colour alone, and the game SHALL be pausable and announce events in a polite status line.
 2. THE change SHALL leave `src/core/`, `src/shell/`, `src/apps/elder-care/` and `src/apps/study-bridge/` unchanged, keep `pdf-lib` out of the initial bundle, and use no em dashes in UI copy or markdown.
+
+## R56. Skeleton Home: the haunted drafting table (Phase 12)
+1. Skeleton Home SHALL be a dark (#090C14) drafting-desk canvas with translucent ghosts drifting across it and a friendly guide ghost whose speech bubble changes to playful, helpful copy for each app while it is hovered or focused (and for the scaffold button). Ghost motion, the guide's float and the hover tilt SHALL stop under `prefers-reduced-motion: reduce`; the ghosts SHALL then rest in fixed places.
+2. THE 3 apps SHALL be physical, differently tilted objects, not equal cards: a metal-clipped clipboard on cream paper (#FAF6EE) with a teal stamp (-1.5deg), a ruled composition sheet with a red margin line, blue rules and a red A+ stamp (1.2deg), and an obsidian and antique-gold oracle card with corner filigree and an emerald glow (-1deg). The tilt SHALL apply on desktop widths only. Each object SHALL stay one link (`#elder-care`, `#study-bridge`, `#seance-cipher`) with a 4 px focus ring, and the existing demo and scaffold buttons and labels SHALL be unchanged.
+
+## R57. Elder Care: one caregiver sheet (Phase 12)
+1. Elder Care SHALL be a single centred sheet of paper on a warm linen (#F4EFE6) surface with numbered fields and generous whitespace, text at AAA contrast (#134E4A on #FAF8F5), and no multi-column dashboard grid. Secondary print options, languages and presets SHALL be collapsed.
+2. THE page SHALL have a **HUMAN VERIFIED** rubber stamp that cannot be pressed while any faint mark is unchecked (and says how many remain), leaves a dated impression when pressed, can be lifted, and is operable by keyboard.
+
+## R58. Study Bridge: the teacher's gradebook (Phase 12)
+1. Study Bridge SHALL be ruled paper (#FCFBF7) with a red margin line, red, blue and green ink score stamps (each at least 7:1 on the paper) keeping the "Score telemetry" list, notebook divider tabs for Live Scan, Print Studio and Gradebook, and highlighter-style topic bars (yellow mastered, pink review) that are decoration beside the numbers and words.
+
+## R59. X-Ray Rite fits one screen (Phase 12)
+1. THE active game stage (live webcam or the 3 x 4 launchpad, the HUD and a countdown ring) SHALL fill the viewport below the launcher bar without scrolling at 1440x900, 1280x720 and 1024x768, however tall the launcher bar is. WHEN a hand trembles THE status line SHALL show a ghostly message that tells the player to cover the rune fully. Printing the 12-Rune Sheet and the classic Oracle reading SHALL be in one collapsed drawer.
+2. THE change SHALL leave `src/core/`, `src/shell/route.ts`, `src/shell/useOpticalScan.ts`, `src/shell/optical.tsx`, `src/shell/app-registry.ts` and `src/apps/seance-cipher/riteEngine.ts` unchanged, keep WCAG 2.2 AA contrast and 4 px focus rings, and use no em dashes.
