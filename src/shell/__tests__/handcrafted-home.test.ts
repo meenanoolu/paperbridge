@@ -3,7 +3,7 @@ import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { ARTIFACTS, ArtifactRow } from "../components/HomeArtifacts";
 import { DRIFTERS, DriftingGhosts, GhostGuide, GUIDE_HINTS, hintFor, HOME_CSS } from "../components/HomeGhosts";
-import { SkeletonHome } from "../components/SkeletonHome";
+import { HOME_STEPS, SkeletonHome } from "../components/SkeletonHome";
 import { RouteContext } from "../route-context";
 
 const strip = (h: string) => h.replace(/<!-- -->/g, "");
@@ -163,5 +163,38 @@ describe("Skeleton Home meets WCAG 2.2 AA", () => {
   it("focus rings: yellow on the desk, never hidden", () => {
     expect(contrast("#fde047", "#090C14")).toBeGreaterThanOrEqual(3);
     expect(HOME_CSS).not.toMatch(/outline/);
+  });
+});
+
+describe("Skeleton Home: understandable by a stranger in under a minute", () => {
+  const home = strip(renderToString(createElement(RouteContext.Provider, { value: () => undefined }, createElement(SkeletonHome))));
+
+  it("says in plain words what it does, with no account, no upload and no AI guessing", () => {
+    expect(home).toContain('data-testid="home-promise"');
+    const t = text(home);
+    expect(t).toContain("Fill in a paper card with a pen, take one photo");
+    expect(t).toMatch(/No account, no upload, no AI guessing/);
+    expect(t).toMatch(/goes to a person/);
+    expect(t).not.toMatch(EM_DASH);
+  });
+
+  it("shows the idea as 3 numbered steps", () => {
+    expect(HOME_STEPS).toEqual(["Print a card", "Mark it with a pen", "Snap one photo"]);
+    const ol = home.slice(home.indexOf('data-steps="home"'), home.indexOf("</ol>", home.indexOf('data-steps="home"')));
+    expect([...ol.matchAll(/<li/g)]).toHaveLength(3);
+    expect(home).toContain('aria-label="How PaperBridge works"');
+  });
+
+  it("puts the demo button before the 3 worlds, so it is above the fold", () => {
+    expect(home.indexOf("Run Mixed-Domain Auto-Route Demo")).toBeGreaterThan(0);
+    expect(home.indexOf("Run Mixed-Domain Auto-Route Demo")).toBeLessThan(home.indexOf('data-artifact="clipboard"'));
+    expect(text(home)).toContain("One tap reads 3 real card photos on this device and sends each one to the right app.");
+  });
+
+  it("has a guide that opens by telling the visitor what to do next", () => {
+    expect(GUIDE_HINTS.default).toMatch(/Pick a paper world below/);
+    expect(GUIDE_HINTS.default).toMatch(/amber button/);
+    expect(GUIDE_HINTS.default).not.toMatch(EM_DASH);
+    expect(text(home)).toContain(GUIDE_HINTS.default);
   });
 });
