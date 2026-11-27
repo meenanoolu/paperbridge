@@ -33,15 +33,15 @@ export function RiteReceipt({ receipt, frame, best, onPlayAgain }: { receipt: Sc
     ["Mode", MODE_LABEL[receipt.mode]],
   ];
   return (
-    <section aria-labelledby="rite-receipt" className="space-y-4 rounded-2xl border-2 border-[#D4AF37] bg-[#10131a] p-5" data-receipt="true">
-      <h3 id="rite-receipt" className="text-4xl font-semibold text-[#D4AF37]" style={SERIF}>
+    <section aria-labelledby="rite-receipt" className="space-y-3 rounded-2xl border-2 border-[#D4AF37] bg-[#10131a] p-4" data-receipt="true">
+      <h3 id="rite-receipt" className="text-3xl font-semibold text-[#D4AF37]" style={SERIF}>
         The rite ends
       </h3>
       <div className="grid gap-5 md:grid-cols-2">
         {frame && (
           <figure>
             <div className="relative overflow-hidden rounded-xl border-2 border-[#D4AF37]/70 bg-slate-800">
-              <img src={frame.imageUrl} alt={frame.alt} className="block h-auto w-full bg-white" />
+              <img src={frame.imageUrl} alt={frame.alt} className="mx-auto block h-auto max-h-[46svh] w-auto max-w-full bg-white" />
               <XRayOverlay model={frame.model} width={frame.width} height={frame.height} palette={RITE_PALETTE} />
             </div>
             <figcaption className="mt-2 text-lg text-[#D9CFB4]">Frozen Optical X-Ray. Emerald runes were covered. Dashed crimson runes were still lit or trembling when time ran out.</figcaption>

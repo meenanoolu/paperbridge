@@ -10,7 +10,7 @@ import { RITE_RUNE_NAMES, SEANCE_RITE_LAYOUTS } from "../layout";
 import { LiveOverlay } from "../RiteLive";
 import { LaunchPad } from "../RitePads";
 import { RitePrint } from "../RitePrint";
-import { RiteGame } from "../RiteGame";
+import { RiteGame, TimerRing } from "../RiteGame";
 import { RiteReceipt } from "../RiteReceipt";
 import { PAD_KEYS, type ScoreReceipt, type Target } from "../riteEngine";
 import { sheetSnapshot } from "../riteSheet";
@@ -63,7 +63,7 @@ describe("the game page (server-rendered menu)", () => {
       expect(m[0]).not.toContain("aria-label");
     });
     expect(html).toContain('aria-label="Rune launchpad"');
-    expect(html).toMatch(/grid-cols-2[^"]*sm:grid-cols-4/);
+    expect(html).toMatch(/grid-cols-3[^"]*sm:grid-cols-4/);
   });
 
   it("explains the rules with the real numbers, without em dashes", () => {
@@ -84,6 +84,67 @@ describe("the game page (server-rendered menu)", () => {
     expect(html).not.toMatch(/<div[^>]*onclick/i);
     expect(html.match(/<h1/g)).toBeNull();
     expectNamedButtons(html);
+  });
+});
+
+describe("the stage fits one screen", () => {
+  const game = strip(renderToString(createElement(RiteGame)));
+  const page = strip(renderToString(createElement(RouteContext.Provider, { value: () => undefined }, createElement(SeanceCipherApp)))).replace(/^(<link[^>]*>)+/, "");
+
+  it("sizes the game from the viewport, minus the launcher bar and the header, so it never needs scrolling", () => {
+    expect(game).toContain("h-[calc(100svh-var(--launcher,4.1rem)-9.5rem)]");
+    expect(game).toContain("min-h-[31rem]");
+    expect(game).toContain("max-sm:h-auto");
+    expect(game).toContain("min-h-[16rem] flex-1");
+    expect(page).toContain("min-h-[calc(100svh-var(--launcher,4.1rem))]");
+    // The pads fill the stage: 4 x 3 on a wide screen, 3 x 4 on a phone.
+    expect(game).toMatch(/grid h-full min-h-0 grid-cols-3 grid-rows-4 [^"]*sm:grid-cols-4 sm:grid-rows-3/);
+  });
+
+  it("keeps the print sheet and the classic Oracle reading in one collapsed drawer under the game", () => {
+    const m = /<details class="group[^"]*" data-drawer="more">/.exec(page);
+    expect(m).not.toBeNull();
+    expect(m![0]).not.toContain(" open");
+    const drawer = page.slice(page.indexOf('data-drawer="more"'));
+    expect(drawer.indexOf("Print the X-Ray Rite 12-Rune Sheet")).toBeGreaterThan(0);
+    expect(drawer.indexOf('data-section="classic-oracle"')).toBeGreaterThan(drawer.indexOf("Print the X-Ray Rite 12-Rune Sheet"));
+    expect(page.indexOf('data-game="x-ray-rite"')).toBeLessThan(page.indexOf('data-drawer="more"'));
+    expect(text(page)).toContain("Print the 12-Rune Sheet, the classic Oracle reading and more");
+  });
+
+  it("opens the rules over the pads, with the Start button, instead of pushing the pads down", () => {
+    const overlay = game.slice(game.indexOf('data-overlay="menu"'));
+    expect(game).toContain("absolute inset-0 z-20");
+    expect(text(overlay)).toContain("How the rite works");
+    expect(overlay).toMatch(/>Start the Rite<\/button>/);
+  });
+
+  it("counts down with a ring that shows the same time as text, gold normally and crimson while a hand trembles", () => {
+    const ring = (trembling: boolean) => strip(renderToString(createElement(TimerRing, { left: 1500, total: 3000, trembling })));
+    const gold = ring(false);
+    expect(gold).toContain('role="progressbar"');
+    expect(gold).toContain('aria-label="Wave time left"');
+    expect(gold).toContain('aria-valuemin="0"');
+    expect(gold).toContain('aria-valuemax="3000"');
+    expect(gold).toContain('aria-valuenow="1500"');
+    expect(gold).toContain('aria-valuetext="1.5 seconds left"');
+    expect(gold).toContain('data-ring="gold"');
+    expect(gold).toContain('stroke="#D4AF37"');
+    expect(text(gold)).toContain("1.5");
+    // Half the time left is half the ring.
+    const c = 2 * Math.PI * 34;
+    expect(gold).toContain(`stroke-dashoffset="${c * 0.5}"`);
+    const crimson = ring(true);
+    expect(crimson).toContain('data-ring="crimson"');
+    expect(crimson).toContain('stroke="#FF6B7A"');
+    expect(strip(renderToString(createElement(TimerRing, { left: -50, total: 3000, trembling: false })))).toContain(`stroke-dashoffset="${c}"`);
+  });
+
+  it("has a compact toolbar: the 2 modes on the left, the sound toggle on the right, and the hints for screen readers only", () => {
+    expect(game).toMatch(/<legend class="sr-only">Play mode<\/legend>/);
+    expect(game).toMatch(/<span id="rite-mode-digital" class="sr-only">No printer needed/);
+    expect(game).toMatch(/<span id="rite-mode-live" class="sr-only">Print the sheet/);
+    expect(game.indexOf("Instant digital launchpad")).toBeLessThan(game.indexOf("Rite sounds"));
   });
 });
 

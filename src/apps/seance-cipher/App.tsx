@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import type { ReviewedScan } from "../../shell/scan";
 import type { AppMeta } from "../../shell/app-registry";
 import { playHarmonicChord } from "../../shell/audio-cues";
@@ -77,27 +77,43 @@ export function SeanceCipherApp() {
     return () => window.clearTimeout(t);
   }, [scan.busy, scan.scan]);
   const next = (chapter % CHAPTERS.length) + 1;
+  // The stage fills the screen below the launcher bar, which wraps to 2 lines on narrow windows:
+  // measure where the page really starts and hand it to the CSS.
+  const root = useRef<HTMLDivElement>(null);
+  const [top, setTop] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    const measure = () => setTop(root.current ? Math.round(root.current.getBoundingClientRect().top + window.scrollY) : null);
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
 
   return (
-    <div className="on-dark min-h-[80vh] px-4 py-8 text-[#F3EBD3] sm:px-8" style={{ background: `radial-gradient(ellipse at top, #1a1d27 0%, ${OBSIDIAN} 60%)` }} data-frontend="seance-cipher">
-      <div className="mx-auto max-w-6xl space-y-8">
-        <header className="border-b border-[#D4AF37]/60 pb-5">
-          <p className="text-lg font-bold uppercase tracking-[0.3em] text-[#D4AF37]">Seance Cipher: a Kiroween paper arcade</p>
-          <h1 className="mt-1 text-5xl font-semibold tracking-wide sm:text-6xl" style={SERIF}>
+    <div ref={root} className="on-dark flex min-h-[calc(100svh-var(--launcher,4.1rem))] flex-col px-3 py-3 text-[#F3EBD3] sm:px-6" style={{ background: `radial-gradient(ellipse at top, #1a1d27 0%, ${OBSIDIAN} 60%)`, ...(top ? ({ "--launcher": `${top}px` } as CSSProperties) : {}) }} data-frontend="seance-cipher">
+      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-3">
+        <header className="flex flex-wrap items-baseline gap-x-4 gap-y-0 px-1">
+          <h1 className="text-4xl font-semibold tracking-wide sm:text-5xl" style={SERIF}>
             X-Ray Rite
           </h1>
-          <p className="text-3xl text-[#D9CFB4]" style={SERIF}>
+          <p className="text-2xl text-[#D9CFB4] sm:text-3xl" style={SERIF}>
             The Endless Obsidian Seance
           </p>
-          <p className="mt-3 max-w-3xl text-lg text-[#D9CFB4]">
-            12 spooky runes light up in waves. Cover each one with a finger or a token before the timer runs out, and the offline optical scanner reads your cover live. No printer? Play on the
-            digital launchpad. It never guesses: only a clear cover counts, and a shaky one makes your hand tremble.
-          </p>
+          <p className="ml-auto hidden text-base font-bold uppercase tracking-[0.25em] text-[#D4AF37] min-[1500px]:block">Seance Cipher: a Kiroween paper arcade</p>
         </header>
 
         <RiteGame />
 
-        <RitePrint />
+        <details className="group rounded-xl border border-[#D4AF37]/60 bg-[#10131a]/80" open={scan.scan ? true : undefined} data-drawer="more">
+          <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-4 py-2 text-lg font-bold">
+            <span>Print the 12-Rune Sheet, the classic Oracle reading and more</span>
+            <svg viewBox="0 0 24 24" className="h-5 w-5 motion-safe:transition-transform group-open:rotate-180" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 9l7 7 7-7" /></svg>
+          </summary>
+          <div className="space-y-4 p-4">
+            <p className="max-w-3xl text-lg text-[#D9CFB4]">
+              12 spooky runes light up in waves. Cover each one with a finger or a token before the timer runs out, and the offline optical scanner reads your cover live. It never guesses: only a clear
+              cover counts, and a shaky one makes your hand tremble.
+            </p>
+            <RitePrint />
 
         <details className="rounded-2xl border border-[#D4AF37]/60 p-4" open={scan.scan ? true : undefined} data-section="classic-oracle">
           <summary className="cursor-pointer text-lg font-bold">Classic Oracle reading: scan a finished Oracle Cipher card</summary>
@@ -224,6 +240,8 @@ export function SeanceCipherApp() {
           <summary className="cursor-pointer text-lg font-bold">Scan a stack of cards from any PaperBridge app</summary>
           <div className="mt-3 text-slate-950 [&_:focus-visible]:outline-slate-950">
             <BatchDropzone />
+          </div>
+        </details>
           </div>
         </details>
       </div>

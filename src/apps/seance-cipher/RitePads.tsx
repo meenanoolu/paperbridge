@@ -62,7 +62,7 @@ export function LaunchPad({
   onRelease: (rune: number) => void;
 }) {
   return (
-    <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4" aria-label="Rune launchpad">
+    <ul className="grid h-full min-h-0 grid-cols-3 grid-rows-4 gap-2 sm:grid-cols-4 sm:grid-rows-3 sm:gap-3" aria-label="Rune launchpad">
       {RITE_RUNE_NAMES.map((name, i) => {
         const st = padStatus(i, targets, coverage[i] ?? 0);
         const burst = bursts.find((b) => b.rune === i);
@@ -81,12 +81,12 @@ export function LaunchPad({
           onPress(i);
         };
         return (
-          <li key={name}>
+          <li key={name} className="min-h-0">
             <button
               type="button"
               data-rune={i}
               data-kind={st.kind}
-              className={`relative flex min-h-32 w-full touch-none select-none flex-col items-center justify-center gap-1 overflow-hidden rounded-2xl border-4 p-2 text-[#F3EBD3] ${KIND_CLASS[st.kind]}`}
+              className={`relative flex h-full min-h-0 w-full touch-none select-none flex-col items-center justify-center gap-0.5 overflow-hidden rounded-2xl border-4 p-1 text-[#F3EBD3] sm:gap-1 sm:p-2 ${KIND_CLASS[st.kind]}`}
               onPointerDown={down}
               onPointerUp={() => onRelease(i)}
               onPointerCancel={() => onRelease(i)}
@@ -106,16 +106,16 @@ export function LaunchPad({
                 />
               )}
               {burst && <span key={burst.id} aria-hidden="true" data-burst="true" className="rite-burst pointer-events-none absolute inset-2 rounded-full border-4 border-[#34d399]" />}
-              <RuneGlyph index={i} className="relative h-12 w-12" />
-              <span className="relative text-lg font-bold">
+              <RuneGlyph index={i} className="relative h-[clamp(1.5rem,5svh,2.75rem)] w-[clamp(1.5rem,5svh,2.75rem)]" />
+              <span className="relative text-base font-bold sm:text-lg">
                 {i + 1} {name}
               </span>
-              <span className="relative flex items-center gap-2 text-base">
+              <span className="relative flex items-center gap-1 text-sm sm:gap-2 sm:text-base">
                 <kbd className="rounded border-2 border-[#D4AF37]/70 px-2 font-mono text-[#D9CFB4]">Key {PAD_KEYS[i]}</kbd>
                 {st.word && <span className="font-bold">{st.word}</span>}
               </span>
               {st.target && (
-                <span aria-hidden="true" className="relative mt-1 block h-2 w-4/5 overflow-hidden rounded-full bg-[#2a2f3d]">
+                <span aria-hidden="true" className="relative block h-1.5 w-4/5 overflow-hidden rounded-full bg-[#2a2f3d] sm:h-2">
                   <span className="absolute inset-y-0 left-0 bg-[#F3EBD3]" style={{ width: `${Math.min(100, Math.round(((coverage[i] ?? 0) / PERFECT) * 100))}%` }} />
                 </span>
               )}
