@@ -157,6 +157,22 @@ Real numbers from the simulated camera on the printed sheet: nothing on a circle
 
 The original 3-question **Oracle Cipher** card is kept in that drawer: the same 12 circles and card ID, story verdicts, the faint-mark human check, and the landing place for a card routed here from Skeleton Home. The obsidian `#0B0D12` and brass `#D4AF37` theme passes WCAG 2.2 AA.
 
+### First-time user audit (Phase 13)
+
+We opened Skeleton Home, Elder Care, Study Bridge and X-Ray Rite as a stranger would, in a real browser, and wrote down every place a smile would turn into a frown. The fixes are the highest-impact ones, each with a test. Nothing in `src/core/`, `riteEngine.ts` or the grading changed.
+
+| Friction found | Fix |
+|---|---|
+| Skeleton Home had no plain sentence about what it does, and the demo button was below the fold | A promise line ("No account, no upload, no AI guessing: anything it cannot read goes to a person"), 3 step chips (Print a card, Mark it with a pen, Snap one photo), and the demo button moved above the 3 worlds. It sits at 689 px of 900 px |
+| X-Ray Rite menu was a 110-word wall of numbers | 3 step cards (Watch the gold glow, Cover or hold the rune, Half-cover = Trembling Hand), 46 words. The exact scoring rules stay one tap away in a `<details>` |
+| A player who did nothing or only tapped got "Wave 1. Banish X. Go." | A ghost coach (`riteCoach.ts`, `CoachGhost.tsx`) with 6 moods says the exact next move for every state, with the key of each lit rune. The polite `role="status"` log stays for screen readers |
+| Quick taps made the rune tremble with no explanation | Every tremble line says to press down firmly; the receipt adds a tip such as "A quick tap only makes it tremble" |
+| Elder Care's faint-mark block never said what faint means | "Look at the amber circle on the photo, then tap Mark filled or Mark blank for each one", then the HUMAN VERIFIED stamp. The tone stays sober: no jokes about missed medicine |
+
+The mischief is restrained on purpose where the stakes are real (Elder Care) and loud where they are not (the game and Study Bridge). The corner guide is 4 amber brackets, hidden from screen readers; the ghost says the same thing in words.
+
+Verified in Chromium: axe-core (WCAG 2.0 to 2.2 A and AA) reports 0 violations on Skeleton Home, Elder Care (empty, result, notice), Study Bridge (empty, blank sheet) and X-Ray Rite (menu, active, no sheet); focus rings are 4 px; under reduced motion the coach does not animate (the hold bar rule is covered by a unit test); the game stage still fits at 1440x900, 1280x720 and 1024x768. Not verified: a real webcam, a real printer, and a phone-sized fit of the new coach row.
+
 ### Kiro Crew App (`crew-app/`)
 
 **PaperBridge Care Monitor** is a caregiver inbox inside Kiro Crew. It also lives in its own repo,
@@ -268,6 +284,10 @@ them. They found these bugs before any human saw a wrong answer:
 | axe-core and contrast tests on the Elder Care stamp | Dimming a pressed or locked stamp with `opacity` dropped its white text below AAA | A solid muted colour (`#365553`, 8.1:1) instead of opacity |
 | Contrast test on Study Bridge's green ink | `#166534` on the paper was 6.9:1, just under the 7:1 claimed | `#14532D` (10.1:1) |
 | Seance sample x 7 cameras x 2 papers | An A4 smudged Seance card read with the Letter layout showed 0 unclear marks (misplaced samples landed on blank paper), so "fewest unclear" picked the wrong paper | Score how dark each bubble's printed ring is through the homography and prefer the paper whose rings line up; on 98 photos the printed paper always wins, by at least 0.835 |
+| Stranger walkthrough of the 3 full-screen apps with a photo of an empty desk | Elder Care and Study Bridge showed only red pipeline steps: no visible words said what was wrong. The helpful text lived in `DecodeFacts`, which those pages do not use | `ScanProblem` shows a joke, the factual reason and the next tap in all 3 apps; `DECODE_ERROR_TEXT` is unchanged because `useOpticalScan` reads it for announcements |
+| Study Bridge with a blank sheet | A sheet with no marks graded as 0% with 4 weak topics and no explanation | `hasNoMarks` shows "Looks like an empty page!" and what to check; the grading is unchanged |
+| First hold on a launchpad pad | Nothing showed for the first 250 ms, so a hold felt like a dead button | Pads show a hold bar and a small press-in at once (`held`) |
+| Live camera pointed at an empty desk | The timer waited forever behind a small banner, with no way out | After 2 s with no sheet the coach scolds, shows **Switch to Launchpad** and amber corner brackets appear over the video |
 
 The tests also caught a mistake in our own expectations: we expected Sam's quiz to score
 50%, but the decoder correctly read 6 of 10 (60%). The test was fixed, not the decoder.

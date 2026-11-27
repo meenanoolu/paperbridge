@@ -320,3 +320,16 @@ PaperBridge turns a printed bubble card into structured data using deterministic
 ## R59. X-Ray Rite fits one screen (Phase 12)
 1. THE active game stage (live webcam or the 3 x 4 launchpad, the HUD and a countdown ring) SHALL fill the viewport below the launcher bar without scrolling at 1440x900, 1280x720 and 1024x768, however tall the launcher bar is. WHEN a hand trembles THE status line SHALL show a ghostly message that tells the player to cover the rune fully. Printing the 12-Rune Sheet and the classic Oracle reading SHALL be in one collapsed drawer.
 2. THE change SHALL leave `src/core/`, `src/shell/route.ts`, `src/shell/useOpticalScan.ts`, `src/shell/optical.tsx`, `src/shell/app-registry.ts` and `src/apps/seance-cipher/riteEngine.ts` unchanged, keep WCAG 2.2 AA contrast and 4 px focus rings, and use no em dashes.
+
+## R60. A stranger understands X-Ray Rite in under a minute (Phase 13)
+1. THE rules card SHALL show 3 steps (Watch the gold glow, Cover or hold the rune, Half-cover = Trembling Hand) in under 90 words, with the exact scoring rules in a collapsed `<details>`. WHILE a game runs THE HUD SHALL show the 3 steps as compact chips, replaced by the tremble hint while a hand trembles.
+2. A ghost coach SHALL say the exact next action for every state (menu, wave intro, active, trembling, banish, life lost, paused, game over), naming the key of each lit rune in digital mode. The polite `role="status"` log SHALL remain for screen readers.
+3. A pad that is held SHALL show a hold bar and a pressed look at once. WHEN the live camera sees no sheet for 2 s THE coach SHALL say so, a **Switch to Launchpad** button SHALL appear, and corner brackets SHALL show over the video. The receipt SHALL add a tip for a player who banished nothing or never grew a combo.
+
+## R61. Every app says what went wrong and what to tap next (Phase 13)
+1. WHEN a photo cannot be decoded THE 3 full-screen apps SHALL show a joke, the factual reason and the next tap (`ScanProblem`), and `DECODE_ERROR_TEXT` SHALL stay unchanged. WHEN a card is read but every bubble is blank Elder Care SHALL say no marks were read and to tell the care team if that is wrong, and Study Bridge SHALL say the page looks empty. Grading SHALL not change.
+2. Faint-mark checks SHALL carry a one-sentence hint that names the real buttons (Mark filled, Mark blank) and the HUMAN VERIFIED stamp. Elder Care SHALL stay sober about missed medicine.
+
+## R62. Skeleton Home explains itself above the fold (Phase 13)
+1. Skeleton Home SHALL state in one plain sentence what PaperBridge does (no account, no upload, no AI guessing, unreadable marks go to a person), show 3 numbered steps, and place the demo button before the 3 worlds so it is above the fold at 1440x900 and 1280x720. The guide's opening line SHALL tell the visitor what to do next.
+2. THE change SHALL leave `src/core/`, `src/shell/route.ts`, `src/shell/useOpticalScan.ts`, `src/shell/optical.tsx`, `src/shell/app-registry.ts` and `src/apps/seance-cipher/riteEngine.ts` unchanged, keep WCAG 2.2 AA contrast and 4 px focus rings, and use no em dashes.
