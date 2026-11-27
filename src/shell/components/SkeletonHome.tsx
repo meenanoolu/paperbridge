@@ -13,9 +13,11 @@ import { Icon } from "./Icon";
 import { SkeletonGuide } from "./SkeletonGuide";
 import { Button, StatusBadge } from "./ui";
 import { ArtifactRow } from "./HomeArtifacts";
+import { TrickOrTreatButton, TrickOrTreatScene } from "./TrickOrTreatScene";
 import { DriftingGhosts, GhostGuide, HOME_CSS } from "./HomeGhosts";
 import { HEADLINE, HOME_MOTION_CSS } from "./HomeMotion";
 import { usePointerLight } from "../motion/pointer";
+import { prefersReducedMotion } from "../motion/reduced";
 import { XRayOverlay } from "./XRayOverlay";
 
 /** What every app gets from the skeleton, listed on the Scaffold Your Next App card. */
@@ -202,6 +204,9 @@ const STAGE: CSSProperties = {
   backgroundSize: "100% 100%, 100% 100%, 44px 44px, 44px 44px",
 };
 
+/** A dark red night over the desk: deep crimson at the horizon, black at the top. Text stays on near-black. */
+const NIGHT_CSS = `.home-night { background: radial-gradient(ellipse 90% 55% at 70% 100%, rgba(153, 27, 27, 0.38), transparent 70%), linear-gradient(to bottom, rgba(2, 6, 23, 0.55), rgba(69, 10, 10, 0.18) 80%); }`;
+
 /** A printed-card corner marker, as decoration on the stage corners. */
 function Fiducial({ className, i }: { className: string; i: number }) {
   return (
@@ -220,8 +225,11 @@ export function SkeletonHome() {
   usePointerLight(stage);
   return (
     <>
-      <style>{HOME_CSS + HOME_MOTION_CSS}</style>
+      <style>{HOME_CSS + HOME_MOTION_CSS + NIGHT_CSS}</style>
       <section ref={stage} aria-labelledby="home-title" className="on-dark relative min-h-[calc(100svh-4.5rem)] overflow-hidden text-white" style={STAGE}>
+        <div aria-hidden="true" className="home-night pointer-events-none absolute inset-0" />
+        <TrickOrTreatScene />
+        <div aria-hidden="true" className="lit-layer tot-flash z-[1]" />
         <div aria-hidden="true" className="lit-layer home-lamp" />
         <div aria-hidden="true" className="lit-layer home-grid-glow" />
         <div aria-hidden="true" className="home-scan" />
@@ -262,6 +270,8 @@ export function SkeletonHome() {
           <GhostGuide hint={hint} />
           <MixedBatchShowcase
             secondary={
+              <>
+              <TrickOrTreatButton onPress={() => document.getElementById("home-worlds")?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" })} />
               <span onMouseEnter={() => setHint("scaffold")} onMouseLeave={() => setHint(null)} onFocus={() => setHint("scaffold")} onBlur={() => setHint(null)}>
                 <SkeletonGuide
                   className={GHOST}
@@ -272,9 +282,12 @@ export function SkeletonHome() {
                   }
                 />
               </span>
+              </>
             }
           />
-          <ArtifactRow ids={ids} onHint={setHint} />
+          <div id="home-worlds" className="scroll-mt-24">
+            <ArtifactRow ids={ids} onHint={setHint} />
+          </div>
           <div className="mx-auto max-w-5xl text-center">
             <p className="text-lg font-bold text-slate-200">Every world inherits from the skeleton:</p>
             <ul className="mt-3 flex flex-wrap justify-center gap-2" aria-label="What every app inherits">
