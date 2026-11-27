@@ -12,6 +12,8 @@ import { AutoRoutePanel } from "./AutoRoutePanel";
 import { Icon } from "./Icon";
 import { SkeletonGuide } from "./SkeletonGuide";
 import { Button, StatusBadge } from "./ui";
+import { ArtifactRow } from "./HomeArtifacts";
+import { DriftingGhosts, GhostGuide, HOME_CSS } from "./HomeGhosts";
 import { XRayOverlay } from "./XRayOverlay";
 
 /** What every app gets from the skeleton, listed on the Scaffold Your Next App card. */
@@ -186,169 +188,12 @@ export function MixedBatchShowcase({ secondary }: { secondary?: ReactNode }) {
   );
 }
 
-/* ---------- World portal previews (decorative; the card text carries the meaning) ---------- */
-
-function ElderPreview() {
-  return (
-    <svg viewBox="0 0 240 110" aria-hidden className="h-28 w-full">
-      <rect x="1" y="1" width="238" height="108" rx="14" fill="#FFFFFF" stroke="#0F766E" strokeWidth="1.5" />
-      <g transform="rotate(-24 70 55)">
-        <rect x="30" y="38" width="80" height="34" rx="17" fill="#CCFBF1" stroke="#134E4A" strokeWidth="2.5" />
-        <path d="M70 38h23a17 17 0 0 1 0 34H70z" fill="#0F766E" />
-      </g>
-      <circle cx="172" cy="55" r="30" fill="#134E4A" />
-      <path d="M158 56l10 10 20-22" fill="none" stroke="#FAF8F5" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
-      {[0, 1, 2, 3, 4, 5, 6].map((i) => (
-        <circle key={i} cx={128 + i * 15} cy="96" r="5" fill={i === 4 ? "#FFFFFF" : "#0F766E"} stroke="#134E4A" strokeWidth="1.5" />
-      ))}
-    </svg>
-  );
-}
-
-function StudyPreview() {
-  const bars = [
-    ["Fractions", 92, "#3730A3"],
-    ["Geometry", 74, "#3730A3"],
-    ["Decimals", 100, "#047857"],
-    ["Ratios", 48, "#3730A3"],
-  ] as const;
-  return (
-    <svg viewBox="0 0 240 110" aria-hidden className="h-28 w-full">
-      <rect x="1" y="1" width="238" height="108" rx="14" fill="#FFFFFF" stroke="#CBD5E1" strokeWidth="1.5" />
-      {bars.map(([name, pct, color], i) => (
-        <g key={name} transform={`translate(14 ${16 + i * 23})`}>
-          <text x="0" y="11" fontSize="11" fontWeight="700" fill="#334155">
-            {name}
-          </text>
-          <rect x="66" y="2" width="130" height="11" rx="5.5" fill="#E2E8F0" />
-          <rect x="66" y="2" width={1.3 * pct} height="11" rx="5.5" fill={color} />
-          <text x="204" y="11" fontSize="11" fontWeight="800" fill="#1E1B4B" style={{ fontVariantNumeric: "tabular-nums" }}>
-            {pct}%
-          </text>
-        </g>
-      ))}
-    </svg>
-  );
-}
-
-function SeancePreview() {
-  const runes = [
-    { c: "#34D399", d: "M-6-9a10 10 0 1 0 0 18a7 7 0 0 1 0-18z" },
-    { c: "#34D399", d: "M-11 0q11-11 22 0q-11 11-22 0zM0-3a3 3 0 1 0 0.1 0z" },
-    { c: "#FBBF24", d: "M-3-10a5 5 0 1 0 0.1 0zM0 0v11M0 6h5M0 10h4" },
-    { c: "#34D399", d: "M0-11c5 6 8 9 8 13a8 8 0 0 1-16 0c0-4 3-6 4-10c2 3 2 5 4 6c0-4 0-6 0-9z" },
-  ];
-  return (
-    <svg viewBox="0 0 240 110" aria-hidden className="h-28 w-full">
-      <defs>
-        <filter id="home-rune-glow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="3" result="b" />
-          <feMerge>
-            <feMergeNode in="b" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
-      <rect x="1" y="1" width="238" height="108" rx="14" fill="#0B0D12" stroke="#D4AF37" strokeWidth="1" />
-      {runes.map((r, i) => (
-        <g key={i} transform={`translate(${36 + i * 56} 55)`} filter="url(#home-rune-glow)">
-          <circle r="21" fill="none" stroke={r.c} strokeWidth="2.5" />
-          <path d={r.d} fill="none" stroke={r.c} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-        </g>
-      ))}
-    </svg>
-  );
-}
-
-interface World {
-  id: string;
-  title: string;
-  pill: string;
-  description: string;
-  Preview: () => ReactNode;
-  card: string;
-  pillClass: string;
-  titleClass: string;
-  textClass: string;
-  enterClass: string;
-}
-
-const WORLDS: World[] = [
-  {
-    id: "elder-care",
-    title: "Elder Care Bridge",
-    pill: "Clinical Care",
-    description: "A large-print weekly medication card. One photo gives a caregiver adherence, missed doses and a Doctor Visit PDF.",
-    Preview: ElderPreview,
-    card: "border-2 border-[#0F766E] bg-[#FAF8F5] shadow-[0_24px_60px_-20px_rgba(20,184,166,0.55)]",
-    pillClass: "bg-[#0F766E] text-white",
-    titleClass: "text-[#134E4A]",
-    textClass: "text-[#134E4A]",
-    enterClass: "text-[#134E4A]",
-  },
-  {
-    id: "study-bridge",
-    title: "Study Bridge",
-    pill: "Classroom Studio",
-    description: "A screen-free quiz sheet. One photo gives a score, weak topics with review dates and a class gradebook.",
-    Preview: StudyPreview,
-    card: "border-2 border-[#3730A3] bg-[#F8FAFC] shadow-[0_24px_60px_-20px_rgba(99,102,241,0.6)]",
-    pillClass: "bg-[#3730A3] text-white",
-    titleClass: "text-slate-950",
-    textClass: "text-slate-700",
-    enterClass: "text-[#3730A3]",
-  },
-  {
-    id: "seance-cipher",
-    title: "Seance Cipher",
-    pill: "Physical Paper Game",
-    description: "A haunted paper mystery. Mark one rune per question, scan it, and the runes glow and tell a story.",
-    Preview: SeancePreview,
-    card: "border-2 border-[#D4AF37] bg-[#11131A] shadow-[0_24px_60px_-18px_rgba(212,175,55,0.5)]",
-    pillClass: "border border-emerald-300 bg-emerald-400/15 text-emerald-200 shadow-[0_0_18px_-2px_rgba(52,211,153,0.75)]",
-    titleClass: "text-[#F3EBD3] [font-family:Georgia,'Times_New_Roman',serif]",
-    textClass: "text-[#D9CFB4]",
-    enterClass: "text-[#D4AF37]",
-  },
-];
-
-/**
- * One world portal. The title is the link (so its name matches what it says), stretched over the
- * whole card; the card draws the 4 px focus ring while the link has focus.
- */
-function WorldPortal({ world }: { world: World }) {
-  const { Preview } = world;
-  return (
-    <li
-      data-world={world.id}
-      className={`group relative flex flex-col gap-4 rounded-3xl p-6 transition-transform motion-safe:hover:-translate-y-1.5 has-[a:focus-visible]:outline-4 has-[a:focus-visible]:outline-offset-4 has-[a:focus-visible]:outline-[#fde047] has-[a:focus-visible]:outline-solid ${world.card}`}
-    >
-      <span className={`self-start rounded-full px-4 py-1 text-base font-bold ${world.pillClass}`}>{world.pill}</span>
-      <Preview />
-      <h2 className={`text-3xl font-black tracking-tight ${world.titleClass}`}>
-        <a href={`#${world.id}`} aria-describedby={`world-${world.id}-desc`} className="after:absolute after:inset-0 after:rounded-3xl after:content-[''] focus-visible:outline-none">
-          {world.title}
-        </a>
-      </h2>
-      <p id={`world-${world.id}-desc`} className={`text-lg leading-snug ${world.textClass}`}>
-        {world.description}
-      </p>
-      <span aria-hidden className={`mt-auto inline-flex items-center gap-2 text-lg font-black ${world.enterClass}`}>
-        Enter world
-        <svg viewBox="0 0 24 24" className="h-6 w-6 transition-transform motion-safe:group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M4 12h15M13 6l6 6-6 6" />
-        </svg>
-      </span>
-    </li>
-  );
-}
-
-/** Midnight blueprint: a faint optical grid with a soft glow at the top. */
+/** The haunted drafting table: near-black desk, a warm lamp glow at the top and a faint pencil grid. */
 const STAGE: CSSProperties = {
-  backgroundColor: "#0B1120",
+  backgroundColor: "#090C14",
   backgroundImage:
-    "radial-gradient(ellipse 80% 50% at 50% 0%, rgba(56,189,248,0.16), transparent 70%), linear-gradient(rgba(148,163,184,0.09) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.09) 1px, transparent 1px)",
-  backgroundSize: "100% 100%, 44px 44px, 44px 44px",
+    "radial-gradient(ellipse 70% 45% at 50% 0%, rgba(251,191,36,0.10), transparent 70%), radial-gradient(ellipse 120% 80% at 50% 120%, rgba(0,0,0,0.55), transparent 60%), linear-gradient(rgba(148,163,184,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.06) 1px, transparent 1px)",
+  backgroundSize: "100% 100%, 100% 100%, 44px 44px, 44px 44px",
 };
 
 /** A printed-card corner marker, as decoration on the stage corners. */
@@ -360,20 +205,23 @@ function Fiducial({ className }: { className: string }) {
   );
 }
 
-/** The default landing view: a full-viewport stage with the 3 worlds and the mixed-domain demo. */
+/** The default landing view: the haunted drafting table with its 3 paper artifacts and the mixed-domain demo. */
 export function SkeletonHome() {
   const onRoute = useContext(RouteContext);
-  const worlds = WORLDS.filter((w) => APPS.some((a) => a.id === w.id));
+  const [hint, setHint] = useState<string | null>(null);
+  const ids = APPS.map((a) => a.id);
   return (
     <>
+      <style>{HOME_CSS}</style>
       <section aria-labelledby="home-title" className="on-dark relative min-h-[calc(100svh-4.5rem)] overflow-hidden text-white" style={STAGE}>
+        <DriftingGhosts />
         <Fiducial className="left-5 top-5" />
         <Fiducial className="right-5 top-5" />
         <Fiducial className="bottom-5 left-5" />
         <Fiducial className="bottom-5 right-5" />
-        <div className="mx-auto flex max-w-7xl flex-col gap-10 px-4 py-14 sm:px-8 sm:py-20">
+        <div className="relative z-10 mx-auto flex max-w-7xl flex-col gap-10 px-4 py-14 sm:px-8 sm:py-16">
           <header className="mx-auto max-w-4xl text-center">
-            <p className="text-base font-bold uppercase tracking-[0.3em] text-sky-300">PaperBridge Skeleton</p>
+            <p className="text-base font-bold uppercase tracking-[0.3em] text-amber-200">PaperBridge Skeleton</p>
             <h1 id="home-title" className="mt-4 text-5xl font-black leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-7xl">
               One Optical Engine. Three Distinct Worlds.
             </h1>
@@ -381,21 +229,20 @@ export function SkeletonHome() {
               Offline-first deterministic paper scanning across healthcare, classrooms, and physical puzzle games.
             </p>
           </header>
-          <ul className="grid gap-6 lg:grid-cols-3" aria-label="Apps on the skeleton">
-            {worlds.map((w) => (
-              <WorldPortal key={w.id} world={w} />
-            ))}
-          </ul>
+          <GhostGuide hint={hint} />
+          <ArtifactRow ids={ids} onHint={setHint} />
           <MixedBatchShowcase
             secondary={
-              <SkeletonGuide
-                className={GHOST}
-                label={
-                  <span>
-                    Scaffold Your Next App (<code className="font-mono">npm run create-app</code>)
-                  </span>
-                }
-              />
+              <span onMouseEnter={() => setHint("scaffold")} onMouseLeave={() => setHint(null)} onFocus={() => setHint("scaffold")} onBlur={() => setHint(null)}>
+                <SkeletonGuide
+                  className={GHOST}
+                  label={
+                    <span>
+                      Scaffold Your Next App (<code className="font-mono">npm run create-app</code>)
+                    </span>
+                  }
+                />
+              </span>
             }
           />
           <div className="mx-auto max-w-5xl text-center">
