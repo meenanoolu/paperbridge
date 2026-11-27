@@ -2,7 +2,8 @@
  * The shared motion language. Everything here is `transform`, `translate`, `scale`, `rotate`,
  * `opacity` or `clip-path` (compositor friendly) and every animation sits behind
  * `prefers-reduced-motion: no-preference`, so reduced motion shows the final state at once.
- * Springs come from `--spring-*` (see spring.ts). Stagger with `style={{ "--i": n }}`.
+ * Keyframes name only their `from` state, so an element lands on whatever translate, scale or
+ * rotate it already has (a stamp keeps its tilt). Springs come from `--spring-*` (see spring.ts). Stagger with `style={{ "--i": n }}`.
  */
 export const MOTION_CSS = `
 /* ---- Page transition: the next world opens like an iris from where you pressed. ---- */
@@ -15,12 +16,12 @@ export const MOTION_CSS = `
 }
 
 /* ---- Entrances ---- */
-@keyframes m-rise { from { opacity: 0; translate: 0 26px; } to { opacity: 1; translate: 0 0; } }
-@keyframes m-pop { from { opacity: 0; scale: 0.55; } to { opacity: 1; scale: 1; } }
-@keyframes m-slam { from { opacity: 0; scale: 2.1; rotate: -9deg; } to { opacity: 1; scale: 1; rotate: 0deg; } }
-@keyframes m-word { from { opacity: 0; translate: 0 0.7em; rotate: 5deg; } to { opacity: 1; translate: 0 0; rotate: 0deg; } }
-@keyframes m-deal { from { opacity: 0; translate: 0 90px; scale: 0.86; rotate: 7deg; } to { opacity: 1; translate: 0 0; scale: 1; rotate: 0deg; } }
-@keyframes m-sweep { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes m-rise { from { opacity: 0; translate: 0 26px; } }
+@keyframes m-pop { from { opacity: 0; scale: 0.55; } }
+@keyframes m-slam { from { opacity: 0; scale: 2.1; rotate: -9deg; } }
+@keyframes m-word { from { opacity: 0; translate: 0 0.7em; rotate: 5deg; } }
+@keyframes m-deal { from { opacity: 0; translate: 0 90px; scale: 0.86; rotate: 7deg; } }
+@keyframes m-sweep { from { scale: 0 1; } }
 @keyframes m-focus { from { outline-offset: 10px; } to { outline-offset: 3px; } }
 @keyframes m-hop { 0% { translate: 0 0; scale: 1 1; } 30% { translate: 0 -14px; scale: 0.94 1.08; } 60% { translate: 0 2px; scale: 1.08 0.92; } 100% { translate: 0 0; scale: 1 1; } }
 
@@ -34,6 +35,14 @@ export const MOTION_CSS = `
   .m-hop { animation: m-hop 520ms var(--spring-snappy, ease-out) both; }
   /* The keyboard ring springs in from a little further out. It stays 4 px wide. */
   :where(a, button, summary, input, select, textarea, [role="tab"], [tabindex]):focus-visible:not([class*="animate"]):not([class*="rite-"]):not([data-rune]) { animation: m-focus var(--spring-snappy-ms, 400ms) var(--spring-snappy, ease-out) both; }
+}
+
+/* ---- Scanning: the X-Ray locks onto the 4 corners, then every bubble rings in. ---- */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes xray-lock { from { opacity: 0; scale: 2.2; } }
+  @keyframes xray-ring { from { opacity: 0; scale: 0.3; } }
+  .xray-lock { transform-box: fill-box; transform-origin: center; animation: xray-lock var(--spring-slam-ms) var(--spring-slam) both; animation-delay: calc(var(--i, 0) * 110ms); }
+  .xray-ring { transform-box: fill-box; transform-origin: center; animation: xray-ring var(--spring-wobbly-ms) var(--spring-wobbly) both; animation-delay: calc(420ms + var(--i, 0) * 30ms); }
 }
 
 /* ---- Launcher: one yellow pill that glides to the open app. ---- */

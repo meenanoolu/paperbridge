@@ -61,7 +61,7 @@ export function LauncherBar({ current }: { current: string }) {
           </span>
           PaperBridge
         </a>
-        <nav aria-label="Apps" data-pill={onApp ? "on" : "off"} data-pill-ready={ready ? "true" : undefined} className="relative order-3 w-full sm:order-none sm:w-auto sm:flex-1">
+        <nav ref={nav} aria-label="Apps" data-pill={onApp ? "on" : "off"} data-pill-ready={ready ? "true" : undefined} className="relative order-3 w-full sm:order-none sm:w-auto sm:flex-1">
           {pill && <span aria-hidden="true" className="nav-pill" style={{ "--x": `${pill.x}px`, "--y": `${pill.y}px`, "--w": `${pill.w}px`, "--h": `${pill.h}px` } as CSSProperties} />}
           <ul className="flex flex-wrap gap-2">
             {apps.map((n) => {

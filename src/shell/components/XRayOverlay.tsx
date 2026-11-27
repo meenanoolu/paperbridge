@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useId, useState, type CSSProperties } from "react";
 import { DEFAULT_XRAY_PALETTE, xraySummary, type XRayModel, type XRayPalette } from "../xray";
 
 /**
@@ -37,16 +37,16 @@ export function XRayOverlay({
           </filter>
         </defs>
       )}
-      {model.corners.map((c) => {
+      {model.corners.map((c, ci) => {
         const h = c.size * 0.75;
         return (
-          <g key={c.name}>
+          <g key={c.name} className="xray-lock" style={{ "--i": ci } as CSSProperties}>
             <rect x={c.x - h} y={c.y - h} width={2 * h} height={2 * h} fill="none" stroke="#000" strokeWidth={u * 2.6} />
             <rect x={c.x - h} y={c.y - h} width={2 * h} height={2 * h} fill="none" stroke={XRAY_LOCK} strokeWidth={u * 1.4} data-corner={c.name} filter={glow} />
           </g>
         );
       })}
-      {model.bubbles.map((b) => {
+      {model.bubbles.map((b, bi) => {
         const s = XRAY_STYLE[b.state];
         const show = b.state !== "blank" || b.key === focusKey;
         // As large as the bubble pitch allows: 2.4 radii wide.
@@ -55,7 +55,7 @@ export function XRayOverlay({
         // Unclear marks carry a review button over the ring: their score goes above it.
         const top = b.state === "unclear" ? b.y - b.r * 1.15 - font * 1.35 : b.y + b.r * 1.15;
         return (
-          <g key={b.key} data-state={b.state} data-score={b.score} className={b.state === "blank" ? "group pointer-events-auto" : "pointer-events-auto"}>
+          <g key={b.key} data-state={b.state} data-score={b.score} className={b.state === "blank" ? "xray-ring group pointer-events-auto" : "xray-ring pointer-events-auto"} style={{ "--i": bi } as CSSProperties}>
             <title>{`${b.key}: ${b.state}, ink ${b.score}`}</title>
             <circle cx={b.x} cy={b.y} r={b.r * 1.05} fill="none" stroke="#000" strokeWidth={u * 2.4} />
             <circle cx={b.x} cy={b.y} r={b.r * 1.05} fill="transparent" filter={b.state !== "blank" ? glow : undefined} stroke={s.ring} strokeWidth={u * 1.3} strokeDasharray={s.dash ? s.dash.split(" ").map((n) => Number(n) * u).join(" ") : undefined} />
