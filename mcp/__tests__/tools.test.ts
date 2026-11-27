@@ -53,7 +53,7 @@ describe("list_registered_apps", () => {
     const apps = await listRegisteredApps(join(REPO, "src/apps"));
     expect(apps.map((a) => ({ slug: a.slug, label: a.label, cardId: a.cardId, pages: a.pages, bubbles: a.bubbles, ok: a.layoutOk, photos: a.samplePhotos, problems: a.problems }))).toEqual([
       { slug: "elder-care", label: "Elder Care Bridge", cardId: "elder-care-weekly", pages: ["A4", "Letter"], bubbles: 63, ok: true, photos: 3, problems: [] },
-      { slug: "seance-cipher", label: "Seance Cipher", cardId: "seance-cipher", pages: ["A4", "Letter"], bubbles: 12, ok: true, photos: 2, problems: [] },
+      { slug: "seance-cipher", label: "Seance Cipher", cardId: "seance-cipher", pages: ["A4", "Letter"], bubbles: 12, ok: true, photos: 6, problems: [] },
       { slug: "study-bridge", label: "Study Bridge", cardId: "study-mcq-10", pages: ["A4", "Letter"], bubbles: 50, ok: true, photos: 2, problems: [] },
     ]);
     expect(apps[0].groups).toEqual([

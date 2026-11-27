@@ -73,7 +73,7 @@ describe("Skeleton Home: the haunted drafting table", () => {
     expect(html).toContain("border-[#D4AF37]");
     expect(html.match(/M3 45V14C3 7 7 3 14 3h31/g)).toHaveLength(4);
     expect(html).toContain("rgba(52,211,153,0.5)");
-    expect(text(html)).toContain("X-Ray Rite");
+    expect(text(html)).toContain("Haunted Treasure Hunt");
     expect(text(html)).toContain("Seance Cipher");
   });
 

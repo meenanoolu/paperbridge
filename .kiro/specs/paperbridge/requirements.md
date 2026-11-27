@@ -350,3 +350,15 @@ PaperBridge turns a printed bubble card into structured data using deterministic
 1. Elder Care SHALL stay calm and AAA: the sheet settles, the clip swings once, the result slams in, the stamp thuds with an ink ring and keeps its tilt, and nothing loops more than 3 times.
 2. Study Bridge SHALL slam its score stamps in order and sweep its highlighter bars. X-Ray Rite SHALL add an aurora, a pointer lens on each pad, a soul and sparks on a banish, a bump on score and combo, and a vignette and shudder on a lost life. Scans SHALL show the X-Ray locking on to the 4 corners and ringing in each bubble.
 3. THE change SHALL leave `src/core/`, `src/shell/route.ts`, `src/shell/useOpticalScan.ts`, `src/shell/optical.tsx`, `src/shell/app-registry.ts` and `src/apps/seance-cipher/riteEngine.ts` unchanged, keep WCAG 2.2 AA contrast (AAA on Elder Care), and use no em dashes.
+
+## R67. Haunted Treasure Hunt, a one-photo-per-move paper game (Phase 15)
+1. THE Seance Cipher app SHALL lead with the Haunted Treasure Hunt: a creature hides in one of the 12 rooms of a haunted house (the 12 runes of the printed 12-Rune Sheet, 3 rows of 4). The player marks ONE room with a pen, takes ONE photo, and the app answers found, scorching, hot, warm, cold or freezing from the number of row and column steps between the guess and the creature. The player SHALL have 5 guesses.
+2. THE creature SHALL be hidden by the house (a seeded generator, so one seed always gives one room) or by a friend who picks a room while the hunter looks away. The creature's room SHALL NOT be shown until the hunt ends.
+3. A photo SHALL count as a guess only when exactly one room is clearly filled. A faint mark (the decoder's `ambiguous`) SHALL go to a person through the existing Human Verify control and SHALL NOT be counted or guessed. No room, several rooms, or a room already searched SHALL give a plain message and cost no guess.
+4. The hunt SHALL reuse the existing card ID, layout geometry, decoder, X-Ray, samples and Human Verify; `src/core/`, `useOpticalScan.ts`, `optical.tsx`, `app-registry.ts` and `riteEngine.ts` SHALL stay unchanged. The old X-Ray Rite arcade SHALL remain, in a collapsed drawer after the hunt.
+5. THE house SHALL also be playable without a printer or camera: every window is a button, so a room can be searched on screen. Heat SHALL never be shown by colour alone, and the result SHALL offer Copy and Read Aloud.
+
+## R68. Halloween touches that never get in the way (Phase 15)
+1. Skeleton Home SHALL show an original inline-SVG Trick or Treat night (kids, haunted house, a creature in the doorway, a neon sign, bats, a flashlight that follows the pointer) behind its content, and a real Trick or Treat button that scrolls to the three worlds. The scene SHALL load no image files and stand still for reduced motion.
+2. Elder Care, Study Bridge and Seance Cipher SHALL show decorative falling treats, cobwebs, a spider, bats and pumpkins on a layer behind the content, with no pointer events and no change to any text, label, contrast or layout of the content.
+3. THE Creepster font SHALL be bundled and precached, so the page needs no network.

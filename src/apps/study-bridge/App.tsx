@@ -35,6 +35,7 @@ import { STUDY_SAMPLE_SPECS } from "./samples/specs";
 import { dueReviewSpec } from "./due-review";
 import { STUDY_PRINT } from "./print";
 import { studyShareText, studySpokenSummary } from "./voice";
+import { BatDoodle, Cobweb, FallingTreats, Pumpkin, SpiderOnThread } from "../../shell/components/HalloweenDoodles";
 
 /** A sample sheet's marks, for the Test Decoder Resilience drawer. */
 const STRESS_MARKS = { filled: STUDY_SAMPLE_SPECS[0].marks.filter((m) => m.style !== "faint").map((m) => m.key) };
@@ -125,8 +126,14 @@ export function StudyBridgeApp() {
   );
 
   return (
-    <div className="grade-book relative min-h-[80vh] overflow-hidden bg-[#FCFBF7] text-slate-950" style={RULED_STYLE} data-frontend="study-bridge">
+    <div className="grade-book relative isolate min-h-[80vh] overflow-hidden bg-[#FCFBF7] text-slate-950" style={RULED_STYLE} data-frontend="study-bridge">
       <style>{GRADE_CSS}</style>
+      {/* Pinned Halloween doodles in the margins and corners. They sit behind the page content. */}
+      <FallingTreats kinds={["bat", "pumpkin", "candy"]} colors={["#4c1d95", "#ea580c", "#be185d"]} count={7} opacity={0.22} />
+      <Cobweb className="absolute right-0 top-0 -z-10 h-32 w-32 -scale-x-100 lg:h-44 lg:w-44" color="#94a3b8" />
+      <SpiderOnThread className="-z-10 right-[16%] top-0 hidden md:block" length={90} />
+      <BatDoodle className="-z-10 right-[34%] top-10 hidden h-8 w-10 md:block" color="#3b0764" />
+      <Pumpkin className="absolute bottom-4 right-4 -z-10 hidden h-20 w-20 lg:block" />
       {[16, 48, 80].map((top) => (
         <span key={top} aria-hidden="true" className="absolute left-5 hidden h-6 w-6 rounded-full bg-[#2b2f3a] shadow-[inset_0_3px_4px_rgba(0,0,0,0.85)] md:block" style={{ top: `${top}%` }} />
       ))}

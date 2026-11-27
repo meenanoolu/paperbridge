@@ -16,6 +16,8 @@ import {
 } from "../../shell/optical";
 import { usePersistentState } from "../../shell/usePersistentState";
 import { ScanProblem } from "../../shell/components/FriendlyNotice";
+import { HuntGame } from "./HuntGame";
+import { BatDoodle, Cobweb, FallingTreats } from "../../shell/components/HalloweenDoodles";
 import { RiteGame } from "./RiteGame";
 import { RitePrint } from "./RitePrint";
 import { RUNE_PALETTE } from "./theme";
@@ -90,19 +92,32 @@ export function SeanceCipherApp() {
   }, []);
 
   return (
-    <div ref={root} className="on-dark flex min-h-[calc(100svh-var(--launcher,4.1rem))] flex-col px-3 py-3 text-[#F3EBD3] sm:px-6" style={{ background: `radial-gradient(ellipse at top, #1a1d27 0%, ${OBSIDIAN} 60%)`, ...(top ? ({ "--launcher": `${top}px` } as CSSProperties) : {}) }} data-frontend="seance-cipher">
+    <div ref={root} className="on-dark relative isolate flex min-h-[calc(100svh-var(--launcher,4.1rem))] flex-col px-3 py-3 text-[#F3EBD3] sm:px-6" style={{ background: `radial-gradient(ellipse at top, #1a1d27 0%, ${OBSIDIAN} 60%)`, ...(top ? ({ "--launcher": `${top}px` } as CSSProperties) : {}) }} data-frontend="seance-cipher">
+      <FallingTreats kinds={["bat", "candy", "leaf"]} colors={["#D4AF37", "#fb923c", "#7c3aed"]} count={8} opacity={0.3} />
+      <Cobweb className="absolute left-0 top-0 -z-10 h-32 w-32 lg:h-44 lg:w-44" color="#D4AF37" />
+      <Cobweb className="absolute right-0 top-0 -z-10 h-32 w-32 -scale-x-100 lg:h-44 lg:w-44" color="#D4AF37" />
+      <BatDoodle className="-z-10 left-[30%] top-6 hidden h-8 w-10 md:block" color="#D4AF37" />
       <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-3">
         <header className="flex flex-wrap items-baseline gap-x-4 gap-y-0 px-1">
           <h1 className="text-4xl font-semibold tracking-wide sm:text-5xl" style={SERIF}>
-            X-Ray Rite
+            Seance Cipher
           </h1>
           <p className="text-2xl text-[#D9CFB4] sm:text-3xl" style={SERIF}>
-            The Endless Obsidian Seance
+            A paper game: one pen mark, one photo, one move
           </p>
-          <p className="ml-auto hidden text-base font-bold uppercase tracking-[0.25em] text-[#D4AF37] min-[1500px]:block">Seance Cipher: a Kiroween paper arcade</p>
+          <p className="ml-auto hidden text-base font-bold uppercase tracking-[0.25em] text-[#D4AF37] min-[1500px]:block">A Kiroween paper game</p>
         </header>
 
-        <RiteGame />
+        <HuntGame scan={scan} />
+
+        <details className="group rounded-xl border border-[#D4AF37]/60 bg-[#10131a]/80" data-drawer="arcade">
+          <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-4 py-2 text-lg font-bold">
+            <span>Arcade mode: X-Ray Rite, the endless obsidian seance (needs a steady webcam)</span>
+          </summary>
+          <div className="p-3">
+            <RiteGame />
+          </div>
+        </details>
 
         <details className="group rounded-xl border border-[#D4AF37]/60 bg-[#10131a]/80" open={scan.scan ? true : undefined} data-drawer="more">
           <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-4 py-2 text-lg font-bold">

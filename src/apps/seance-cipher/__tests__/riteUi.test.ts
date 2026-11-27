@@ -314,11 +314,16 @@ describe("the print panel and the whole page", () => {
     expect(text(html)).not.toMatch(EM_DASH);
   });
 
-  it("is still the Seance Cipher app, with one h1, the game first and the classic reading kept", () => {
+  it("is still the Seance Cipher app, with one h1, the Treasure Hunt first, the arcade in a collapsed drawer and the classic reading kept", () => {
     const html = strip(renderToString(createElement(RouteContext.Provider, { value: () => undefined }, createElement(SeanceCipherApp)))).replace(/^(<link[^>]*>)+/, "");
     expect(html.match(/<h1/g)).toHaveLength(1);
-    expect(html).toMatch(/<h1[^>]*>X-Ray Rite<\/h1>/);
-    expect(text(html)).toContain("The Endless Obsidian Seance");
+    expect(html).toMatch(/<h1[^>]*>Seance Cipher<\/h1>/);
+    expect(text(html)).toContain("Haunted Treasure Hunt");
+    // The hunt is the main game; the one-screen arcade sits in its own collapsed drawer after it.
+    expect(html.indexOf('data-game="treasure-hunt"')).toBeGreaterThan(0);
+    expect(html.indexOf('data-game="treasure-hunt"')).toBeLessThan(html.indexOf('data-drawer="arcade"'));
+    expect(/<details class="group[^"]*" data-drawer="arcade">/.exec(html)![0]).not.toContain(" open");
+    expect(html.indexOf('data-drawer="arcade"')).toBeLessThan(html.indexOf('data-game="x-ray-rite"'));
     expect(html.indexOf('data-game="x-ray-rite"')).toBeGreaterThan(0);
     expect(html.indexOf('data-game="x-ray-rite"')).toBeLessThan(html.indexOf("Print the X-Ray Rite 12-Rune Sheet"));
     expect(html.indexOf("Print the X-Ray Rite 12-Rune Sheet")).toBeLessThan(html.indexOf('data-section="classic-oracle"'));
