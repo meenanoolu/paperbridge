@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { copyText } from "../../shell/clipboard";
 import { XRayOverlay } from "../../shell/components/XRayOverlay";
 import { RITE_RUNE_NAMES } from "./layout";
+import { receiptTip } from "./riteCoach";
 import { classifyCoverage, formatMultiplier, formatScore, MODE_LABEL, receiptText, type ScoreReceipt } from "./riteEngine";
 import type { FrozenFrame } from "./riteSheet";
 import { RITE_COLORS, RITE_PALETTE } from "./theme";
@@ -56,6 +57,11 @@ export function RiteReceipt({ receipt, frame, best, onPlayAgain }: { receipt: Sc
               </div>
             ))}
           </dl>
+          {receiptTip(receipt) && (
+            <p className="rounded-lg border border-[#D4AF37]/60 bg-[#151821] p-3 text-lg text-[#F3EBD3]" data-testid="receipt-tip">
+              {receiptTip(receipt)}
+            </p>
+          )}
           {newBest && <p className="text-xl font-bold text-[#34d399]">New best score on this device.</p>}
           {!newBest && best > 0 && <p className="text-lg text-[#D9CFB4]">Best on this device: {formatScore(best)}</p>}
           <div className="flex flex-wrap gap-3">

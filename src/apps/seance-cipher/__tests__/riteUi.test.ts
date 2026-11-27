@@ -10,7 +10,7 @@ import { RITE_RUNE_NAMES, SEANCE_RITE_LAYOUTS } from "../layout";
 import { LiveOverlay } from "../RiteLive";
 import { LaunchPad } from "../RitePads";
 import { RitePrint } from "../RitePrint";
-import { RiteGame, TimerRing } from "../RiteGame";
+import { CornerGuide, RiteGame, TimerRing } from "../RiteGame";
 import { RiteReceipt } from "../RiteReceipt";
 import { PAD_KEYS, type ScoreReceipt, type Target } from "../riteEngine";
 import { sheetSnapshot } from "../riteSheet";
@@ -399,5 +399,82 @@ describe("contrast, focus rings and motion", () => {
     const period = Number(/rite-flicker (\d*\.?\d+)s/.exec(RITE_CSS)![1]);
     expect(dips / period).toBeLessThan(3);
     expect(RITE_CSS).toMatch(/@media \(prefers-reduced-motion: reduce\) \{[^}]*\.rite-pulse[^}]*\.rite-flicker[^}]*\.rite-burst[^}]*animation: none/);
+  });
+});
+
+describe("first minute: rules cards, HUD chips, coach and hold feedback", () => {
+  const html = strip(renderToString(createElement(RiteGame)));
+  const noop = () => undefined;
+
+  it("replaces the wall of rules with 3 big step cards, and keeps the exact rules one tap away", () => {
+    const cards = html.slice(html.indexOf('data-steps="cards"'), html.indexOf("</ol>", html.indexOf('data-steps="cards"')));
+    expect([...cards.matchAll(/<li/g)]).toHaveLength(3);
+    expect(text(cards)).toMatch(/Watch the gold glow.*Cover or hold the rune.*Half-cover = Trembling Hand/);
+    expect(html).toContain('aria-label="How the rite works"');
+    expect(html).toMatch(/<details[\s\S]*The exact scoring rules/);
+    // The menu card itself stays short enough to read in under 15 seconds.
+    const menu = html.slice(html.indexOf('data-overlay="menu"'));
+    const words = text(menu.replace(/<details[\s\S]*?<\/details>/, "")).split(" ").length;
+    expect(words).toBeLessThan(90); // was 110 words of numbers
+  });
+
+  it("shows the 3 steps as compact HUD chips once play starts (not on the menu, where the big cards are), and the tremble hint takes their place", () => {
+    expect(html).not.toContain('aria-label="How to play"');
+    const src = readFileSync(join(__dirname, "..", "RiteGame.tsx"), "utf8");
+    expect(src).toMatch(/aria-label="How to play" data-steps="chips"/);
+    expect(src).toMatch(/game\.phase !== "menu" &&/);
+    expect(src.indexOf("rite-tremble")).toBeLessThan(src.indexOf('data-steps="chips"'));
+    expect(src).toContain("HOWTO_STEPS.map");
+  });
+
+  it("shows the ghost coach with the next tap, and keeps the polite status line for screen readers only", () => {
+    expect(html).toMatch(/data-testid="rite-coach"[^>]*data-mood="hello"|data-mood="hello"[^>]*data-testid="rite-coach"/);
+    expect(text(html)).toContain("Tap Start the Rite, then press and hold any glowing rune");
+    expect(html).toMatch(/class="sr-only"[^>]*role="status"|role="status"[^>]*class="sr-only"/);
+    expect(html).toMatch(/data-testid="rite-status">Choose a mode, then start the rite\./);
+  });
+
+  it("a pad that is held answers at once: a hold bar that fills in 250 ms and a pressed look", () => {
+    const render = (held: number[]) => strip(renderToString(createElement(LaunchPad, { targets: [], coverage: [], bursts: [], onPress: noop, onRelease: noop, held })));
+    const on = render([4]);
+    const pad4 = /<button[^>]*data-rune="4"[^>]*>[\s\S]*?<\/button>/.exec(on)![0];
+    expect(pad4).toContain('data-held="true"');
+    expect(pad4).toContain('data-hold="true"');
+    expect(pad4).toContain("animation-duration:250ms");
+    expect(pad4).toContain("motion-safe:scale-[0.97]");
+    const pad5 = /<button[^>]*data-rune="5"[^>]*>[\s\S]*?<\/button>/.exec(on)![0];
+    expect(pad5).not.toContain("data-held");
+    expect(pad5).not.toContain("data-hold");
+    expect(render([])).not.toContain("data-hold");
+  });
+
+  it("the hold bar is still, and the coach does not bounce, for people who ask for reduced motion", () => {
+    expect(RITE_CSS).toMatch(/rite-hold/);
+    expect(RITE_CSS).toMatch(/rite-coach/);
+    const reduced = RITE_CSS.slice(RITE_CSS.indexOf("prefers-reduced-motion"));
+    expect(reduced).toContain(".rite-hold");
+    expect(reduced).toContain(".rite-coach");
+  });
+
+  it("draws amber corner brackets for a camera that cannot see the sheet, hidden from screen readers", () => {
+    const g = strip(renderToString(createElement(CornerGuide)));
+    expect(g).toContain('data-guide="corners"');
+    expect(g).toContain('aria-hidden="true"');
+    expect(g).toContain("pointer-events-none");
+    expect([...g.matchAll(/<span/g)]).toHaveLength(4);
+    expect(g).toContain("border-[#FBBF24]");
+  });
+
+  it("shows a tip on the receipt for a player who banished nothing", () => {
+    const rec: ScoreReceipt = { wave: 1, score: 0, maxCombo: 0, bestMultiplier: 1, banished: 0, mode: "digital", coverage: [], missed: [] };
+    const out = strip(renderToString(createElement(RiteReceipt, { receipt: rec, frame: null, best: 0, onPlayAgain: noop })));
+    expect(out).toContain('data-testid="receipt-tip"');
+    expect(text(out)).toMatch(/press and hold the glowing rune/);
+    const good = strip(renderToString(createElement(RiteReceipt, { receipt: { ...rec, banished: 9, maxCombo: 5 }, frame: null, best: 0, onPlayAgain: noop })));
+    expect(good).not.toContain("receipt-tip");
+  });
+
+  it("uses no em dashes anywhere in the first-minute copy", () => {
+    expect(text(html)).not.toMatch(EM_DASH);
   });
 });

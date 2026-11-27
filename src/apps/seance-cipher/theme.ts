@@ -44,5 +44,9 @@ export const RITE_CSS = `
 .rite-pulse { animation: rite-pulse 1.1s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
 .rite-flicker { animation: rite-flicker 1.2s linear infinite; }
 .rite-burst { animation: rite-burst .6s ease-out forwards; transform-box: fill-box; transform-origin: center; }
-@media (prefers-reduced-motion: reduce) { .rite-pulse, .rite-flicker, .rite-burst { animation: none; } }
+@keyframes rite-hold { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes rite-coach { from { transform: translateY(0); } to { transform: translateY(-3px); } }
+.rite-hold { animation: rite-hold 250ms linear forwards; transform-origin: left center; }
+.rite-coach { animation: rite-coach 1.8s ease-in-out infinite alternate; }
+@media (prefers-reduced-motion: reduce) { .rite-pulse, .rite-flicker, .rite-burst, .rite-hold, .rite-coach { animation: none; } }
 `;

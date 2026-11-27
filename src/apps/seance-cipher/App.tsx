@@ -15,6 +15,7 @@ import {
   type HumanVerifyTheme,
 } from "../../shell/optical";
 import { usePersistentState } from "../../shell/usePersistentState";
+import { ScanProblem } from "../../shell/components/FriendlyNotice";
 import { RiteGame } from "./RiteGame";
 import { RitePrint } from "./RitePrint";
 import { RUNE_PALETTE } from "./theme";
@@ -158,7 +159,7 @@ export function SeanceCipherApp() {
                       />
                     )}
                   </div>
-                  {!scan.scan.result.ok && <p className="text-lg font-bold text-amber-200">The card stayed silent: all 4 corner squares must be in the picture.</p>}
+                  <ScanProblem scan={scan.scan} />
                 </div>
               )}
             </Panel>
@@ -183,6 +184,7 @@ export function SeanceCipherApp() {
                       describe={describeRune}
                       theme={VERIFY_THEME}
                       title="Confirm the faint mark"
+                      hint="The runes are not sure about this mark. Look at the amber circle on the photo, then tap Mark filled or Mark blank."
                     />
                     {reading.prompt && <p className="text-lg font-bold text-amber-200">{reading.prompt}</p>}
                     {reading.verdict && (
