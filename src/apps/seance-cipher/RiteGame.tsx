@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { CameraError, rasterToDataUrl } from "../../core";
 import { defaultPageSize } from "../../shell/components/PrintCard";
 import { usePersistentState } from "../../shell/usePersistentState";
@@ -34,7 +34,7 @@ import {
 import { modelWithCoverage, sheetSnapshot, type FrozenFrame } from "./riteSheet";
 import { coverageFromScan, runeKey } from "./riteVision";
 import { ghostlyStatus, TREMBLE_HINT } from "./riteVoice";
-import { RITE_COLORS, RITE_CSS } from "./theme";
+import { RITE_COLORS, RITE_CSS, RITE_FLUID_CSS } from "./theme";
 
 const SERIF = { fontFamily: '"Cormorant Garamond", "EB Garamond", Georgia, "Times New Roman", serif' };
 const btn =
@@ -386,10 +386,11 @@ export function RiteGame() {
   return (
     <section
       aria-labelledby="rite-play"
-      className="flex h-[calc(100svh-var(--launcher,4.1rem)-9.5rem)] min-h-[31rem] flex-col gap-3 max-sm:h-auto rounded-2xl border border-[#D4AF37]/70 bg-[#10131a]/80 p-3 shadow-[inset_0_0_0_1px_rgba(212,175,55,0.15)] sm:p-4"
+      className="relative isolate flex h-[calc(100svh-var(--launcher,4.1rem)-9.5rem)] min-h-[31rem] flex-col gap-3 max-sm:h-auto rounded-2xl border border-[#D4AF37]/70 bg-[#10131a]/80 p-3 shadow-[inset_0_0_0_1px_rgba(212,175,55,0.15)] sm:p-4"
       data-game="x-ray-rite"
     >
-      <style>{RITE_CSS}</style>
+      <style>{RITE_CSS + RITE_FLUID_CSS}</style>
+      <div aria-hidden="true" className="rite-aurora pointer-events-none absolute inset-0 -z-10 overflow-hidden rounded-2xl" />
       <h2 id="rite-play" className="sr-only">
         Play the rite
       </h2>
@@ -449,15 +450,24 @@ export function RiteGame() {
           <Stat label="Wave">{game.phase === "menu" ? "-" : game.wave}</Stat>
           <Stat label="Lives">
             <span className="inline-flex items-center gap-2">
-              <Hearts lives={game.lives} />
+              <span key={game.lives} className={game.lives < MAX_LIVES ? "rite-shake inline-flex" : "inline-flex"}>
+                <Hearts lives={game.lives} />
+              </span>
               <span className="whitespace-nowrap">
                 {game.lives} of {MAX_LIVES}
               </span>
             </span>
           </Stat>
-          <Stat label="Score">{formatScore(game.score)}</Stat>
+          <Stat label="Score">
+            <span key={game.score} className="rite-bump">
+              {formatScore(game.score)}
+            </span>
+          </Stat>
           <Stat label="Combo">
-            {game.combo} <span className="text-lg font-semibold text-[#D4AF37]">{formatMultiplier(game.multiplier)}</span>
+            <span key={game.combo} className="rite-bump">
+              {game.combo}
+            </span>{" "}
+            <span className="text-lg font-semibold text-[#D4AF37]">{formatMultiplier(game.multiplier)}</span>
           </Stat>
           <Stat label="Best">{formatScore(best)}</Stat>
         </ul>
@@ -484,6 +494,7 @@ export function RiteGame() {
 
       {/* The stage takes whatever height is left, so the game fits one screen. */}
       <div className="relative min-h-[16rem] flex-1 max-sm:h-[30rem] max-sm:flex-none">
+        {reaction?.kind === "lifeLost" && <div key={reaction.at} aria-hidden="true" data-hurt="true" className="rite-hurt pointer-events-none absolute inset-0 z-30 rounded-xl shadow-[inset_0_0_110px_26px_rgba(255,107,122,0.55)]" />}
         {mode === "live" && (
           <div hidden={game.phase === "gameOver"} className="relative mx-auto h-full max-w-full overflow-hidden rounded-xl border-2 border-[#D4AF37]/70 bg-black" style={{ aspectRatio: "16 / 9" }} data-stage="live">
             <video ref={videoRef} className="absolute inset-0 h-full w-full object-contain" aria-label="Live camera preview" muted playsInline />
@@ -559,7 +570,9 @@ export function RiteGame() {
       </div>
 
       <div className="flex min-h-12 items-center gap-3" data-testid="rite-coach-row">
-        <CoachGhost mood={coach.mood} className="h-11 w-11 shrink-0" />
+        <span key={coach.mood} className="m-hop inline-flex shrink-0">
+          <CoachGhost mood={coach.mood} className="h-11 w-11 shrink-0" />
+        </span>
         <p className="min-w-0 flex-1 rounded-xl rounded-bl-sm bg-[#F8F3E6] px-4 py-1.5 text-lg font-bold leading-snug text-slate-950" data-testid="rite-coach" data-mood={coach.mood}>
           {coach.text}
         </p>
@@ -618,13 +631,17 @@ export function WaveBanner({ wave, names, runes }: { wave: number; names: string
   return (
     <div aria-hidden="true" data-banner="wave" className="absolute inset-0 z-10 grid place-items-center bg-[#0B0D12]/85 p-4 text-center">
       <div>
-        <p className="text-6xl font-semibold text-[#D4AF37]" style={SERIF}>
+        <p className="m-slam text-6xl font-semibold text-[#D4AF37]" style={SERIF}>
           Wave {wave}
         </p>
-        <p className="mt-2 text-2xl text-[#F3EBD3]">Banish {names}</p>
+        <p className="m-rise mt-2 text-2xl text-[#F3EBD3]" style={{ "--d": "180ms" } as CSSProperties}>
+          Banish {names}
+        </p>
         <div className="mt-3 flex justify-center gap-5 text-[#D4AF37]">
-          {runes.map((r) => (
-            <RuneGlyph key={r} index={r} className="h-16 w-16" />
+          {runes.map((r, i) => (
+            <span key={r} className="m-pop inline-block" style={{ "--i": i, "--d": "300ms" } as CSSProperties}>
+              <RuneGlyph index={r} className="h-16 w-16" />
+            </span>
           ))}
         </div>
       </div>

@@ -190,7 +190,10 @@ describe("Skeleton Home and the top-right view tabs", () => {
 
   it("Skeleton Home is a 3-world stage: headline, 3 portal cards linking to each app, the mixed-domain demo and the scaffold guide", () => {
     const html = strip(renderToString(createElement(RouteContext.Provider, { value: () => {} }, createElement(SkeletonHome))));
-    expect(html).toMatch(/<h1[^>]*>One Optical Engine. Three Distinct Worlds.<\/h1>/);
+    // The headline is split into word spans so each word can spring in; the words are unchanged.
+    const h1 = /<h1[^>]*>([\s\S]*?)<\/h1>/.exec(html)![1];
+    expect(h1.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim()).toBe("One Optical Engine. Three Distinct Worlds.");
+    expect([...h1.matchAll(/<span/g)]).toHaveLength(6);
     expect(html).toContain("Offline-first deterministic paper scanning across healthcare, classrooms, and physical puzzle games.");
     const cards = html.slice(html.indexOf('aria-label="Apps on the skeleton"'));
     expect(cards.indexOf("Elder Care Bridge")).toBeLessThan(cards.indexOf("Study Bridge"));

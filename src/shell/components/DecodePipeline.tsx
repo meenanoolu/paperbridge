@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { STEP_WORD, type PipelineStep } from "../pipeline";
 import { Icon, type IconName } from "./Icon";
 
@@ -19,9 +20,12 @@ export function DecodePipeline({ steps }: { steps: PipelineStep[] }) {
           key={s.id}
           aria-current={s === current ? "step" : undefined}
           data-status={s.status}
-          className={`flex items-start gap-2 rounded-xl border-2 px-3 py-2 ${LOOK[s.status].box}`}
+          className={`m-rise flex items-start gap-2 rounded-xl border-2 px-3 py-2 ${LOOK[s.status].box}`}
+          style={{ "--i": i } as CSSProperties}
         >
-          <Icon name={LOOK[s.status].icon} className="mt-0.5 h-6 w-6 shrink-0" />
+          <span key={s.status} className="m-pop mt-0.5 inline-flex shrink-0">
+            <Icon name={LOOK[s.status].icon} className="h-6 w-6 shrink-0" />
+          </span>
           <span>
             <span className="block text-lg font-extrabold">{s.label}</span>
             <span className="block text-lg">

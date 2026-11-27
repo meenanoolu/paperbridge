@@ -36,11 +36,14 @@ export function SignOffStamp({ pending, when }: { pending: number; when: Date })
           aria-disabled={blocked || stamped}
           aria-describedby="stamp-help"
           onClick={() => !stamped && press()}
-          className={`group flex flex-col items-center text-white ${blocked || stamped ? "cursor-not-allowed" : "cursor-pointer"}`}
+          className={`group flex flex-col items-center text-white ${blocked || stamped ? "cursor-not-allowed" : "stamp-ready cursor-pointer"}`}
         >
-          <span aria-hidden="true" className="block h-9 w-16 rounded-t-full bg-[#7c5a2e] shadow-[inset_0_-6px_0_rgba(0,0,0,0.25)]" />
-          <span aria-hidden="true" className="block h-3 w-7 bg-[#5f4422]" />
+          <span className="stamp-head flex flex-col items-center" aria-hidden="true">
+            <span className="block h-9 w-16 rounded-t-full bg-[#7c5a2e] shadow-[inset_0_-6px_0_rgba(0,0,0,0.25)]" />
+            <span className="block h-3 w-7 bg-[#5f4422]" />
+          </span>
           <span
+              style={{ transitionDuration: "var(--spring-snappy-ms, 300ms)", transitionTimingFunction: "var(--spring-snappy, ease-out)" }}
               className={`flex min-h-14 flex-col items-center rounded-md px-6 py-2 motion-safe:transition-transform ${
                 blocked || stamped ? "bg-[#365553] shadow-[0_3px_0_#243a38]" : "bg-[#134E4A] shadow-[0_8px_0_#0b2f2c] group-active:translate-y-2 group-active:shadow-[0_2px_0_#0b2f2c]"
               }`}
@@ -62,9 +65,10 @@ export function SignOffStamp({ pending, when }: { pending: number; when: Date })
               role="img"
               aria-label={`HUMAN VERIFIED stamp, dated ${stampDate(when)}`}
               data-impression="true"
-              className="-rotate-6 rounded-lg border-[6px] border-double px-5 py-2 text-center mix-blend-multiply motion-safe:animate-[stamp_0.45s_ease-out]"
+              className="stamp-impress relative -rotate-6 rounded-lg border-[6px] border-double px-5 py-2 text-center mix-blend-multiply"
               style={{ borderColor: STAMP_INK, color: STAMP_INK }}
             >
+              <span aria-hidden="true" className="stamp-ink" />
               <span className="block text-3xl font-black uppercase leading-none tracking-widest">HUMAN VERIFIED</span>
               <span className="mt-1 block text-lg font-bold tracking-wider">{stampDate(when)}</span>
             </div>

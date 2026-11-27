@@ -24,7 +24,18 @@ apps plus a Kiro Crew App. Built for **Kiroween 2026: Skeleton Crew**.
 | **Blog post** | [Building PaperBridge: An Offline-First Optical UI Skeleton for Elder Care with Kiro](https://dev.to/meena_n/building-paperbridge-an-offline-first-optical-ui-skeleton-for-elder-care-with-kiro-1h76) (DEV) |
 | **Social post** | [PaperBridge on X](https://x.com/MNoolu34434/status/2124436517087248756) |
 
-![Skeleton Home, the haunted drafting table: a plain-language promise with 3 step chips, a friendly ghost guide, the amber demo button above the fold and 3 tilted paper objects, a metal-clipped clipboard for Elder Care, a ruled school sheet with a red A+ for Study Bridge and an obsidian and gold oracle card for X-Ray Rite](docs/images/skeleton-home.png)
+![Skeleton Home, the haunted drafting table: a headline whose last three words are in gold italic, a plain-language promise with 3 step chips, a ghost guide, the amber demo button above the fold, a pencil grid that glows under the cursor and 3 tilted paper objects, a metal-clipped clipboard for Elder Care, a ruled school sheet with a red A+ for Study Bridge and an obsidian and gold oracle card for X-Ray Rite](docs/images/skeleton-home.png)
+
+## It moves like paper
+
+![The iris transition: Study Bridge opening as a circle from the launcher pill that was pressed, over a shrinking and darkening Skeleton Home](docs/images/fluid-iris.png)
+
+One small spring-physics kit ([`src/shell/motion/`](src/shell/motion/), no animation library) drives everything, so the whole product feels like one tactile object:
+
+- **Pages open from your finger.** Pressing an app opens it as an iris from the pressed point while Skeleton Home recedes (View Transitions). A yellow pill glides to the open app. Every button presses in and springs back.
+- **Home is lit by your pointer.** The headline springs in word by word, a lamp-coloured scan line sweeps the desk, the 3 papers are dealt in when they scroll into view, then lean toward the cursor and catch the light. The guide ghost watches you.
+- **Each world has its own hand.** Elder Care is calm: the sheet settles, the clip swings once, the stamp thuds and bleeds ink. Study Bridge slams red-ink stamps and sweeps highlighter bars. X-Ray Rite has an aurora behind obsidian pads, a lens of light under the pointer, a soul and sparks on every banish, and a shudder when a life is lost.
+- **Calm by default.** With `prefers-reduced-motion` there are no running animations, no transition and no pointer light, and every final state shows at once. Touch devices get no pointer effects. Focus rings stay 4 px.
 
 ## One skeleton, three frontends
 
@@ -77,7 +88,7 @@ Seance Cipher is now an endless survival game on the same optical engine. Print 
 
 | Kiro feature | Where | What it does here |
 |---|---|---|
-| **Spec-driven development** | [`.kiro/specs/paperbridge/`](.kiro/specs/paperbridge/) | EARS [requirements](.kiro/specs/paperbridge/requirements.md) R1-R62, [design](.kiro/specs/paperbridge/design.md) decisions with measured numbers, and [tasks](.kiro/specs/paperbridge/tasks.md) 1-26, one task group per commit |
+| **Spec-driven development** | [`.kiro/specs/paperbridge/`](.kiro/specs/paperbridge/) | EARS [requirements](.kiro/specs/paperbridge/requirements.md) R1-R66, [design](.kiro/specs/paperbridge/design.md) decisions with measured numbers, and [tasks](.kiro/specs/paperbridge/tasks.md) 1-27, one task group per commit |
 | **Steering** | [`.kiro/steering/`](.kiro/steering/) | Always-on product rules, a `src/core/**` rule for the deterministic decoder, a `src/apps/**` rule for accessible thin apps |
 | **Agent hooks** | [`.kiro/hooks/`](.kiro/hooks/) | 5 hooks of 3 kinds: tests, sample regeneration and typecheck on save; a `PreToolUse` guard on the protected decoder; a `Stop` check for core boundaries and WCAG |
 | **MCP server** | [`mcp/`](mcp/) | Layout Validator: `validate_card_layout` and `list_registered_apps`, so Kiro checks a card before anyone prints it |
@@ -110,7 +121,7 @@ offline in the browser with no account or upload, and unclear marks go to a pers
 ```bash
 npm install
 npm run dev                                       # opens on Skeleton Home
-npm test                                          # 517 tests, including a 50-photo A4/Letter matrix
+npm test                                          # 567 tests, including a 50-photo A4/Letter matrix
 npm run create-app clinic-intake "Clinic Intake"  # your next app, ready to scan
 ```
 

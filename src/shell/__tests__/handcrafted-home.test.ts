@@ -23,7 +23,10 @@ describe("Skeleton Home: the haunted drafting table", () => {
     expect(home).toContain("background-color:#090C14");
     expect(home).toContain('data-ghosts="drifting"');
     expect(home).toContain('data-guide="default"');
-    expect(home).toMatch(/<h1[^>]*>One Optical Engine. Three Distinct Worlds.<\/h1>/);
+    // The headline is split into word spans so each word can spring in; the words are unchanged.
+    const h1 = /<h1[^>]*>([\s\S]*?)<\/h1>/.exec(home)![1];
+    expect(h1.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim()).toBe("One Optical Engine. Three Distinct Worlds.");
+    expect([...h1.matchAll(/<span/g)]).toHaveLength(6);
     expect(home).toContain("Run Mixed-Domain Auto-Route Demo");
     expect(home).toMatch(/Scaffold Your Next App \(<code[^>]*>npm run create-app<\/code>\)/);
     expect(home).toContain("Scan Any Card (Auto-Route)");

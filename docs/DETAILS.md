@@ -173,6 +173,24 @@ The mischief is restrained on purpose where the stakes are real (Elder Care) and
 
 Verified in Chromium: axe-core (WCAG 2.0 to 2.2 A and AA) reports 0 violations on Skeleton Home, Elder Care (empty, result, notice), Study Bridge (empty, blank sheet) and X-Ray Rite (menu, active, no sheet); focus rings are 4 px; under reduced motion the coach does not animate (the hold bar rule is covered by a unit test); the game stage still fits at 1440x900, 1280x720 and 1024x768. Not verified: a real webcam, a real printer, and a phone-sized fit of the new coach row.
 
+### Fluid signature UI (Phase 14)
+
+One motion kit, no animation library. `src/shell/motion/` solves a damped spring in closed form (`spring.ts`), samples it into a CSS `linear()` easing, and publishes `--spring-snappy`, `--spring-soft`, `--spring-wobbly` and `--spring-slam` (each with a settle time). The browser then runs real spring motion on the compositor.
+
+| Piece | What it does |
+|---|---|
+| `transition.ts`, `App.tsx` | Navigation runs in a View Transition that opens as a circle from the last press (or the focused link for keyboard users). The old page recedes and darkens. Scroll resets. Back and forward use the same path. One navigation is one transition |
+| `tactile.ts` | One document listener presses every button, link, tab and summary in (Web Animations `scale`, so it never fights a control's own transform) and springs it back. Pads, disabled controls and big surfaces opt out |
+| `pointer.ts` | `usePointerLight` chases the mouse with springs and writes `--px`, `--py`, `--mx`, `--my`. `useTilt` leans cards and moves a glare. Both stop for touch and reduced motion, and the loop idles when nothing moves |
+| `inview.ts` | `revealOnce` marks an element when it first scrolls into view, so an entrance plays where it can be seen |
+| `motion-css.ts` | `m-rise`, `m-pop`, `m-slam`, `m-word`, `m-deal`, `m-sweep`, `m-hop`, the iris, the launcher pill, the spring-in focus ring, the X-Ray lock-on |
+
+**Signature per world.** Home: staged first 3 seconds (corner markers snap, headline springs word by word, a scan line crosses the desk, the guide pops), then a pointer lamp, a glowing pencil grid, ghosts that drift against the mouse and eyes that follow it. Elder Care: sheet settles, clip swings once, stamp thuds with an ink ring, nothing loops, no jokes. Study Bridge: ink stamps slam in order, highlighter bars sweep, the title underline draws itself. X-Ray Rite: aurora, pointer lens on each pad, soul and sparks per banish, bump on score and combo, a shudder and a red vignette on a lost life, the wave number slams in. Scanning: pipeline steps rise and pop, the X-Ray locks onto the 4 corners and rings in every bubble.
+
+**Accessibility held.** Every motion rule sits behind `prefers-reduced-motion: no-preference` (a test parses the stylesheets and fails on any unguarded `animation` or `transition`). Entrances only name a `from` state. Only transform-family, opacity, clip-path and filter are animated. Nothing flashes more than once a second. The focus ring animates `outline-offset` only and stays 4 px. Verified in Chromium: axe-core 0 violations on Home, all 3 apps in their result states and the Rite while playing, at 1440 px and 390 px, and under reduced motion; no horizontal overflow at 390 px; no console errors. Not verified: Safari and Firefox (a browser without `linear()` or View Transitions falls back to a plain curve and an instant page change, by design), a real phone, and frame rate on low-end hardware.
+
+Two existing assertions changed on purpose: the Skeleton Home headline is now 6 word spans, so 2 tests compare its text and span count instead of its raw markup.
+
 ### Kiro Crew App (`crew-app/`)
 
 **PaperBridge Care Monitor** is a caregiver inbox inside Kiro Crew. It also lives in its own repo,
@@ -288,6 +306,10 @@ them. They found these bugs before any human saw a wrong answer:
 | Study Bridge with a blank sheet | A sheet with no marks graded as 0% with 4 weak topics and no explanation | `hasNoMarks` shows "Looks like an empty page!" and what to check; the grading is unchanged |
 | First hold on a launchpad pad | Nothing showed for the first 250 ms, so a hold felt like a dead button | Pads show a hold bar and a small press-in at once (`held`) |
 | Live camera pointed at an empty desk | The timer waited forever behind a small banner, with no way out | After 2 s with no sheet the coach scolds, shows **Switch to Launchpad** and amber corner brackets appear over the video |
+| Browser check of the new launcher | The sliding pill never appeared: the `ref` was never put on the `<nav>`, so nothing was measured | `ref={nav}`; a real-browser check now compares the pill box with the open link's box |
+| Design review of the entrance keyframes | Tailwind's `-rotate-6` uses the CSS `rotate` property, so a keyframe that ended at `rotate: 0deg` would have erased the stamp's tilt | Every entrance names only its `from` state; a test fails if any `m-*` keyframe has a `to` |
+| 1440x900 look at Home | The papers sit below the fold, so their deal-in played where nobody could see it | The deal waits for the row to scroll into view (`IntersectionObserver`), and marks itself seen at once when the browser has none |
+| Full-page screenshot of Home | The capture resized the viewport and caught entrances half-played (a tilted corner marker) | Screenshots use `animations: "disabled"` |
 
 The tests also caught a mistake in our own expectations: we expected Sam's quiz to score
 50%, but the decoder correctly read 6 of 10 (60%). The test was fixed, not the decoder.

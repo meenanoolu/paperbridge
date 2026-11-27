@@ -27,15 +27,17 @@ export const HOME_CSS = `
 `;
 
 /** A ghost: a dome, a ragged hem, two eyes and an open mouth. `tone` is the body colour. */
-export function GhostShape({ className = "h-16 w-16", happy = false }: { className?: string; happy?: boolean }) {
+export function GhostShape({ className = "h-16 w-16", happy = false, look = false }: { className?: string; happy?: boolean; look?: boolean }) {
   return (
     <svg viewBox="0 0 64 72" className={className} aria-hidden="true" focusable="false">
       <path
         d="M6 70V32C6 15 17 4 32 4s26 11 26 28v38l-6.5-6.5L45 70l-6.5-6.5L32 70l-6.5-6.5L19 70l-6.5-6.5z"
         fill="currentColor"
       />
-      <ellipse cx="23" cy="30" rx="4.4" ry="6" fill="#090C14" />
-      <ellipse cx="41" cy="30" rx="4.4" ry="6" fill="#090C14" />
+      <g className={look ? "ghost-eyes" : undefined}>
+        <ellipse cx="23" cy="30" rx="4.4" ry="6" fill="#090C14" />
+        <ellipse cx="41" cy="30" rx="4.4" ry="6" fill="#090C14" />
+      </g>
       {happy ? (
         <>
           <path d="M23 43c3 6 15 6 18 0" fill="none" stroke="#090C14" strokeWidth="3.2" strokeLinecap="round" />
@@ -70,7 +72,7 @@ export const DRIFTERS: Drifter[] = [
 
 export function DriftingGhosts() {
   return (
-    <div aria-hidden="true" data-ghosts="drifting" className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+    <div aria-hidden="true" data-ghosts="drifting" className="home-parallax pointer-events-none absolute inset-0 z-0 overflow-hidden">
       {DRIFTERS.map((g, i) => (
         <div
           key={i}
@@ -100,11 +102,16 @@ export function GhostGuide({ hint }: { hint: string | null }) {
   const text = hintFor(hint);
   return (
     <div className="mx-auto flex max-w-3xl items-center justify-center gap-3" data-guide={hint ?? "default"}>
-      <div className="home-guide shrink-0 text-slate-50 drop-shadow-[0_0_18px_rgba(226,232,240,0.55)]">
-        <GhostShape className="h-20 w-20" happy />
+      <div className="m-pop shrink-0" style={{ "--d": "450ms" } as CSSProperties}>
+        <div className="home-guide text-slate-50 drop-shadow-[0_0_18px_rgba(226,232,240,0.55)]">
+          <div key={hint ?? "default"} className="m-hop">
+            <GhostShape className="h-20 w-20" happy look />
+          </div>
+        </div>
       </div>
       <p
-        className="relative rounded-2xl rounded-bl-sm bg-[#F8F3E6] px-5 py-3 text-left text-lg font-semibold leading-snug text-slate-950 shadow-[0_6px_0_-2px_rgba(0,0,0,0.5)]"
+        key={text}
+        className="guide-pop relative rounded-2xl rounded-bl-sm bg-[#F8F3E6] px-5 py-3 text-left text-lg font-semibold leading-snug text-slate-950 shadow-[0_6px_0_-2px_rgba(0,0,0,0.5)]"
         data-testid="guide-bubble"
       >
         {text}

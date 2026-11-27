@@ -50,3 +50,35 @@ export const RITE_CSS = `
 .rite-coach { animation: rite-coach 1.8s ease-in-out infinite alternate; }
 @media (prefers-reduced-motion: reduce) { .rite-pulse, .rite-flicker, .rite-burst, .rite-hold, .rite-coach { animation: none; } }
 `;
+
+/**
+ * The Rite's fluid layer: a drifting obsidian aurora behind the stage, a lens of gold light that
+ * follows the pointer across each pad, a soul and sparks on every banish, a bump on the numbers
+ * and a shudder on a lost life. Springs come from the shared motion kit. Every animation is off
+ * for reduced motion, and nothing flashes more than twice in a second.
+ */
+export const RITE_FLUID_CSS = `
+.rite-lens { opacity: 0; }
+[data-rune]:hover .rite-lens { opacity: 1; background: radial-gradient(circle 90px at var(--lx, 50%) var(--ly, 40%), rgba(243, 235, 211, 0.16), transparent 70%); }
+.rite-soul, .rite-spark, .rite-hurt { display: none; }
+.rite-aurora { display: none; }
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes rite-aurora-a { from { translate: -8% -4%; } to { translate: 10% 6%; } }
+  @keyframes rite-aurora-b { from { translate: 8% 6%; } to { translate: -10% -6%; } }
+  @keyframes rite-soul { from { opacity: 0.95; translate: 0 30%; scale: 0.7; } to { opacity: 0; translate: 0 -150%; scale: 1.15; } }
+  @keyframes rite-spark { from { opacity: 1; translate: 0 0; scale: 1; } to { opacity: 0; translate: calc(cos(var(--a)) * 64px) calc(sin(var(--a)) * 64px); scale: 0.3; } }
+  @keyframes rite-bump { from { scale: 1.45; } }
+  @keyframes rite-shake { 0%, 100% { translate: 0 0; } 18% { translate: -5px 0; } 36% { translate: 5px 0; } 54% { translate: -3px 0; } 72% { translate: 2px 0; } }
+  @keyframes rite-hurt { from { opacity: 0.9; } to { opacity: 0; } }
+  .rite-aurora { display: block; }
+  .rite-aurora::before, .rite-aurora::after { content: ""; position: absolute; width: 70%; height: 70%; border-radius: 9999px; filter: blur(60px); opacity: 0.55; }
+  .rite-aurora::before { left: -10%; top: -20%; background: rgba(52, 211, 153, 0.16); animation: rite-aurora-a 22s ease-in-out infinite alternate; }
+  .rite-aurora::after { right: -10%; bottom: -25%; background: rgba(212, 175, 55, 0.14); animation: rite-aurora-b 28s ease-in-out infinite alternate; }
+  .rite-soul { display: block; animation: rite-soul 900ms ease-out both; }
+  .rite-spark { display: block; animation: rite-spark 650ms ease-out both; }
+  .rite-bump { display: inline-block; animation: rite-bump var(--spring-wobbly-ms) var(--spring-wobbly) both; }
+  .rite-shake { animation: rite-shake 420ms ease-out both; }
+  .rite-hurt { display: block; animation: rite-hurt 700ms ease-out both; }
+}
+@media (prefers-reduced-motion: reduce) { .rite-aurora::before, .rite-aurora::after, .rite-soul, .rite-spark, .rite-bump, .rite-shake, .rite-hurt { animation: none; } }
+`;

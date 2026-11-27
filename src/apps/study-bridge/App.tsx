@@ -137,7 +137,7 @@ export function StudyBridgeApp() {
             <h1 className="relative inline-block text-5xl font-bold tracking-tight text-[#1e293b] sm:text-6xl" style={{ fontFamily: HAND }}>
               Study Bridge
               <svg viewBox="0 0 300 14" className="absolute -bottom-3 left-0 h-3 w-full" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-                <path d="M2 8c20-8 40 6 60 0s40-6 60 0 40 6 60 0 40-6 60 0 40 4 54-2" fill="none" stroke="#d64545" strokeWidth="3" strokeLinecap="round" />
+                <path pathLength="1" className="study-draw" d="M2 8c20-8 40 6 60 0s40-6 60 0 40 6 60 0 40-6 60 0 40 4 54-2" fill="none" stroke="#d64545" strokeWidth="3" strokeLinecap="round" />
               </svg>
             </h1>
             <p className="max-w-3xl pt-3 text-lg text-slate-800">Screen-free quizzes on paper. One photo grades a sheet, marks every topic with a highlighter and schedules review.</p>
