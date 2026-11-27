@@ -37,7 +37,7 @@ export default defineConfig({
       },
       workbox: {
         // The plugin adds manifest.webmanifest itself.
-        globPatterns: ["**/*.{js,css,html,svg,png,jpg}"],
+        globPatterns: ["**/*.{js,css,html,svg,png,jpg,woff2}"],
         // The app is a single page with hash routes; any navigation gets the cached shell.
         navigateFallback: "index.html",
         cleanupOutdatedCaches: true,

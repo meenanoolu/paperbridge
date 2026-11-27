@@ -32,6 +32,7 @@ apps plus a Kiro Crew App. Built for **Kiroween 2026: Skeleton Crew**.
 
 One small spring-physics kit ([`src/shell/motion/`](src/shell/motion/), no animation library) drives everything, so the whole product feels like one tactile object:
 
+- **Trick or Treat night.** Skeleton Home now opens on a cartoon scene: three trick-or-treaters walk up a hill to a haunted house on a dark red night, something waits in the doorway, bats cross the moon and a flashlight follows your pointer. It is original inline SVG and CSS (no image downloads), and it stands still with `prefers-reduced-motion`.
 - **Pages open from your finger.** Pressing an app opens it as an iris from the pressed point while Skeleton Home recedes (View Transitions). A yellow pill glides to the open app. Every button presses in and springs back.
 - **Home is lit by your pointer.** The headline springs in word by word, a lamp-coloured scan line sweeps the desk, the 3 papers are dealt in when they scroll into view, then lean toward the cursor and catch the light. The guide ghost watches you.
 - **Each world has its own hand.** Elder Care is calm: the sheet settles, the clip swings once, the stamp thuds and bleeds ink. Study Bridge slams red-ink stamps and sweeps highlighter bars. X-Ray Rite has an aurora behind obsidian pads, a lens of light under the pointer, a soul and sparks on every banish, and a shudder when a life is lost.
@@ -60,6 +61,17 @@ All three are built from the same `src/core/` engine and the same `src/shell/` p
   </tr>
 </table>
 
+### Try it in 60 seconds (no printer needed)
+
+1. Open the [live demo](https://paperbridge-acvw.onrender.com/). On **Skeleton Home**, point at (or tab to) each paper and the ghost guide explains it. Then click **Run Mixed-Domain Auto-Route Demo**: one real card from each app is unwarped, X-Rayed and routed to its own app.
+2. Click **Seance Cipher**, then **Start the Rite**. A ghost coach tells you the next move: hold a lit rune's pad (or its key) to banish it, or tap it to feel the Trembling Hand. Let the timer run out three times for the Game Over receipt with its frozen X-Ray.
+3. Open **Elder Care Bridge**, load a sample and stamp the amber mark **Human Verified**, then print the adapted next-week card.
+4. Open **Study Bridge**, scan a quiz, then **Print Studio** for the Telugu or Hindi sheet and the quiz pack.
+
+> **Not medical advice.** Elder Care Bridge helps people track doses and symptoms on paper and talk to their care team. It does not diagnose or recommend treatment.
+
+## Bonus world: a game on the same engine
+
 ### X-Ray Rite: The Endless Obsidian Seance
 
 Seance Cipher is now an endless survival game on the same optical engine. Print the 12-Rune Sheet (12 blank white circles, each with a spooky rune: Skull, Bat, Ghost, Pumpkin, Eye, Moon, Candle, Cross, Spider, Bone, Coffin, Star) or use the digital launchpad.
@@ -75,14 +87,7 @@ Seance Cipher is now an endless survival game on the same optical engine. Print 
 - 3 lives. Each wave is faster (`max(1800, 4200 - 180 x wave)` ms) and lights 1 to 4 runes. Game Over gives a frozen X-Ray frame and a copyable score receipt.
 - Honest limit: a dark token or fingertip reads 0.78 or more, but a pale fingertip in bright light can read only 0.30 to 0.45, so it trembles. The thresholds are constants in `riteEngine.ts`. Real webcams are not tuned yet.
 
-### Try it in 60 seconds (no printer needed)
-
-1. Open the [live demo](https://paperbridge-acvw.onrender.com/). On **Skeleton Home**, point at (or tab to) each paper and the ghost guide explains it. Then click **Run Mixed-Domain Auto-Route Demo**: one real card from each app is unwarped, X-Rayed and routed to its own app.
-2. Click **Seance Cipher**, then **Start the Rite**. A ghost coach tells you the next move: hold a lit rune's pad (or its key) to banish it, or tap it to feel the Trembling Hand. Let the timer run out three times for the Game Over receipt with its frozen X-Ray.
-3. Open **Elder Care Bridge**, load a sample and stamp the amber mark **Human Verified**, then print the adapted next-week card.
-4. Open **Study Bridge**, scan a quiz, then **Print Studio** for the Telugu or Hindi sheet and the quiz pack.
-
-> **Not medical advice.** Elder Care Bridge helps people track doses and symptoms on paper and talk to their care team. It does not diagnose or recommend treatment.
+This is a small extra that shows the engine is reusable. The two serious apps above are the main story.
 
 ## Built with Kiro
 
