@@ -19,6 +19,11 @@ export const GRADE_CSS = `
 .grade-book [role="tab"] { border-radius: 14px 14px 0 0; border: 2px solid #1e293b; border-bottom: 0; background: #fff6d6; color: #1e293b; margin-bottom: -3px; }
 .grade-book [role="tab"]:hover { background: #ffeeb0; }
 .grade-book [role="tab"][aria-selected="true"] { background: #FCFBF7; color: #9b1c1c; border-color: #1e293b; box-shadow: inset 0 4px 0 #d64545; }
+.study-draw { stroke-dasharray: none; }
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes study-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+  .study-draw { stroke-dasharray: 1; animation: study-draw 900ms cubic-bezier(0.5, 0, 0.2, 1) 0.35s both; }
+}
 .grade-book [role="tabpanel"] section[class*="rounded"], .grade-book [role="tabpanel"] details[class*="rounded"], .grade-book [role="tabpanel"] div[class*="rounded-2xl"] { background: rgba(255,255,255,0.72); border-color: rgba(30,41,59,0.28); box-shadow: none; border-radius: 6px; }
 `;
 
@@ -38,10 +43,10 @@ export function Telemetry({ items }: { items: { label: string; value: string; to
     <dl className="grid grid-cols-2 gap-5 md:grid-cols-5" aria-label="Score telemetry">
       {items.map((i, n) => (
         <div
-          key={i.label}
+          key={`${i.label}-${i.value}`}
           data-ink={i.tone ?? "plain"}
-          className={`rounded-md border-[3px] border-double bg-[#FCFBF7]/80 px-4 py-2 mix-blend-multiply ${INK[i.tone ?? "plain"]}`}
-          style={{ transform: `rotate(${TILT[n % TILT.length]}deg)` }}
+          className={`m-slam rounded-md border-[3px] border-double bg-[#FCFBF7]/80 px-4 py-2 mix-blend-multiply ${INK[i.tone ?? "plain"]}`}
+          style={{ transform: `rotate(${TILT[n % TILT.length]}deg)`, "--i": n, "--d": "350ms" } as CSSProperties}
         >
           <dt className="text-lg font-bold uppercase tracking-wider">{i.label}</dt>
           <dd className="text-4xl font-black tabular-nums" style={{ fontFamily: HAND }}>
@@ -66,8 +71,8 @@ export function TopicMastery({ report }: { report: GradeReport | null }) {
         <p className="text-lg text-slate-800">Scan a sheet to see each topic. Topics below {WEAK_TOPIC_BELOW_PCT}% go on the due review card.</p>
       ) : (
         <ul className="space-y-4" aria-label="Topic mastery">
-          {report.topics.map((t) => (
-            <li key={t.topic} data-topic={t.topic} data-weak={t.weak ? "yes" : "no"}>
+          {report.topics.map((t, i) => (
+            <li key={`${t.topic}-${t.pct}`} data-topic={t.topic} data-weak={t.weak ? "yes" : "no"}>
               <div className="flex items-baseline justify-between gap-2 text-lg text-slate-900">
                 <span className="font-bold" style={{ fontFamily: HAND }}>
                   {t.topic}
@@ -79,8 +84,8 @@ export function TopicMastery({ report }: { report: GradeReport | null }) {
               <div aria-hidden className="mt-1 h-6">
                 <div
                   data-marker={t.weak ? "weak" : "mastered"}
-                  className="h-full -skew-x-6 rounded-[3px_10px_4px_9px] mix-blend-multiply"
-                  style={{ width: `${Math.max(6, t.pct)}%`, background: t.weak ? MARKER.weak : MARKER.mastered }}
+                  className="m-sweep h-full -skew-x-6 rounded-[3px_10px_4px_9px] mix-blend-multiply"
+                  style={{ width: `${Math.max(6, t.pct)}%`, background: t.weak ? MARKER.weak : MARKER.mastered, "--i": i } as CSSProperties}
                 />
               </div>
             </li>

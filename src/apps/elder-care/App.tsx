@@ -116,7 +116,7 @@ export function ElderCareApp() {
   return (
     <div className="min-h-[80vh] bg-[#F4EFE6] px-3 py-8 text-slate-950 sm:px-6 sm:py-12" style={LINEN_STYLE} data-frontend="elder-care">
       <style>{CARE_CSS}</style>
-      <div className="care-sheet relative mx-auto max-w-4xl space-y-8 bg-[#FAF8F5] px-5 pb-12 pt-14 shadow-[0_1px_0_#e4dac6,0_2px_0_#f0e9db,0_34px_60px_-34px_rgba(70,48,12,0.55)] sm:px-12">
+      <div className="care-sheet relative mx-auto max-w-4xl space-y-8 bg-[#FAF8F5] px-5 pb-12 pt-14 shadow-[0_1px_0_#e4dac6,0_2px_0_#f0e9db,0_34px_60px_-34px_rgba(70,48,12,0.55)] sm:px-12 m-rise">
         <PaperClip />
         <header className="space-y-2 text-center">
           <p className="text-lg font-bold uppercase tracking-[0.3em] text-[#134E4A]">Weekly medicine sheet</p>
@@ -150,7 +150,7 @@ export function ElderCareApp() {
             <p className="text-xl text-[#134E4A]">Pick a sample card, upload a photo or use the webcam. The answer is written here.</p>
           ) : (
             <div className="flex flex-wrap items-center gap-6">
-              <p className="text-7xl font-black tabular-nums text-[#134E4A]" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>
+              <p key={r?.scannedAt.toISOString()} className="m-slam text-7xl font-black tabular-nums text-[#134E4A]" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>
                 {report.adherencePct === null ? "?" : `${report.adherencePct}%`}
               </p>
               <div className="space-y-1 text-xl">
