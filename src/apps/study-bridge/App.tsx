@@ -20,7 +20,7 @@ import {
   useOpticalScan,
   type HumanVerifyTheme,
 } from "../../shell/optical";
-import { Telemetry, TopicMastery } from "./components/Studio";
+import { GRADE_CSS, HAND, RULED_STYLE, Telemetry, TopicMastery } from "./components/Studio";
 import { usePersistentState } from "../../shell/usePersistentState";
 import { DEFAULT_EDITABLE_KEY, parseEditableKey, toAnswerKey } from "./answer-key";
 import { addStudent, parseClassSheet, removeStudent, toClassEntry, type ClassEntry } from "./class-sheet";
@@ -66,8 +66,8 @@ export function StudyBridgeApp() {
   const live = (
     <>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <section aria-labelledby="studio-scan" className="space-y-4 rounded-2xl border border-slate-300 bg-white p-5">
-          <h2 id="studio-scan" className="text-2xl font-extrabold">
+        <section aria-labelledby="studio-scan" className="space-y-4 p-1">
+          <h2 id="studio-scan" className="text-3xl font-bold" style={{ fontFamily: HAND }}>
             Scan a sheet
           </h2>
           <ScanSources scan={scan} layouts={STUDY_LAYOUTS} samples={STUDY_SAMPLES} classes={STUDIO} samplesLabel="Sample sheets (no printer needed)" />
@@ -96,7 +96,9 @@ export function StudyBridgeApp() {
       <BatchDropzone />
       {g && (
         <details className="rounded-2xl border border-slate-300 bg-white p-4">
-          <summary className="cursor-pointer text-xl font-extrabold">Question by question</summary>
+          <summary className="cursor-pointer text-2xl font-bold" style={{ fontFamily: HAND }}>
+            Question by question
+          </summary>
           <div className="mt-4">
             <StudyResults report={g} quiz={answerKey} />
           </div>
@@ -107,44 +109,51 @@ export function StudyBridgeApp() {
   );
 
   return (
-    <div className="min-h-[80vh] bg-[#F1F5F9] text-slate-950" data-frontend="study-bridge">
-      <div className="bg-[#3730A3] text-white on-dark">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
-          <div>
-            <p className="text-lg font-bold uppercase tracking-[0.25em] text-indigo-100">Live classroom studio</p>
-            <h1 className="text-4xl font-black tracking-tight">Study Bridge</h1>
-          </div>
-          <p className="max-w-xl text-lg text-indigo-50">Screen-free quizzes on paper. One photo grades a sheet, charts every topic and schedules review.</p>
+    <div className="grade-book relative min-h-[80vh] overflow-hidden bg-[#FCFBF7] text-slate-950" style={RULED_STYLE} data-frontend="study-bridge">
+      <style>{GRADE_CSS}</style>
+      {[16, 48, 80].map((top) => (
+        <span key={top} aria-hidden="true" className="absolute left-5 hidden h-6 w-6 rounded-full bg-[#2b2f3a] shadow-[inset_0_3px_4px_rgba(0,0,0,0.85)] md:block" style={{ top: `${top}%` }} />
+      ))}
+      <div className="mx-auto max-w-6xl px-3 sm:px-6">
+        <div className="min-h-[80vh] space-y-6 border-l-[3px] border-[#d64545] bg-[#FCFBF7]/40 py-8 pl-5 shadow-[-5px_0_0_-2px_rgba(214,69,69,0.35)] sm:pl-10">
+          <header className="space-y-1">
+            <p className="text-lg font-bold uppercase tracking-[0.25em] text-[#9b1c1c]">Teacher's gradebook</p>
+            <h1 className="relative inline-block text-5xl font-bold tracking-tight text-[#1e293b] sm:text-6xl" style={{ fontFamily: HAND }}>
+              Study Bridge
+              <svg viewBox="0 0 300 14" className="absolute -bottom-3 left-0 h-3 w-full" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                <path d="M2 8c20-8 40 6 60 0s40-6 60 0 40 6 60 0 40-6 60 0 40 4 54-2" fill="none" stroke="#d64545" strokeWidth="3" strokeLinecap="round" />
+              </svg>
+            </h1>
+            <p className="max-w-3xl pt-3 text-lg text-slate-800">Screen-free quizzes on paper. One photo grades a sheet, marks every topic with a highlighter and schedules review.</p>
+          </header>
+          <Telemetry
+            items={[
+              { label: "Score", value: g ? `${g.scorePct}%` : "--", tone: "red" },
+              { label: "Correct", value: g ? `${g.correct}/${g.total}` : "--", tone: "blue" },
+              { label: "Weak topics", value: g ? String(g.weakTopics.length) : "--", tone: "red" },
+              { label: "Class sheet", value: String(roster.length), tone: "plain" },
+              { label: "Decode", value: scan.scan ? `${Math.max(1, Math.round(scan.scan.decodeMs))} ms` : "--", tone: "green" },
+            ]}
+          />
+          <p className="sr-only" role="status" aria-live="polite">
+            {scan.liveMessage}
+          </p>
+          <WorkspaceTabs
+            scope="study-mcq-10"
+            active={tab}
+            labels={{ scan: "Live Scan", print: "Print Studio", history: "Gradebook" }}
+            panels={{
+              scan: live,
+              print: (
+                <>
+                  <PrintWorkspace slot={STUDY_PRINT} storageKey="study-mcq-10.print-options" />
+                  <EditKeyPanel answerKey={editableKey} onSave={saveKey} onReset={resetKey} saved={keySaved} hasScan={hasScan} />
+                </>
+              ),
+              history: <ClassSection roster={roster} answerKey={answerKey} onRemove={(id) => setRoster(removeStudent(roster, id))} onClear={clearRoster} />,
+            }}
+          />
         </div>
-      </div>
-      <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6">
-        <Telemetry
-          items={[
-            { label: "Score", value: g ? `${g.scorePct}%` : "--", tone: g && g.scorePct >= 70 ? "emerald" : "indigo" },
-            { label: "Correct", value: g ? `${g.correct}/${g.total}` : "--" },
-            { label: "Weak topics", value: g ? String(g.weakTopics.length) : "--", tone: "indigo" },
-            { label: "Class sheet", value: String(roster.length) },
-            { label: "Decode", value: scan.scan ? `${Math.max(1, Math.round(scan.scan.decodeMs))} ms` : "--", tone: "emerald" },
-          ]}
-        />
-        <p className="sr-only" role="status" aria-live="polite">
-          {scan.liveMessage}
-        </p>
-        <WorkspaceTabs
-          scope="study-mcq-10"
-          active={tab}
-          labels={{ scan: "Live Scan", print: "Print Studio", history: "Gradebook" }}
-          panels={{
-            scan: live,
-            print: (
-              <>
-                <PrintWorkspace slot={STUDY_PRINT} storageKey="study-mcq-10.print-options" />
-                <EditKeyPanel answerKey={editableKey} onSave={saveKey} onReset={resetKey} saved={keySaved} hasScan={hasScan} />
-              </>
-            ),
-            history: <ClassSection roster={roster} answerKey={answerKey} onRemove={(id) => setRoster(removeStudent(roster, id))} onClear={clearRoster} />,
-          }}
-        />
       </div>
     </div>
   );
