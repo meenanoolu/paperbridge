@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { copyText } from "../../shell/clipboard";
 import { XRayOverlay } from "../../shell/components/XRayOverlay";
 import { RITE_RUNE_NAMES } from "./layout";
@@ -34,7 +34,7 @@ export function RiteReceipt({ receipt, frame, best, onPlayAgain }: { receipt: Sc
     ["Mode", MODE_LABEL[receipt.mode]],
   ];
   return (
-    <section aria-labelledby="rite-receipt" className="space-y-3 rounded-2xl border-2 border-[#D4AF37] bg-[#10131a] p-4" data-receipt="true">
+    <section aria-labelledby="rite-receipt" className="m-pop space-y-3 rounded-2xl border-2 border-[#D4AF37] bg-[#10131a] p-4" data-receipt="true">
       <h3 id="rite-receipt" className="text-3xl font-semibold text-[#D4AF37]" style={SERIF}>
         The rite ends
       </h3>
@@ -50,10 +50,12 @@ export function RiteReceipt({ receipt, frame, best, onPlayAgain }: { receipt: Sc
         )}
         <div className="space-y-4">
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-xl" aria-label="Score receipt">
-            {rows.map(([k, v]) => (
+            {rows.map(([k, v], n) => (
               <div key={k} className="contents">
                 <dt className="font-bold text-[#D4AF37]">{k}</dt>
-                <dd className="tabular-nums">{v}</dd>
+                <dd className="m-rise tabular-nums" style={{ "--i": n, "--d": "250ms" } as CSSProperties}>
+                  {v}
+                </dd>
               </div>
             ))}
           </dl>

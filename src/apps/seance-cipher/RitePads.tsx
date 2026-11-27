@@ -1,4 +1,5 @@
-import { useId, type KeyboardEvent, type PointerEvent } from "react";
+import { useId, type CSSProperties, type KeyboardEvent, type PointerEvent } from "react";
+import { GhostShape } from "../../shell/components/HomeGhosts";
 import { RITE_RUNE_NAMES } from "./layout";
 import { classifyCoverage, HOLD_MS, PAD_KEYS, PERFECT, type Target } from "./riteEngine";
 import { GLYPH_UNITS, RUNE_GLYPHS } from "./runeGlyphs";
@@ -64,8 +65,16 @@ export function LaunchPad({
   /** Pads being held right now (by pointer or key): they show the hold filling up, at once. */
   held?: readonly number[];
 }) {
+  // A lens of light follows the pointer across the pad under it (one listener for all 12).
+  const lens = (e: PointerEvent<HTMLUListElement>) => {
+    const pad = (e.target as Element).closest<HTMLElement>("button[data-rune]");
+    if (!pad) return;
+    const r = pad.getBoundingClientRect();
+    pad.style.setProperty("--lx", `${e.clientX - r.left}px`);
+    pad.style.setProperty("--ly", `${e.clientY - r.top}px`);
+  };
   return (
-    <ul className="grid h-full min-h-0 grid-cols-3 grid-rows-4 gap-2 sm:grid-cols-4 sm:grid-rows-3 sm:gap-3" aria-label="Rune launchpad">
+    <ul className="grid h-full min-h-0 grid-cols-3 grid-rows-4 gap-2 sm:grid-cols-4 sm:grid-rows-3 sm:gap-3" aria-label="Rune launchpad" onPointerMove={lens}>
       {RITE_RUNE_NAMES.map((name, i) => {
         const st = padStatus(i, targets, coverage[i] ?? 0);
         const burst = bursts.find((b) => b.rune === i);
@@ -99,6 +108,7 @@ export function LaunchPad({
               onKeyDown={keyDown}
               onKeyUp={keyUp}
             >
+              <span aria-hidden="true" className="rite-lens pointer-events-none absolute inset-0" />
               {st.kind === "target" && <span aria-hidden="true" data-glow="pulse" className="rite-pulse pointer-events-none absolute inset-0 rounded-2xl border-4 border-[#D4AF37] shadow-[0_0_26px_-2px_#D4AF37]" />}
               {st.kind === "trembling" && <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-2xl shadow-[0_0_26px_-2px_#FF6B7A]" />}
               {st.kind === "covered" && <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-2xl shadow-[0_0_26px_-2px_#34d399]" />}
@@ -112,6 +122,15 @@ export function LaunchPad({
               )}
               {down && <span aria-hidden="true" data-hold="true" className="rite-hold absolute inset-x-0 top-0 h-1.5 bg-[#F3EBD3]" style={{ animationDuration: `${HOLD_MS}ms` }} />}
               {burst && <span key={burst.id} aria-hidden="true" data-burst="true" className="rite-burst pointer-events-none absolute inset-2 rounded-full border-4 border-[#34d399]" />}
+              {burst && (
+                <span key={`${burst.id}-soul`} aria-hidden="true" data-soul="true" className="rite-soul pointer-events-none absolute inset-x-0 bottom-1/3 mx-auto w-9 text-[#34d399]">
+                  <GhostShape className="h-9 w-9" />
+                </span>
+              )}
+              {burst &&
+                [0, 1, 2, 3, 4, 5].map((k) => (
+                  <span key={`${burst.id}-${k}`} aria-hidden="true" data-spark="true" className="rite-spark pointer-events-none absolute left-1/2 top-1/2 h-2 w-2 rounded-full bg-[#34d399]" style={{ "--a": `${k * 60 + 15}deg` } as CSSProperties} />
+                ))}
               <RuneGlyph index={i} className="relative h-[clamp(1.5rem,5svh,2.75rem)] w-[clamp(1.5rem,5svh,2.75rem)]" />
               <span className="relative text-base font-bold sm:text-lg">
                 {i + 1} {name}
