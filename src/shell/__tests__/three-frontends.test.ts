@@ -125,8 +125,12 @@ describe("3 distinct frontends on the same primitives", () => {
     const elder = await render("elder-care");
     const study = await render("study-bridge");
     const seance = await render("seance-cipher");
-    expect(elder).toMatch(/^<div class="[^"]*bg-\[#FAF8F5\][^"]*" data-frontend="elder-care"/);
-    expect(study).toMatch(/^<div class="[^"]*bg-\[#F1F5F9\][^"]*" data-frontend="study-bridge"/);
+    // Elder Care: a cream caregiver sheet on a linen desk. Study Bridge: a ruled gradebook page.
+    expect(elder).toMatch(/^<div class="[^"]*bg-\[#F4EFE6\][^"]*"( style="[^"]*")? data-frontend="elder-care"/);
+    expect(elder).toContain("care-sheet");
+    expect(elder).toContain("bg-[#FAF8F5]");
+    expect(study).toMatch(/^<div class="[^"]*bg-\[#FCFBF7\][^"]*"( style="[^"]*")? data-frontend="study-bridge"/);
+    expect(study).toContain("grade-book");
     expect(seance).toMatch(/^<div class="on-dark[^"]*" style="background:radial-gradient\(ellipse at top, #1a1d27 0%, #0B0D12 60%\)" data-frontend="seance-cipher"/);
     expect(study).toContain('aria-label="Score telemetry"');
     expect(study).toContain("Live Scan");

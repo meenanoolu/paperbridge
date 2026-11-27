@@ -162,3 +162,11 @@ Requirement references use the numbering in `requirements.md`.
   - [x] 24.4 Tests: engine, sheet and camera readings, page markup and handlers, audio, the camera loop in Node _(R51-R55)_
   - [x] 24.5 Browser checks: both modes to Game Over, keyboard, axe-core 0 AA on 6 states, 4 px rings, reduced motion, 390 px width, camera released on leave _(R55)_
   - [x] 24.6 README showcase, DETAILS, developer guide _(R55.2)_
+
+- [x] 25. Phase 12: handcrafted physical-object UI (branch `style/handcrafted-ghost-ui`)
+  - [x] 25.1 `HomeGhosts.tsx` (drifting ghosts, guide, hints, reduced motion) and `HomeArtifacts.tsx` (clipboard, composition sheet, oracle card); `SkeletonHome.tsx` _(R56)_
+  - [x] 25.2 Elder Care `CareSheet.tsx`, `SignOffStamp.tsx`, `App.tsx` as one sheet _(R57)_
+  - [x] 25.3 Study Bridge `Studio.tsx` gradebook paper, ink stamps, highlighter bars; `App.tsx` _(R58)_
+  - [x] 25.4 X-Ray Rite one-screen stage, countdown ring, drawer, `riteVoice.ts` _(R59)_
+  - [x] 25.5 Tests: Skeleton Home, caregiver sheet and stamp, gradebook, ghost voice, one-screen layout; browser audit (axe-core, keyboard, reduced motion, fit at 3 sizes, 390 px) _(R56-R59)_
+  - [x] 25.6 Retaken screenshots, README, DETAILS _(R55.2)_

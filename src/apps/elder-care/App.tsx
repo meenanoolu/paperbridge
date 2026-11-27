@@ -21,7 +21,9 @@ import type { ReviewedScan } from "../../shell/scan";
 import { usePersistentState } from "../../shell/usePersistentState";
 import { columnLabel, DEFAULT_CARE_SETTINGS, parseCareSettings } from "./card-settings";
 import { CareDashboard } from "./components/CareDashboard";
+import { CARE_CSS, Field, LINEN_STYLE, PaperClip } from "./components/CareSheet";
 import { CustomizeCardPanel } from "./components/CustomizeCardPanel";
+import { SignOffStamp } from "./components/SignOffStamp";
 import { HistorySection } from "./components/HistorySection";
 import { addWeek, parseHistory, toWeekEntry, weekLabel, type WeekEntry } from "./history";
 import { interpretCareCard, SCAN_ALERT_EVENT, toScanAlert, type ScanAlert } from "./interpret";
@@ -109,95 +111,104 @@ export function ElderCareApp() {
     ? adaptedCardSpec(card, report.patterns, nextCardMonday([card.weekStart, ...history.filter((h) => h.patientName === card.patientName).map((h) => h.weekStart ?? "")], r.scannedAt))
     : null;
 
+  const pending = Math.max(0, scan.unclear.length - (r?.manualOverrides ?? 0));
   return (
-    <div className="min-h-[80vh] bg-[#FAF8F5] text-slate-950" data-frontend="elder-care">
-      <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6">
-        <header className="flex flex-wrap items-end justify-between gap-4 border-b-2 border-[#0F766E] pb-4">
-          <div>
-            <p className="text-lg font-bold uppercase tracking-[0.2em] text-[#134E4A]">Caregiver workspace</p>
-            <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>
-              Elder Care Bridge
-            </h1>
-            <p className="mt-1 max-w-3xl text-lg text-slate-800">
-              A large-print paper card for the week's medicines and symptoms. No smartphone or login for the person filling it in. One photo tells you how the week went.
-            </p>
-          </div>
-          {card.patientName && <p className="rounded-full border-2 border-[#0F766E] px-4 py-1 text-lg font-bold text-[#134E4A]">Card for {card.patientName}</p>}
+    <div className="min-h-[80vh] bg-[#F4EFE6] px-3 py-8 text-slate-950 sm:px-6 sm:py-12" style={LINEN_STYLE} data-frontend="elder-care">
+      <style>{CARE_CSS}</style>
+      <div className="care-sheet relative mx-auto max-w-4xl space-y-8 bg-[#FAF8F5] px-5 pb-12 pt-14 shadow-[0_1px_0_#e4dac6,0_2px_0_#f0e9db,0_34px_60px_-34px_rgba(70,48,12,0.55)] sm:px-12">
+        <PaperClip />
+        <header className="space-y-2 text-center">
+          <p className="text-lg font-bold uppercase tracking-[0.3em] text-[#134E4A]">Weekly medicine sheet</p>
+          <h1 className="text-5xl font-bold tracking-tight text-[#134E4A] sm:text-6xl" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>
+            Elder Care Bridge
+          </h1>
+          <p className="mx-auto max-w-2xl text-lg text-[#134E4A]">
+            A large-print paper card for the week's medicines and symptoms. No smartphone or login for the person filling it in. One photo tells you how the week went.
+          </p>
+          <p className="pt-2 text-xl text-[#134E4A]">
+            For: <span className="inline-block min-w-56 border-b-2 border-dotted border-[#134E4A] px-2 font-bold">{card.patientName || "\u00a0"}</span>
+          </p>
         </header>
 
         <p className="sr-only" role="status" aria-live="polite">
           {scan.liveMessage}
         </p>
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
-          <section aria-labelledby="elder-card" className="space-y-4 rounded-2xl border border-[#0F766E]/40 bg-white p-5 shadow-[0_1px_0_#0F766E,0_8px_24px_-12px_rgba(15,118,110,0.35)]">
-            <h2 id="elder-card" className="text-2xl font-extrabold text-[#134E4A]">
-              This week's card
-            </h2>
-            <ScanSources scan={scan} layouts={ELDER_LAYOUTS} samples={ELDER_SAMPLES} classes={STATIONERY} samplesLabel="Sample cards (no printer needed)" />
-            {scan.state.status !== "idle" && <DecodePipeline steps={pipelineSteps(scan.state, Math.max(0, scan.unclear.length - (r?.manualOverrides ?? 0)))} />}
-            {scan.state.status === "error" && <Callout tone="bad" title={scan.state.message} />}
-            <OpticalViewToggles scan={scan} className={STATIONERY.button} />
-            <OpticalXRayOverlay scan={scan} describe={describe} />
-          </section>
+        <Field n={1} id="elder-card" title="This week's card">
+          <ScanSources scan={scan} layouts={ELDER_LAYOUTS} samples={ELDER_SAMPLES} classes={STATIONERY} samplesLabel="Sample cards (no printer needed)" />
+          {scan.state.status !== "idle" && <DecodePipeline steps={pipelineSteps(scan.state, pending)} />}
+          {scan.state.status === "error" && <Callout tone="bad" title={scan.state.message} />}
+          <OpticalViewToggles scan={scan} className={STATIONERY.button} />
+          <OpticalXRayOverlay scan={scan} describe={describe} />
+        </Field>
 
-          <div className="space-y-4">
-            <section aria-labelledby="elder-status" className="rounded-2xl border border-[#0F766E]/40 bg-white p-5">
-              <h2 id="elder-status" className="text-2xl font-extrabold text-[#134E4A]">
-                How the week went
-              </h2>
-              {!report ? (
-                <p className="mt-2 text-lg text-slate-800">Pick a sample card, upload a photo or use the webcam. The answer appears here.</p>
-              ) : (
-                <div className="mt-2 flex flex-wrap items-center gap-4">
-                  <p className="text-6xl font-black tabular-nums">{report.adherencePct === null ? "?" : `${report.adherencePct}%`}</p>
-                  <div className="space-y-1 text-lg">
-                    <p className="font-bold">
-                      {report.taken} of {report.counted} doses taken
-                    </p>
-                    <StatusBadge tone={report.adherencePct !== null && report.adherencePct >= 80 ? "good" : "bad"}>
-                      {report.adherencePct !== null && report.adherencePct >= 80 ? "On track" : "Below the 80% goal"}
-                    </StatusBadge>
-                    {report.symptomDays.length > 0 && <p>Dizzy or pain on {report.symptomDays.length} {report.symptomDays.length === 1 ? "day" : "days"}</p>}
-                  </div>
-                </div>
-              )}
+        <Field n={2} id="elder-status" title="How the week went">
+          {!report ? (
+            <p className="text-xl text-[#134E4A]">Pick a sample card, upload a photo or use the webcam. The answer is written here.</p>
+          ) : (
+            <div className="flex flex-wrap items-center gap-6">
+              <p className="text-7xl font-black tabular-nums text-[#134E4A]" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>
+                {report.adherencePct === null ? "?" : `${report.adherencePct}%`}
+              </p>
+              <div className="space-y-1 text-xl">
+                <p className="font-bold">
+                  {report.taken} of {report.counted} doses taken
+                </p>
+                <StatusBadge tone={report.adherencePct !== null && report.adherencePct >= 80 ? "good" : "bad"}>
+                  {report.adherencePct !== null && report.adherencePct >= 80 ? "On track" : "Below the 80% goal"}
+                </StatusBadge>
+                {report.symptomDays.length > 0 && (
+                  <p>
+                    Dizzy or pain on {report.symptomDays.length} {report.symptomDays.length === 1 ? "day" : "days"}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+          <HumanVerifyControl unclear={scan.unclear} overrides={scan.overrides} onSet={scan.setAnswer} describe={describe} theme={VERIFY} title="Faint marks to check on the paper" />
+          {r && report && <SignOffStamp key={r.scannedAt.toISOString()} pending={pending} when={r.scannedAt} />}
+        </Field>
+
+        {r && report && (
+          <Field n={3} id="elder-share" title="Share and save">
+            <ResultVoice spoken={elderSpokenSummary(report, card, r.manualOverrides)} share={elderShareText(report, card, r.manualOverrides)} shareLabel="Copy WhatsApp Update" />
+            <section aria-label="Save and share with the doctor" className="space-y-3 p-4">
+              <SaveWeek
+                key={r.scannedAt.toISOString()}
+                history={history}
+                onSave={saveWeek}
+                entry={toWeekEntry(report, { scannedAt: r.scannedAt, savedAt: new Date(), card, manualOverrides: r.manualOverrides })}
+              />
+              <ThisWeekDoctorPdf card={card} entry={toWeekEntry(report, { scannedAt: r.scannedAt, savedAt: r.scannedAt, card, manualOverrides: r.manualOverrides })} />
             </section>
-            <HumanVerifyControl unclear={scan.unclear} overrides={scan.overrides} onSet={scan.setAnswer} describe={describe} theme={VERIFY} title="Faint marks to check on the paper" />
-            {r && report && (
-              <>
-                <ResultVoice
-                  spoken={elderSpokenSummary(report, card, r.manualOverrides)}
-                  share={elderShareText(report, card, r.manualOverrides)}
-                  shareLabel="Copy WhatsApp Update"
-                />
-                <section aria-label="Save and share with the doctor" className="space-y-3 rounded-2xl border border-[#0F766E]/40 bg-white p-4">
-                  <SaveWeek
-                    key={r.scannedAt.toISOString()}
-                    history={history}
-                    onSave={saveWeek}
-                    entry={toWeekEntry(report, { scannedAt: r.scannedAt, savedAt: new Date(), card, manualOverrides: r.manualOverrides })}
-                  />
-                  <ThisWeekDoctorPdf card={card} entry={toWeekEntry(report, { scannedAt: r.scannedAt, savedAt: r.scannedAt, card, manualOverrides: r.manualOverrides })} />
-                </section>
-                {adaptive && <AdaptiveCardPanel spec={adaptive} />}
-              </>
-            )}
+            {adaptive && <AdaptiveCardPanel spec={adaptive} />}
+          </Field>
+        )}
+
+        <Field n={r && report ? 4 : 3} id="elder-more" title="More ways to scan">
+          <JudgeDemoStrip />
+          <BatchDropzone />
+        </Field>
+
+        {r && report && <CareDashboard report={report} scannedAt={r.scannedAt} alert={alertFor(r, doseLabels, habitLabel, cardLanguage)} card={card} />}
+
+        <details className="group border-t-2 border-dotted border-[#134E4A]/40 pt-4" data-drawer="print">
+          <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between px-1 py-3 text-2xl font-bold text-[#134E4A]" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>
+            Print the card, languages and presets
+            <svg viewBox="0 0 24 24" className="h-5 w-5 motion-safe:transition-transform group-open:rotate-180" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 9l7 7 7-7" /></svg>
+          </summary>
+          <div className="space-y-4 pt-3">
             <PrintWorkspace slot={printSlot} storageKey="elder-care-weekly.print-options" />
             <CustomizeCardPanel settings={card} onSave={saveCard} onReset={resetCard} saved={cardSaved} />
           </div>
-        </div>
+        </details>
 
-        <JudgeDemoStrip />
-        <BatchDropzone />
-        {r && report && <CareDashboard report={report} scannedAt={r.scannedAt} alert={alertFor(r, doseLabels, habitLabel, cardLanguage)} card={card} />}
-
-        <details className="group rounded-2xl border-2 border-[#0F766E]/50 bg-white">
-          <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between rounded-2xl px-4 py-3 text-xl font-extrabold text-[#134E4A]">
+        <details className="group border-t-2 border-dotted border-[#134E4A]/40 pt-4">
+          <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between px-1 py-3 text-2xl font-bold text-[#134E4A]" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>
             History, trend and Doctor Visit PDF
-            <span aria-hidden className="motion-safe:transition-transform group-open:rotate-180">&#9662;</span>
+            <svg viewBox="0 0 24 24" className="h-5 w-5 motion-safe:transition-transform group-open:rotate-180" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 9l7 7 7-7" /></svg>
           </summary>
-          <div className="border-t-2 border-slate-200 p-4">
+          <div className="pt-3">
             <HistorySection history={history} currentPatient={card.patientName} card={card} onClear={clearHistory} onLoadSample={() => setHistory(sampleHistory(new Date()))} />
           </div>
         </details>

@@ -66,7 +66,7 @@ These live in `src/shell/` and work for Elder Care Bridge, Study Bridge, Seance 
 - **Accents and X-Ray palettes:** `appMeta.accent` colours the launcher pill dot, app badge and primary buttons. The X-Ray takes a palette, with an optional glow (Seance Cipher uses emerald and amber).
 - **Print Cards workspace:** Translate card (English, Telugu, Hindi, Spanish, any script), any-script PDF text, High-Visibility and Icon-Anchored modes, the card download and a multi-sheet pack. An app passes a `print` slot; `createPrintSlot` builds one from a translation table. Elder Care uses it for the 4-Week Monthly Pack, Study Bridge for the 4-Week Unit Quiz Pack and its Telugu, Hindi and Spanish sheets.
 - **Adaptive next card:** an app returns an `adaptiveCard` spec for a scan, and the shell renders it with one component: Elder Care's Print Adapted Next-Week Card and Study Bridge's Print Due Review Card.
-- **Skeleton Home:** the default landing view, a full-viewport midnight blueprint stage with 3 world portal cards (Elder Care Bridge, Study Bridge, Seance Cipher), each drawn in its app's own theme. **Run Mixed-Domain Auto-Route Demo** sends one real card from each app through Scan Any Card and shows each card's X-Ray, its unwarped view and the app it was routed to; **Scaffold Your Next App** opens the architecture dialog with `npm run create-app`.
+- **Skeleton Home (the haunted drafting table):** the default landing view, a `#090C14` desk with a faint pencil grid and a warm lamp glow. Five translucent ghosts drift across it, and a friendly guide ghost with a speech bubble explains each app when you point at it or tab to it. The 3 apps are physical objects at different tilts on desktop: a metal-clipped **clipboard** (Elder Care, -1.5deg), a ruled **composition sheet** with a red margin and a stamped A+ (Study Bridge, 1.2deg) and an obsidian and gold **oracle card** with corner filigree (X-Ray Rite, -1deg). Each is one link (its title, stretched over the object) with a 4 px focus ring. Under `prefers-reduced-motion` the ghosts rest in place, the guide stops floating and nothing tilts on hover. One click on **Run Mixed-Domain Auto-Route Demo** sends a real card from each app through Scan Any Card; **Scaffold Your Next App** opens the architecture dialog.
 - **Saving without storage code:** a generic saved-cards list in `localStorage` with a ready Scan Any Card batch adapter. Scaffolded apps use it by default.
 
 ![Optical X-Ray on the Missed-Dose sample: green boxes on the 4 corners, 22 filled at 0.78-0.81, the faint Wednesday water mark amber at 0.29, 40 blank at 0.00-0.03](images/optical-xray.png)
@@ -74,6 +74,8 @@ These live in `src/shell/` and work for Elder Care Bridge, Study Bridge, Seance 
 ## App details
 
 ### Elder Care Bridge ([`src/apps/elder-care/`](../src/apps/elder-care/))
+
+Drawn as **one caregiver sheet**: a single centred sheet of cream paper (`#FAF8F5`) with a brass paper clip, on a warm linen desk (`#F4EFE6`), with numbered fields down it (1 This week's card, 2 How the week went, 3 Share and save, More ways to scan) instead of a grid of boxes. Text is `#134E4A` on the paper (AAA). The shell's own panels keep their markup; scoped CSS turns their boxes into dotted-outline form fields. Print options, languages and presets, and the history, sit in closed drawers. **HUMAN VERIFIED** is a rubber stamp with a handle: it can only be pressed once every faint mark has been checked on the paper (it says how many remain), then it leaves a dated impression, and **Lift stamp** undoes it. The stamp is a sign-off on screen; it changes no reading.
 
 A large-print **Weekly Care Card**. For each day from Monday to Sunday it has Morning Meds,
 Night Meds, Water 6+ cups, Dizzy or Pain, and Energy 1-5. The person fills it in on paper.
@@ -109,6 +111,8 @@ Caregiver workflow:
 ![The decoder's view of the tilted, low-light sample](images/decoder-overlay.png)
 
 ### Study Bridge ([`src/apps/study-bridge/`](../src/apps/study-bridge/))
+
+Drawn as **a teacher's ruled-paper gradebook** (`#FCFBF7`): faint blue rules, a classic red margin line and binder holes. The score telemetry is a row of tilted rubber-stamp marks in red, blue and green ink (every ink is at least 7:1 on the paper), the topic-mastery bars are highlighter strokes (yellow for mastered, pink for review, with the words and numbers beside them), and Live Scan, Print Studio and Gradebook are notebook divider tabs. Handwriting-style headings use `Segoe Print`, `Bradley Hand` or `Comic Sans MS` where the system has one.
 
 A **zero-distraction quiz answer sheet** with 10 questions and options A-E, for practice
 without a screen. One photo gives:
@@ -149,7 +153,9 @@ Web Audio chords (no audio files): a major triad that climbs a semitone per comb
 
 Real numbers from the simulated camera on the printed sheet: nothing on a circle reads 0.00; a dark token 0.94; a dark fingertip 0.78; a dark fingertip over 60% of the circle 0.53; a mid skin tone 0.45; a pale skin tone 0.30; a dark fingertip half off the circle 0.38. So the 0.48 line is met by a dark token or a pressed dark fingertip, while a pale fingertip in bright light lands in the Trembling Hand range. Real webcams are not verified.
 
-The original 3-question **Oracle Cipher** card is kept in a collapsed section: the same 12 circles and card ID, story verdicts, the faint-mark human check, and the landing place for a card routed here from Skeleton Home. The obsidian `#0B0D12` and brass `#D4AF37` theme passes WCAG 2.2 AA.
+**The stage fits one screen.** The game section is sized from the viewport (minus the launcher bar and the title row) so the toolbar, HUD with its **countdown ring**, the launchpad or live video and the status line never need scrolling at 1440x900, 1280x720 or 1024x768. The rules sit in a card over the pads until you start. On a phone the page scrolls normally with a taller stage. While a hand trembles the status line gets a ghostly joke (`riteVoice.ts`: "The ghosts are tickling your fingers. Cover the Spider all the way!") and the HUD states the rule. Printing the 12-Rune Sheet, the classic Oracle reading and Scan Any Card live in one compact drawer under the game.
+
+The original 3-question **Oracle Cipher** card is kept in that drawer: the same 12 circles and card ID, story verdicts, the faint-mark human check, and the landing place for a card routed here from Skeleton Home. The obsidian `#0B0D12` and brass `#D4AF37` theme passes WCAG 2.2 AA.
 
 ### Kiro Crew App (`crew-app/`)
 
@@ -257,6 +263,10 @@ them. They found these bugs before any human saw a wrong answer:
 | Screenshot of a lit Moon pad | The crescent's cut-out was painted in the pad colour and showed as a dark disc over the gold beam | Draw each rune through an SVG mask, so cut-outs are real holes |
 | Keyboard audit on the print panel | The page's yellow focus ring vanished on parchment | Parchment panels set a dark ring for their controls |
 | Unit test of the Trembling Hand | A 0.3 reading put on a rune that happened to be a target slowed the timer, so "time ran out" never fired | Test readings go on a rune that is not lit (the engine is right: a tremble slows the timer) |
+| Fit check of the X-Ray Rite stage at 1024 px wide | The shell's launcher bar wraps to 2 lines there (121 px, not 65 px), so a hard-coded offset pushed the drawer bar off the screen | The page measures where it starts and hands that to the CSS (`--launcher`); it now fits 1440x900, 1280x720 and 1024x768 |
+| Look at the Skeleton Home clipboard | The weekly grid's 4th row was cut off by the drawing's own box | A taller viewBox |
+| axe-core and contrast tests on the Elder Care stamp | Dimming a pressed or locked stamp with `opacity` dropped its white text below AAA | A solid muted colour (`#365553`, 8.1:1) instead of opacity |
+| Contrast test on Study Bridge's green ink | `#166534` on the paper was 6.9:1, just under the 7:1 claimed | `#14532D` (10.1:1) |
 | Seance sample x 7 cameras x 2 papers | An A4 smudged Seance card read with the Letter layout showed 0 unclear marks (misplaced samples landed on blank paper), so "fewest unclear" picked the wrong paper | Score how dark each bubble's printed ring is through the homography and prefer the paper whose rings line up; on 98 photos the printed paper always wins, by at least 0.835 |
 
 The tests also caught a mistake in our own expectations: we expected Sam's quiz to score
@@ -326,11 +336,11 @@ regenerates the sample photos, and saving any app file typechecks it.
 
 ```
 src/core/              optical skeleton: layout, validate (geometry + printed text), render (SVG/PDF, multi-page, vector icons, highlights), decode, capture, testing/synth
-src/shell/             shared UI: launcher bar, optical primitives + useOpticalScan, ScanWorkbench with 3 tabs, Optical X-Ray, audio cues, Read Aloud / Copy Quick Update, generic saved cards, app registry, Scan Any Card routing + batch, stress lab, any-script text images, overrides, storage, offline badge
-src/apps/elder-care/   layout, interpret, card settings (anchors, cues, High-Visibility, icons), i18n packs, adaptive card, presets, monthly pack,
+src/shell/             shared UI: Skeleton Home (HomeGhosts, HomeArtifacts), launcher bar, optical primitives + useOpticalScan, ScanWorkbench with 3 tabs, Optical X-Ray, audio cues, Read Aloud / Copy Quick Update, generic saved cards, app registry, Scan Any Card routing + batch, stress lab, any-script text images, overrides, storage, offline badge
+src/apps/elder-care/   CareSheet (linen, paper, numbered fields), SignOffStamp, layout, interpret, card settings (anchors, cues, High-Visibility, icons), i18n packs, adaptive card, presets, monthly pack,
                        patterns, history, sample history, Doctor Visit PDF, batch adapter, CareDashboard
-src/apps/study-bridge/ layout, answer key, grade, class sheet + CSV, due review sheet, batch adapter, StudyResults, Studio (telemetry, topic mastery)
-src/apps/seance-cipher/ layout (3 chapters + the 12-Rune Sheet), oracle (story verdicts), riteEngine (pure game), riteCamera, riteSheet + runeGlyphs, RiteGame/RitePads/RiteLive/RiteReceipt, riteAudio, theme, samples
+src/apps/study-bridge/ layout, answer key, grade, class sheet + CSV, due review sheet, batch adapter, StudyResults, Studio (gradebook paper, ink-stamp telemetry, highlighter bars)
+src/apps/seance-cipher/ layout (3 chapters + the 12-Rune Sheet), oracle (story verdicts), riteEngine (pure game), riteVoice (ghostly messages), riteCamera, riteSheet + runeGlyphs, RiteGame/RitePads/RiteLive/RiteReceipt, riteAudio, theme, samples
 src/__tests__/         integration tests: shipped app layouts against the core Layout Validator
 scripts/               gen-samples.ts, create-app.mjs, gen-icons.ts, hooks/ (Kiro hook scripts)
 mcp/                   Layout Validator MCP server (validate_card_layout, list_registered_apps)
@@ -345,7 +355,7 @@ docs/                  BUILD-YOUR-OWN-APP.md, screenshots
 | Command | What it does |
 |---|---|
 | `npm run dev` | Start the app |
-| `npm test` | 444 tests: property tests, end-to-end sample decodes, interpreters, overrides, history, CSV, layout validator, scaffolder, MCP tools, auto-routing and batch scan, 50-photo paper-size matrix, monthly pack, presets, adaptive cards, language packs and icons, stress lab, tabs, hooks, Optical X-Ray, audio and speech controls, generic batch save, Instant Demo scenarios, decode pipeline, Raw vs. Unwarped, accents and the architecture dialog, shared print and packs in every app, Skeleton Home and the launcher, Seance Cipher layout and verdicts, the X-Ray Rite engine, sheet, camera loop, audio and page, auto-route across 3 apps, frontend keyboard markup, Crew App contract, cardLanguage and bundle |
+| `npm test` | 479 tests: property tests, end-to-end sample decodes, interpreters, overrides, history, CSV, layout validator, scaffolder, MCP tools, auto-routing and batch scan, 50-photo paper-size matrix, monthly pack, presets, adaptive cards, language packs and icons, stress lab, tabs, hooks, Optical X-Ray, audio and speech controls, generic batch save, Instant Demo scenarios, decode pipeline, Raw vs. Unwarped, accents and the architecture dialog, shared print and packs in every app, Skeleton Home and the launcher, Seance Cipher layout and verdicts, the X-Ray Rite engine, sheet, camera loop, audio, ghostly messages and one-screen page, the haunted Skeleton Home, the caregiver sheet and its stamp, the gradebook, auto-route across 3 apps, frontend keyboard markup, Crew App contract, cardLanguage and bundle |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run build` | Production build plus service worker and `manifest.webmanifest` (pdf-lib loads only when printing) |
 | `npm run gen:samples` | Regenerate every app's sample photos (deterministic, byte-identical) |

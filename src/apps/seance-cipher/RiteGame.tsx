@@ -10,7 +10,6 @@ import { RiteReceipt } from "./RiteReceipt";
 import { closeRiteAudio, playRite } from "./riteAudio";
 import { CAMERA_HELP, openRiteCamera, type RiteCamera, type RiteFrame } from "./riteCamera";
 import {
-  announceEvents,
   confirmCoverage,
   createGame,
   emptyPad,
@@ -26,18 +25,19 @@ import {
   runeForKey,
   startGame,
   tick,
-  TREMBLE_DRAIN,
   type PadState,
   type PlayMode,
   type RiteState,
 } from "./riteEngine";
 import { modelWithCoverage, sheetSnapshot, type FrozenFrame } from "./riteSheet";
 import { coverageFromScan, runeKey } from "./riteVision";
+import { ghostlyStatus, TREMBLE_HINT } from "./riteVoice";
 import { RITE_COLORS, RITE_CSS } from "./theme";
 
 const SERIF = { fontFamily: '"Cormorant Garamond", "EB Garamond", Georgia, "Times New Roman", serif' };
 const btn =
   "inline-flex min-h-14 items-center justify-center gap-3 rounded-xl border-2 border-[#D4AF37] bg-[#151821] px-5 py-3 text-lg font-bold text-[#F3EBD3] hover:bg-[#1d2130] disabled:opacity-60";
+const btnSm = "inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border-2 border-[#D4AF37] bg-[#151821] px-4 py-2 text-lg font-bold text-[#F3EBD3] hover:bg-[#1d2130]";
 const primary = `${btn} shadow-[0_0_18px_-4px_#D4AF37]`;
 
 const parseMode = (v: unknown): PlayMode | null => (v === "live" || v === "digital" ? v : null);
@@ -65,7 +65,7 @@ function Hearts({ lives }: { lives: number }) {
   return (
     <span className="inline-flex gap-1" aria-hidden="true">
       {Array.from({ length: MAX_LIVES }, (_, i) => (
-        <svg key={i} viewBox="0 0 24 24" className="h-7 w-7" data-life={i < lives ? "kept" : "lost"}>
+        <svg key={i} viewBox="0 0 24 24" className="h-6 w-6" data-life={i < lives ? "kept" : "lost"}>
           <path
             d="M12 21s-7.5-4.6-9.6-9.1C1 8.8 2.7 5.5 6 5.5c2 0 3.2 1 4 2.2.8-1.2 2-2.2 4-2.2 3.3 0 5 3.3 3.6 6.4C19.5 16.4 12 21 12 21z"
             fill={i < lives ? RITE_COLORS.crimson : "none"}
@@ -80,9 +80,9 @@ function Hearts({ lives }: { lives: number }) {
 
 function Stat({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <li className="rounded-xl border border-[#D4AF37]/50 bg-[#151821] px-4 py-2">
+    <li className="rounded-xl border border-[#D4AF37]/50 bg-[#151821] px-3 py-1">
       <p className="text-base font-bold uppercase tracking-wider text-[#D4AF37]">{label}</p>
-      <p className="text-2xl font-bold tabular-nums text-[#F3EBD3]">{children}</p>
+      <p className="text-2xl font-bold leading-tight tabular-nums text-[#F3EBD3]">{children}</p>
     </li>
   );
 }
@@ -212,7 +212,7 @@ export function RiteGame() {
 
   const handle = useCallback(
     (next: RiteState) => {
-      const message = announceEvents(next.events);
+      const message = ghostlyStatus(next.events, next.wave);
       if (message) setStatus(message);
       const fresh: Burst[] = [];
       for (const e of next.events) {
@@ -349,163 +349,187 @@ export function RiteGame() {
   const playing = game.phase === "waveIntro" || game.phase === "active";
   const receipt = receiptOf(game, mode);
   const names = game.targets.map((t) => RITE_RUNE_NAMES[t.rune]).join(", ");
-  const timePct = game.waveMs > 0 ? Math.max(0, Math.min(100, (game.timeLeftMs / game.waveMs) * 100)) : 0;
   const startLabel = mode === "live" && cam.status !== "on" ? (cam.status === "starting" ? "Opening the camera..." : "Open Camera and Start the Rite") : "Start the Rite";
+  const runes = game.targets.map((t) => t.rune);
 
   return (
-    <section aria-labelledby="rite-play" className="space-y-5 rounded-2xl border border-[#D4AF37]/70 bg-[#10131a]/80 p-5 shadow-[inset_0_0_0_1px_rgba(212,175,55,0.15)]" data-game="x-ray-rite">
+    <section
+      aria-labelledby="rite-play"
+      className="flex h-[calc(100svh-var(--launcher,4.1rem)-9.5rem)] min-h-[31rem] flex-col gap-3 max-sm:h-auto rounded-2xl border border-[#D4AF37]/70 bg-[#10131a]/80 p-3 shadow-[inset_0_0_0_1px_rgba(212,175,55,0.15)] sm:p-4"
+      data-game="x-ray-rite"
+    >
       <style>{RITE_CSS}</style>
-      <h2 id="rite-play" className="text-4xl font-semibold tracking-wide text-[#D4AF37]" style={SERIF}>
+      <h2 id="rite-play" className="sr-only">
         Play the rite
       </h2>
 
-      <fieldset>
-        <legend className="text-lg font-bold">Play mode</legend>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {(
-            [
-              ["digital", "Instant digital launchpad", "No printer needed. Mouse, touch or keys 1 to 9, 0, minus, equals."],
-              ["live", "Live optical webcam", "Print the sheet below and cover its runes with a finger or token."],
-            ] as const
-          ).map(([m, label, hint]) => (
-            <label
-              key={m}
-              className={`cursor-pointer rounded-xl border-2 px-4 py-2 text-lg font-bold has-[:focus-visible]:outline-4 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-yellow-300 ${
-                mode === m ? "border-emerald-300 bg-[#10241e]" : "border-[#D4AF37]/60 bg-[#151821]"
-              }`}
-            >
-              <input type="radio" name="rite-mode" className="sr-only" checked={mode === m} onChange={() => changeMode(m)} aria-describedby={`rite-mode-${m}`} />
-              {label}
-              <span id={`rite-mode-${m}`} className="block text-base font-normal text-[#D9CFB4]">
-                {hint}
-              </span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
-
-      <ul className="grid grid-cols-2 gap-3 lg:grid-cols-5" aria-label="Rite status" data-phase={game.phase}>
-        <Stat label="Wave">{game.phase === "menu" ? "-" : game.wave}</Stat>
-        <Stat label="Lives">
-          <span className="inline-flex flex-wrap items-center gap-x-2">
-            <Hearts lives={game.lives} />
-            <span className="whitespace-nowrap">
-              {game.lives} of {MAX_LIVES}
-            </span>
-          </span>
-        </Stat>
-        <Stat label="Score">{formatScore(game.score)}</Stat>
-        <Stat label="Combo">
-          {game.combo} <span className="text-lg font-semibold text-[#D4AF37]">{formatMultiplier(game.multiplier)}</span>
-        </Stat>
-        <Stat label="Best">{formatScore(best)}</Stat>
-      </ul>
-
-      {playing && (
-        <div className="space-y-1">
-          <div
-            role="progressbar"
-            aria-label="Wave time left"
-            aria-valuemin={0}
-            aria-valuemax={Math.round(game.waveMs)}
-            aria-valuenow={Math.round(game.timeLeftMs)}
-            aria-valuetext={`${(game.timeLeftMs / 1000).toFixed(1)} seconds left`}
-            className="h-5 overflow-hidden rounded-full border border-[#D4AF37]/60 bg-[#2a2f3d]"
-          >
-            <div className="h-full" style={{ width: `${timePct}%`, background: game.trembling ? RITE_COLORS.crimson : RITE_COLORS.gold }} />
+      {/* Toolbar: mode on the left, the in-game controls on the right. */}
+      <div className="flex flex-wrap items-center gap-2">
+        <fieldset>
+          <legend className="sr-only">Play mode</legend>
+          <div className="flex flex-wrap gap-2">
+            {(
+              [
+                ["digital", "Instant digital launchpad", "No printer needed. Mouse, touch or keys 1 to 9, 0, minus, equals."],
+                ["live", "Live optical webcam", "Print the sheet and cover its runes with a finger or token."],
+              ] as const
+            ).map(([m, label, hint]) => (
+              <label
+                key={m}
+                className={`cursor-pointer rounded-xl border-2 px-4 py-2 text-lg font-bold has-[:focus-visible]:outline-4 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-yellow-300 ${
+                  mode === m ? "border-emerald-300 bg-[#10241e]" : "border-[#D4AF37]/60 bg-[#151821]"
+                }`}
+              >
+                <input type="radio" name="rite-mode" className="sr-only" checked={mode === m} onChange={() => changeMode(m)} aria-describedby={`rite-mode-${m}`} />
+                {label}
+                <span id={`rite-mode-${m}`} className="sr-only">
+                  {hint}
+                </span>
+              </label>
+            ))}
           </div>
-          <p className="text-lg tabular-nums text-[#F3EBD3]">
-            {(game.timeLeftMs / 1000).toFixed(1)} s left
-            {game.trembling && <span className="ml-3 font-bold text-[#FF6B7A]"> Trembling hand: the timer runs {Math.round((1 - TREMBLE_DRAIN) * 100)}% slower, and combo growth is locked until the rune is fully covered.</span>}
-          </p>
-        </div>
-      )}
-
-      {/* The stage. In live mode the video stays mounted so the camera survives between games. */}
-      {mode === "live" && (
-        <div hidden={game.phase === "gameOver"} className="relative overflow-hidden rounded-xl border-2 border-[#D4AF37]/70 bg-black">
-          <video ref={videoRef} className="block aspect-video w-full object-contain" aria-label="Live camera preview" muted playsInline />
-          {view && <LiveOverlay view={view} targets={game.targets} coverage={display} bursts={bursts} />}
-          {cam.status !== "on" && (
-            <div className="absolute inset-0 grid place-items-center bg-[#0B0D12]/90 p-4 text-center text-xl text-[#F3EBD3]">
-              <p>
-                {cam.status === "starting" && "Opening the camera..."}
-                {cam.status === "off" && "The camera opens when you start the rite. Your video never leaves this device."}
-                {cam.status === "error" && cam.message}
-              </p>
-            </div>
+        </fieldset>
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          {playing && (
+            <>
+              <button type="button" className={btnSm} onClick={() => setPaused((p) => !p)}>
+                {paused ? "Resume" : "Pause"}
+              </button>
+              <button type="button" className={btnSm} onClick={toMenu}>
+                Quit to Menu
+              </button>
+            </>
           )}
-          {cam.status === "on" && playing && !game.cardVisible && (
-            <p className="absolute inset-x-0 bottom-0 bg-[#0B0D12]/90 p-3 text-center text-lg font-bold text-[#FBBF24]">The sheet is out of view. The timer waits until all 4 corner squares are visible.</p>
+          {mode === "live" && cam.status === "on" && !playing && (
+            <button type="button" className={btnSm} onClick={stopCamera}>
+              Close Camera
+            </button>
           )}
-          {game.phase === "waveIntro" && <WaveBanner wave={game.wave} names={names} runes={game.targets.map((t) => t.rune)} />}
-          {paused && <PausedBanner />}
+          <button type="button" className={btnSm} aria-pressed={sound} onClick={() => setSound(!sound)}>
+            Rite sounds{" "}
+            <span className="text-[#D4AF37]">{sound ? "on" : "off"}</span>
+          </button>
         </div>
-      )}
-      {mode === "digital" && game.phase !== "gameOver" && (
-        <div className="relative">
-          <LaunchPad targets={game.targets} coverage={display} bursts={bursts} onPress={press} onRelease={release} />
-          {game.phase === "waveIntro" && <WaveBanner wave={game.wave} names={names} runes={game.targets.map((t) => t.rune)} />}
-          {paused && <PausedBanner />}
-        </div>
-      )}
+      </div>
 
-      {mode === "live" && cam.status === "error" && (
-        <button type="button" className={btn} onClick={() => changeMode("digital")}>
-          Use the digital launchpad instead
-        </button>
-      )}
-
-      <p role="status" aria-live="polite" className="min-h-7 text-xl font-bold text-[#F3EBD3]" data-testid="rite-status">
-        {status}
-      </p>
-
-      {game.phase === "menu" && (
-        <ul className="list-disc space-y-1 pl-6 text-lg text-[#D9CFB4]" aria-label="How the rite works">
-          <li>
-            Runes light up in gold. Cover one fully (a reading of {PERFECT.toFixed(2)} or more) to banish it and build your combo. Each banish pays 100 points times your multiplier, 1 plus 0.15 for every combo step.
-          </li>
-          <li>
-            A shaky half cover ({INTERFERENCE_RANGE[0].toFixed(2)} to {INTERFERENCE_RANGE[1].toFixed(2)}) is the Trembling Hand: the timer runs 40% slower, but that rune cannot grow your combo.
-          </li>
-          <li>Run out of time and you lose a life. You have 3. Every wave is faster, and later waves light up to 4 runes at once.</li>
-          <li>{mode === "digital" ? "Hold a pad, or its key, for a full cover. A quick tap reads as a trembling hand." : "Hold the printed sheet so all 4 corner squares are in view. The timer waits whenever they are not."}</li>
-        </ul>
-      )}
-
+      {/* HUD: the numbers on the left, the countdown ring on the right. */}
       <div className="flex flex-wrap items-center gap-3">
+        <ul className="flex flex-1 flex-wrap gap-2" aria-label="Rite status" data-phase={game.phase}>
+          <Stat label="Wave">{game.phase === "menu" ? "-" : game.wave}</Stat>
+          <Stat label="Lives">
+            <span className="inline-flex items-center gap-2">
+              <Hearts lives={game.lives} />
+              <span className="whitespace-nowrap">
+                {game.lives} of {MAX_LIVES}
+              </span>
+            </span>
+          </Stat>
+          <Stat label="Score">{formatScore(game.score)}</Stat>
+          <Stat label="Combo">
+            {game.combo} <span className="text-lg font-semibold text-[#D4AF37]">{formatMultiplier(game.multiplier)}</span>
+          </Stat>
+          <Stat label="Best">{formatScore(best)}</Stat>
+        </ul>
+        {playing && game.trembling && (
+          <p className="max-w-md flex-1 text-lg font-bold leading-snug text-[#FF6B7A]" data-testid="rite-tremble">
+            {TREMBLE_HINT}
+          </p>
+        )}
+        {playing && <TimerRing left={game.timeLeftMs} total={game.waveMs} trembling={game.trembling} />}
+      </div>
+
+      {/* The stage takes whatever height is left, so the game fits one screen. */}
+      <div className="relative min-h-[16rem] flex-1 max-sm:h-[30rem] max-sm:flex-none">
+        {mode === "live" && (
+          <div hidden={game.phase === "gameOver"} className="relative mx-auto h-full max-w-full overflow-hidden rounded-xl border-2 border-[#D4AF37]/70 bg-black" style={{ aspectRatio: "16 / 9" }} data-stage="live">
+            <video ref={videoRef} className="absolute inset-0 h-full w-full object-contain" aria-label="Live camera preview" muted playsInline />
+            {view && <LiveOverlay view={view} targets={game.targets} coverage={display} bursts={bursts} />}
+            {cam.status === "on" && playing && !game.cardVisible && (
+              <p className="absolute inset-x-0 bottom-0 bg-[#0B0D12]/90 p-3 text-center text-lg font-bold text-[#FBBF24]">The sheet is out of view. The timer waits until all 4 corner squares are visible.</p>
+            )}
+            {game.phase === "waveIntro" && <WaveBanner wave={game.wave} names={names} runes={runes} />}
+            {paused && <PausedBanner />}
+          </div>
+        )}
+        {mode === "digital" && game.phase !== "gameOver" && (
+          <div className="relative h-full">
+            <LaunchPad targets={game.targets} coverage={display} bursts={bursts} onPress={press} onRelease={release} />
+            {game.phase === "waveIntro" && <WaveBanner wave={game.wave} names={names} runes={runes} />}
+            {paused && <PausedBanner />}
+          </div>
+        )}
+
         {game.phase === "menu" && (
-          <button type="button" className={primary} onClick={() => void onStart()} disabled={cam.status === "starting"}>
-            {startLabel}
-          </button>
+          <div className="absolute inset-0 z-20 grid place-items-center overflow-auto rounded-xl bg-[#0B0D12]/88 p-3" data-overlay="menu">
+            <div className="max-w-3xl space-y-3 rounded-2xl border-2 border-[#D4AF37] bg-[#10131a] p-5">
+              <h3 className="text-3xl font-semibold text-[#D4AF37]" style={SERIF}>
+                How the rite works
+              </h3>
+              <ul className="list-disc space-y-1 pl-6 text-lg text-[#F3EBD3]" aria-label="How the rite works">
+                <li>
+                  Runes light up in gold. Cover one fully (a reading of {PERFECT.toFixed(2)} or more) to banish it and build your combo. Each banish pays 100 points times your multiplier, 1 plus 0.15 for every combo step.
+                </li>
+                <li>
+                  A shaky half cover ({INTERFERENCE_RANGE[0].toFixed(2)} to {INTERFERENCE_RANGE[1].toFixed(2)}) is the Trembling Hand: the timer runs 40% slower, but that rune cannot grow your combo.
+                </li>
+                <li>Run out of time and you lose a life. You have 3. Every wave is faster, and later waves light up to 4 runes at once.</li>
+                <li>{mode === "digital" ? "Hold a pad, or its key, for a full cover. A quick tap reads as a trembling hand." : "Hold the printed sheet so all 4 corner squares are in view. The timer waits whenever they are not."}</li>
+              </ul>
+              {mode === "live" && cam.status === "error" && <p className="text-lg font-bold text-[#FBBF24]">{cam.message}</p>}
+              <div className="flex flex-wrap items-center gap-3">
+                <button type="button" className={primary} onClick={() => void onStart()} disabled={cam.status === "starting"}>
+                  {startLabel}
+                </button>
+                {mode === "live" && cam.status === "error" && (
+                  <button type="button" className={btn} onClick={() => changeMode("digital")}>
+                    Use the digital launchpad instead
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
         )}
-        {playing && (
-          <>
-            <button type="button" className={btn} onClick={() => setPaused((p) => !p)}>
-              {paused ? "Resume" : "Pause"}
-            </button>
-            <button type="button" className={btn} onClick={toMenu}>
-              Quit to Menu
-            </button>
-          </>
-        )}
-        <button type="button" className={btn} aria-pressed={sound} onClick={() => setSound(!sound)}>
-          Rite sounds{" "}
-          <span className="text-[#D4AF37]">{sound ? "on" : "off"}</span>
-        </button>
-        {mode === "live" && cam.status === "on" && !playing && (
-          <button type="button" className={btn} onClick={stopCamera}>
-            Close Camera
-          </button>
+
+        {receipt && (
+          <div className="absolute inset-0 overflow-y-auto">
+            <RiteReceipt receipt={receipt} frame={frame} best={best} onPlayAgain={begin} />
+          </div>
         )}
       </div>
 
-      {receipt && <RiteReceipt receipt={receipt} frame={frame} best={best} onPlayAgain={begin} />}
+      <p role="status" aria-live="polite" className="min-h-8 text-xl font-bold text-[#F3EBD3]" data-testid="rite-status">
+        {status}
+      </p>
     </section>
   );
 }
 
-function WaveBanner({ wave, names, runes }: { wave: number; names: string; runes: number[] }) {
+/** The wave countdown as a ring: gold, crimson while a hand trembles. The number in the middle is the same time as text. */
+export function TimerRing({ left, total, trembling }: { left: number; total: number; trembling: boolean }) {
+  const r = 34;
+  const c = 2 * Math.PI * r;
+  const pct = total > 0 ? Math.max(0, Math.min(1, left / total)) : 0;
+  return (
+    <div
+      role="progressbar"
+      aria-label="Wave time left"
+      aria-valuemin={0}
+      aria-valuemax={Math.round(total)}
+      aria-valuenow={Math.round(left)}
+      aria-valuetext={`${(left / 1000).toFixed(1)} seconds left`}
+      className="relative h-20 w-20 shrink-0"
+      data-ring={trembling ? "crimson" : "gold"}
+    >
+      <svg viewBox="0 0 80 80" className="h-full w-full -rotate-90" aria-hidden="true" focusable="false">
+        <circle cx="40" cy="40" r={r} fill="none" stroke="#2a2f3d" strokeWidth="8" />
+        <circle cx="40" cy="40" r={r} fill="none" stroke={trembling ? RITE_COLORS.crimson : RITE_COLORS.gold} strokeWidth="8" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - pct)} />
+      </svg>
+      <span className="absolute inset-0 grid place-items-center text-xl font-black tabular-nums text-[#F3EBD3]">{(left / 1000).toFixed(1)}</span>
+    </div>
+  );
+}
+
+export function WaveBanner({ wave, names, runes }: { wave: number; names: string; runes: number[] }) {
   return (
     <div aria-hidden="true" data-banner="wave" className="absolute inset-0 z-10 grid place-items-center bg-[#0B0D12]/85 p-4 text-center">
       <div>
