@@ -178,3 +178,10 @@ Requirement references use the numbering in `requirements.md`.
   - [x] 26.4 Skeleton Home promise, steps, order and guide line _(R62)_
   - [x] 26.5 Tests (38 new): coach, notices, first-minute UI, home; axe-core, keyboard, reduced motion and fit re-checked in Chromium
   - [x] 26.6 Retaken screenshots, README, DETAILS
+
+- [x] 27. Phase 14: fluid signature UI (branch `feat/fluid-signature-ui`)
+  - [x] 27.1 `src/shell/motion/` (spring solver, tactile press, pointer light and tilt, reveal-once, iris transition, shared CSS) and the `App` shell: transition, sliding launcher pill _(R63, R64)_
+  - [x] 27.2 Skeleton Home: staged entrance, pointer lamp and pencil grid, leaning papers with glare, watching guide _(R65)_
+  - [x] 27.3 Elder Care, Study Bridge and X-Ray Rite signatures; scan lock-on and pipeline motion _(R66)_
+  - [x] 27.4 Tests (50 new, 2 updated): spring maths, transition, tactile, reveal-once, every stylesheet guarded by reduced motion, markup of each world
+  - [x] 27.5 Chromium: axe-core, keyboard rings, reduced motion, 390 px, transitions and every world's animations; retaken screenshots, README, DETAILS

@@ -333,3 +333,20 @@ PaperBridge turns a printed bubble card into structured data using deterministic
 ## R62. Skeleton Home explains itself above the fold (Phase 13)
 1. Skeleton Home SHALL state in one plain sentence what PaperBridge does (no account, no upload, no AI guessing, unreadable marks go to a person), show 3 numbered steps, and place the demo button before the 3 worlds so it is above the fold at 1440x900 and 1280x720. The guide's opening line SHALL tell the visitor what to do next.
 2. THE change SHALL leave `src/core/`, `src/shell/route.ts`, `src/shell/useOpticalScan.ts`, `src/shell/optical.tsx`, `src/shell/app-registry.ts` and `src/apps/seance-cipher/riteEngine.ts` unchanged, keep WCAG 2.2 AA contrast and 4 px focus rings, and use no em dashes.
+
+## R63. One spring-physics motion language (Phase 14)
+1. THE UI SHALL share one motion kit (`src/shell/motion/`) that solves spring physics and publishes CSS `linear()` easings, with no animation library. Every animation SHALL be behind `prefers-reduced-motion: no-preference`; under reduced motion there SHALL be no running animation, no page transition and no pointer-lit effect, and every final state SHALL show at once.
+2. Entrance keyframes SHALL name only a `from` state, SHALL animate only transform-family properties, opacity, clip-path or filter, and SHALL NOT flash more than once a second. The keyboard focus ring SHALL stay 4 px wide.
+
+## R64. Navigation and controls feel physical (Phase 14)
+1. Opening an app SHALL run a View Transition that opens as a circle from the pressed point (or the focused control), with one navigation producing one transition, scroll reset to the top and back and forward working. WHEN the browser lacks View Transitions THE page SHALL change at once.
+2. One yellow launcher pill SHALL glide to the open app, and the open link SHALL paint its own yellow until the pill is measured. Every button, link, tab and summary under 60000 square px SHALL press in and spring back, except pads, disabled controls and anything marked `data-no-tactile`.
+
+## R65. Skeleton Home explains and delights in 3 seconds (Phase 14)
+1. Within 3 seconds Skeleton Home SHALL show its corner markers snapping in, its headline springing in word by word, a scan line crossing the desk, the guide popping in and the 3 papers dealt (when they scroll into view). Afterwards a mouse pointer SHALL light the desk, make the papers lean and catch light, and make the guide's eyes follow it. Touch devices SHALL get none of the pointer effects.
+2. The headline text, the promise line, the 3 steps, the demo button above the fold and every existing label SHALL be unchanged.
+
+## R66. Each world has its own signature (Phase 14)
+1. Elder Care SHALL stay calm and AAA: the sheet settles, the clip swings once, the result slams in, the stamp thuds with an ink ring and keeps its tilt, and nothing loops more than 3 times.
+2. Study Bridge SHALL slam its score stamps in order and sweep its highlighter bars. X-Ray Rite SHALL add an aurora, a pointer lens on each pad, a soul and sparks on a banish, a bump on score and combo, and a vignette and shudder on a lost life. Scans SHALL show the X-Ray locking on to the 4 corners and ringing in each bubble.
+3. THE change SHALL leave `src/core/`, `src/shell/route.ts`, `src/shell/useOpticalScan.ts`, `src/shell/optical.tsx`, `src/shell/app-registry.ts` and `src/apps/seance-cipher/riteEngine.ts` unchanged, keep WCAG 2.2 AA contrast (AAA on Elder Care), and use no em dashes.
