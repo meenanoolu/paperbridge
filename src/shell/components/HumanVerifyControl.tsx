@@ -34,6 +34,7 @@ export function HumanVerifyControl({
   describe,
   theme = DEFAULT_VERIFY_THEME,
   title = "Check unclear marks on the paper",
+  hint,
 }: {
   unclear: BubbleReading[];
   overrides: ManualOverrides;
@@ -41,6 +42,8 @@ export function HumanVerifyControl({
   describe?: (b: BubbleReading) => string;
   theme?: HumanVerifyTheme;
   title?: string;
+  /** One plain sentence under the title that says what to look at and what to tap next. */
+  hint?: string;
 }) {
   const [message, setMessage] = useState("");
   const [fresh, setFresh] = useState<string | null>(null);
@@ -62,6 +65,11 @@ export function HumanVerifyControl({
       <p className="text-lg font-extrabold">
         {title} ({done} of {unclear.length} checked)
       </p>
+      {hint && (
+        <p className="text-lg" data-testid="verify-hint">
+          {hint}
+        </p>
+      )}
       <ul className="space-y-2">
         {unclear.map((b) => {
           const key = readingKey(b);

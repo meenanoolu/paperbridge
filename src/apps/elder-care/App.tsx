@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import type { AppMeta } from "../../shell/app-registry";
 import { AdaptiveCardPanel } from "../../shell/components/AdaptiveCard";
+import { FriendlyNotice, hasNoMarks, ScanProblem } from "../../shell/components/FriendlyNotice";
 import { PrintWorkspace } from "../../shell/components/PrintWorkspace";
 import {
   BatchDropzone,
@@ -135,9 +136,11 @@ export function ElderCareApp() {
         </p>
 
         <Field n={1} id="elder-card" title="This week's card">
+          <p className="text-lg text-[#134E4A]">Tap a sample card to see how a week is read, or upload a photo of your own printed card.</p>
           <ScanSources scan={scan} layouts={ELDER_LAYOUTS} samples={ELDER_SAMPLES} classes={STATIONERY} samplesLabel="Sample cards (no printer needed)" />
           {scan.state.status !== "idle" && <DecodePipeline steps={pipelineSteps(scan.state, pending)} />}
           {scan.state.status === "error" && <Callout tone="bad" title={scan.state.message} />}
+          <ScanProblem scan={scan.scan} />
           <OpticalViewToggles scan={scan} className={STATIONERY.button} />
           <OpticalXRayOverlay scan={scan} describe={describe} />
         </Field>
@@ -165,7 +168,20 @@ export function ElderCareApp() {
               </div>
             </div>
           )}
-          <HumanVerifyControl unclear={scan.unclear} overrides={scan.overrides} onSet={scan.setAnswer} describe={describe} theme={VERIFY} title="Faint marks to check on the paper" />
+          {r && hasNoMarks(r.result) && (
+            <FriendlyNotice kind="empty-card" joke="No pen marks were read on this card.">
+              <p>If the person really took nothing this week, tell their care team. If you expected marks, check that the photo shows the filled-in card and is sharp, or tap a sample card above.</p>
+            </FriendlyNotice>
+          )}
+          <HumanVerifyControl
+            unclear={scan.unclear}
+            overrides={scan.overrides}
+            onSet={scan.setAnswer}
+            describe={describe}
+            theme={VERIFY}
+            title="Faint marks to check on the paper"
+            hint="A pen mark here is too faint to trust. Look at the amber circle on the photo, then tap Mark filled or Mark blank for each one. When every mark is checked, press the HUMAN VERIFIED stamp."
+          />
           {r && report && <SignOffStamp key={r.scannedAt.toISOString()} pending={pending} when={r.scannedAt} />}
         </Field>
 
