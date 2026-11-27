@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { Fragment, useContext, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { rasterFromUrl, type RasterImage } from "../../core";
 import { APPS, DEFAULT_ACCENT, routableApps, type AppMeta } from "../app-registry";
 import { batchSummary, processBatch, type BatchItem, type BatchRun } from "../batch";
@@ -14,6 +14,8 @@ import { SkeletonGuide } from "./SkeletonGuide";
 import { Button, StatusBadge } from "./ui";
 import { ArtifactRow } from "./HomeArtifacts";
 import { DriftingGhosts, GhostGuide, HOME_CSS } from "./HomeGhosts";
+import { HEADLINE, HOME_MOTION_CSS } from "./HomeMotion";
+import { usePointerLight } from "../motion/pointer";
 import { XRayOverlay } from "./XRayOverlay";
 
 /** What every app gets from the skeleton, listed on the Scaffold Your Next App card. */
@@ -54,7 +56,7 @@ function ShowcaseCard({ shown, onOpen }: { shown: Shown; onOpen: () => void }) {
   const accent = app?.accent ?? DEFAULT_ACCENT;
   const model = shown.item.result && shown.item.layout ? xrayModel(shown.item.result, shown.item.layout) : null;
   return (
-    <li className="rounded-2xl border-2 border-slate-300 bg-white p-4" style={{ borderTopColor: accent.strong, borderTopWidth: 8 }}>
+    <li className="m-deal rounded-2xl border-2 border-slate-300 bg-white p-4" style={{ borderTopColor: accent.strong, borderTopWidth: 8, "--i": shown.item.index } as CSSProperties}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-xl font-extrabold">{shown.ref.sample.title}</p>
         {shown.item.status === "ready" ? <StatusBadge tone="good">Ready</StatusBadge> : <StatusBadge tone="warn">{`${shown.item.unclear} unclear`}</StatusBadge>}
@@ -102,7 +104,7 @@ export const HOME_STEPS = ["Print a card", "Mark it with a pen", "Snap one photo
 
 /** Focus rings on the dark stage are yellow (`.on-dark`), 4 px, from index.css. */
 const CTA =
-  "inline-flex min-h-14 items-center justify-center gap-3 rounded-full bg-amber-400 px-7 py-3 text-lg font-black text-slate-950 shadow-[0_10px_40px_-8px_rgba(251,191,36,0.7)] transition-[background-color] hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-70";
+  "home-cta inline-flex min-h-14 items-center justify-center gap-3 rounded-full bg-amber-400 px-7 py-3 text-lg font-black text-slate-950 shadow-[0_10px_40px_-8px_rgba(251,191,36,0.7)] transition-[background-color] hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-70";
 const GHOST =
   "inline-flex min-h-14 items-center justify-center gap-2 rounded-full border-2 border-slate-300 bg-transparent px-7 py-3 text-lg font-bold text-white transition-[background-color,border-color] hover:border-white hover:bg-white/10";
 
@@ -201,9 +203,9 @@ const STAGE: CSSProperties = {
 };
 
 /** A printed-card corner marker, as decoration on the stage corners. */
-function Fiducial({ className }: { className: string }) {
+function Fiducial({ className, i }: { className: string; i: number }) {
   return (
-    <span aria-hidden className={`pointer-events-none absolute hidden h-9 w-9 border-[5px] border-slate-500/50 sm:block ${className}`}>
+    <span aria-hidden className={`m-slam pointer-events-none absolute hidden h-9 w-9 border-[5px] border-slate-500/50 sm:block ${className}`} style={{ "--i": i } as CSSProperties}>
       <span className="absolute inset-[6px] bg-slate-500/50" />
     </span>
   );
@@ -214,30 +216,41 @@ export function SkeletonHome() {
   const onRoute = useContext(RouteContext);
   const [hint, setHint] = useState<string | null>(null);
   const ids = APPS.map((a) => a.id);
+  const stage = useRef<HTMLElement>(null);
+  usePointerLight(stage);
   return (
     <>
-      <style>{HOME_CSS}</style>
-      <section aria-labelledby="home-title" className="on-dark relative min-h-[calc(100svh-4.5rem)] overflow-hidden text-white" style={STAGE}>
+      <style>{HOME_CSS + HOME_MOTION_CSS}</style>
+      <section ref={stage} aria-labelledby="home-title" className="on-dark relative min-h-[calc(100svh-4.5rem)] overflow-hidden text-white" style={STAGE}>
+        <div aria-hidden="true" className="lit-layer home-lamp" />
+        <div aria-hidden="true" className="lit-layer home-grid-glow" />
+        <div aria-hidden="true" className="home-scan" />
         <DriftingGhosts />
-        <Fiducial className="left-5 top-5" />
-        <Fiducial className="right-5 top-5" />
-        <Fiducial className="bottom-5 left-5" />
-        <Fiducial className="bottom-5 right-5" />
+        <Fiducial className="left-5 top-5" i={0} />
+        <Fiducial className="right-5 top-5" i={1} />
+        <Fiducial className="bottom-5 left-5" i={2} />
+        <Fiducial className="bottom-5 right-5" i={3} />
         <div className="relative z-10 mx-auto flex max-w-7xl flex-col gap-6 px-4 py-10 sm:px-8 sm:py-10">
           <header className="mx-auto max-w-4xl text-center">
-            <p className="text-base font-bold uppercase tracking-[0.3em] text-amber-200">PaperBridge Skeleton</p>
-            <h1 id="home-title" className="mt-3 text-5xl font-black leading-[1.05] tracking-tight text-white sm:text-6xl">
-              One Optical Engine. Three Distinct Worlds.
+            <p className="m-rise text-base font-bold uppercase tracking-[0.3em] text-amber-200">PaperBridge Skeleton</p>
+            <h1 id="home-title" className="mt-3 text-5xl font-black leading-[1.05] tracking-tight text-white sm:text-6xl" style={{ "--d": "120ms" } as CSSProperties}>
+              {HEADLINE.map((w, i) => (
+                <Fragment key={w.t}>
+                  <span className={`m-word ${"accent" in w ? "text-amber-200 [font-family:ui-serif,Georgia,'Times_New_Roman',serif] italic" : ""}`} style={{ "--i": i } as CSSProperties}>
+                    {w.t}
+                  </span>{" "}
+                </Fragment>
+              ))}
             </h1>
-            <p className="mx-auto mt-5 max-w-2xl text-xl leading-relaxed text-slate-300">
+            <p className="m-rise mx-auto mt-5 max-w-2xl text-xl leading-relaxed text-slate-300" style={{ "--d": "620ms" } as CSSProperties}>
               Offline-first deterministic paper scanning across healthcare, classrooms, and physical puzzle games.
             </p>
-            <p className="mx-auto mt-4 max-w-3xl text-xl font-semibold leading-snug text-white" data-testid="home-promise">
+            <p className="m-rise mx-auto mt-4 max-w-3xl text-xl font-semibold leading-snug text-white" data-testid="home-promise" style={{ "--d": "760ms" } as CSSProperties}>
               Fill in a paper card with a pen, take one photo, and PaperBridge reads it on your own device. No account, no upload, no AI guessing: anything it cannot read goes to a person.
             </p>
             <ol aria-label="How PaperBridge works" className="mt-4 flex flex-wrap justify-center gap-2" data-steps="home">
               {HOME_STEPS.map((st, i) => (
-                <li key={st} className="inline-flex items-center gap-2 rounded-full border border-amber-200/60 bg-slate-900/70 px-4 py-1 text-lg font-bold text-amber-100">
+                <li key={st} className="m-pop inline-flex items-center gap-2 rounded-full border border-amber-200/60 bg-slate-900/70 px-4 py-1 text-lg font-bold text-amber-100" style={{ "--i": i, "--d": "900ms" } as CSSProperties}>
                   <span aria-hidden="true" className="grid h-7 w-7 place-items-center rounded-full bg-amber-300 text-base font-black text-slate-950">
                     {i + 1}
                   </span>

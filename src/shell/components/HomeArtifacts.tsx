@@ -1,4 +1,6 @@
-import type { CSSProperties } from "react";
+import { useRef, type CSSProperties } from "react";
+import { useRevealOnce } from "../motion/inview";
+import { useTilt } from "../motion/pointer";
 
 /**
  * The 3 apps on Skeleton Home as physical objects on a dark drafting table: a metal-clipped
@@ -114,8 +116,8 @@ export function ClipboardArtifact({ a, onHint }: { a: Artifact } & Handlers) {
     <li
       data-world={a.id}
       data-artifact="clipboard"
-      className={`home-artifact group relative lg:mt-10 ${ring}`}
-      style={{ "--tilt": "-1.5deg" } as CSSProperties}
+      className={`home-artifact m-deal group relative lg:mt-10 ${ring}`}
+      style={{ "--tilt": "-1.5deg", "--i": 0, "--d": "150ms" } as CSSProperties}
       onMouseEnter={() => onHint(a.id)}
       onMouseLeave={() => onHint(null)}
       onFocus={() => onHint(a.id)}
@@ -136,7 +138,7 @@ export function ClipboardArtifact({ a, onHint }: { a: Artifact } & Handlers) {
             Verified
           </span>
           <h2 className="text-3xl font-bold tracking-tight [font-family:Georgia,'Times_New_Roman',serif]">
-            <a href={`#${a.id}`} aria-describedby={`world-${a.id}-desc`} className={stretched}>
+            <a href={`#${a.id}`} aria-describedby={`world-${a.id}-desc`} className={stretched} data-no-tactile>
               {a.title}
             </a>
           </h2>
@@ -149,6 +151,7 @@ export function ClipboardArtifact({ a, onHint }: { a: Artifact } & Handlers) {
           </span>
         </div>
       </div>
+      <span aria-hidden="true" className="tilt-glare rounded-[12px]" />
     </li>
   );
 }
@@ -183,8 +186,8 @@ export function CompositionArtifact({ a, onHint }: { a: Artifact } & Handlers) {
     <li
       data-world={a.id}
       data-artifact="composition"
-      className={`home-artifact group relative lg:mt-2 ${ring}`}
-      style={{ "--tilt": "1.2deg" } as CSSProperties}
+      className={`home-artifact m-deal group relative lg:mt-2 ${ring}`}
+      style={{ "--tilt": "1.2deg", "--i": 1, "--d": "150ms" } as CSSProperties}
       onMouseEnter={() => onHint(a.id)}
       onMouseLeave={() => onHint(null)}
       onFocus={() => onHint(a.id)}
@@ -208,7 +211,7 @@ export function CompositionArtifact({ a, onHint }: { a: Artifact } & Handlers) {
           A+
         </span>
         <h2 className="text-3xl font-black tracking-tight text-slate-950 [font-family:'Segoe_Print','Bradley_Hand','Comic_Sans_MS',cursive]">
-          <a href={`#${a.id}`} aria-describedby={`world-${a.id}-desc`} className={stretched}>
+          <a href={`#${a.id}`} aria-describedby={`world-${a.id}-desc`} className={stretched} data-no-tactile>
             {a.title}
           </a>
         </h2>
@@ -220,6 +223,7 @@ export function CompositionArtifact({ a, onHint }: { a: Artifact } & Handlers) {
           <Arrow className="h-5 w-5 transition-transform motion-safe:group-hover:translate-x-1" />
         </span>
       </div>
+      <span aria-hidden="true" className="tilt-glare rounded-[12px]" />
     </li>
   );
 }
@@ -271,8 +275,8 @@ export function OracleArtifact({ a, onHint }: { a: Artifact } & Handlers) {
     <li
       data-world={a.id}
       data-artifact="oracle"
-      className={`home-artifact group relative lg:mt-16 ${ring}`}
-      style={{ "--tilt": "-1deg" } as CSSProperties}
+      className={`home-artifact m-deal group relative lg:mt-16 ${ring}`}
+      style={{ "--tilt": "-1deg", "--i": 2, "--d": "150ms" } as CSSProperties}
       onMouseEnter={() => onHint(a.id)}
       onMouseLeave={() => onHint(null)}
       onFocus={() => onHint(a.id)}
@@ -289,7 +293,7 @@ export function OracleArtifact({ a, onHint }: { a: Artifact } & Handlers) {
         <div className="text-center">
           {a.eyebrow && <p className="text-base font-bold uppercase tracking-[0.3em] text-[#D4AF37]">{a.eyebrow}</p>}
           <h2 className="text-4xl font-semibold tracking-wide text-[#F3EBD3] [font-family:Georgia,'Times_New_Roman',serif]">
-            <a href={`#${a.id}`} aria-describedby={`world-${a.id}-desc`} className={stretched}>
+            <a href={`#${a.id}`} aria-describedby={`world-${a.id}-desc`} className={stretched} data-no-tactile>
               {a.title}
             </a>
           </h2>
@@ -302,6 +306,7 @@ export function OracleArtifact({ a, onHint }: { a: Artifact } & Handlers) {
           <Arrow className="h-5 w-5 transition-transform motion-safe:group-hover:translate-x-1" />
         </span>
       </div>
+      <span aria-hidden="true" className="tilt-glare rounded-[12px]" />
     </li>
   );
 }
@@ -309,8 +314,11 @@ export function OracleArtifact({ a, onHint }: { a: Artifact } & Handlers) {
 /** The artifacts in a deliberately uneven row: different widths, heights and tilts. `ids` limits it to the registered apps. */
 export function ArtifactRow({ onHint, ids }: { onHint: (id: string | null) => void; ids: readonly string[] }) {
   const [elder, study, rite] = ARTIFACTS;
+  const row = useRef<HTMLUListElement>(null);
+  useTilt(row, { selector: ".home-artifact", maxDeg: 6 });
+  useRevealOnce(row);
   return (
-    <ul className="grid items-start gap-10 lg:grid-cols-[1.12fr_1fr_0.94fr] lg:gap-8" aria-label="Apps on the skeleton">
+    <ul ref={row} className="grid items-start gap-10 lg:grid-cols-[1.12fr_1fr_0.94fr] lg:gap-8" aria-label="Apps on the skeleton">
       {ids.includes(elder.id) && <ClipboardArtifact a={elder} onHint={onHint} />}
       {ids.includes(study.id) && <CompositionArtifact a={study} onHint={onHint} />}
       {ids.includes(rite.id) && <OracleArtifact a={rite} onHint={onHint} />}
